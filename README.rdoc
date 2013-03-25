@@ -1,18 +1,47 @@
 = rosh
 
-* FIX (url)
+* https://github.com/turboladen/rosh
 
 == DESCRIPTION:
 
-FIX (describe your package)
+Just a silly little pet project... A shell that feels like BASH, but returns
+Ruby objects.
+
 
 == FEATURES/PROBLEMS:
 
-* FIX (list of features or problems)
+* commands:
+    * cat
+    * cd
+    * cp
+    * history
+    * ls
+    * ps
+* Command completion
+* Command history
 
 == SYNOPSIS:
 
-  FIX (code sample of usage)
+  $ rosh
+  [/Users/Steveloveless/Development/projects/rosh]$ ls
+    ["./atlassian-ide-plugin.xml", ./bin, "./Gemfile", "./Gemfile.lock", "./History.rdoc", ./lib, "./Rakefile", "./README.rdoc", "./rosh.gemspec", ./spec]
+  [/Users/Steveloveless/Development/projects/rosh]$ result = ls
+    ["./atlassian-ide-plugin.xml", ./bin, "./Gemfile", "./Gemfile.lock", "./History.rdoc", ./lib, "./Rakefile", "./README.rdoc", "./rosh.gemspec", ./spec]
+  [/Users/Steveloveless/Development/projects/rosh]$ result.first.class
+    Rosh::File
+  [/Users/Steveloveless/Development/projects/rosh]$ result.first.mode
+    100644
+  [/Users/Steveloveless/Development/projects/rosh]$ result.first.content
+    <atlassian-ide-plugin>
+    <project-configuration>
+      <servers />
+    </project-configuration>
+  </atlassian-ide-plugin>
+  [/Users/Steveloveless/Development/projects/rosh]$ some_var = "hi"
+    hi
+  [/Users/Steveloveless/Development/projects/rosh]$ some_var
+    hi
+
 
 == REQUIREMENTS:
 
@@ -20,16 +49,10 @@ FIX (describe your package)
 
 == INSTALL:
 
-* FIX (sudo gem install, anything else)
+* gem install rosh
 
-== DEVELOPERS:
+(Not yet released)
 
-After checking out the source, run:
-
-  $ rake newb
-
-This task will install any missing dependencies, run the tests/specs,
-and generate the RDoc.
 
 == LICENSE:
 
