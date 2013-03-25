@@ -45,13 +45,13 @@ class Rosh
             puts "Running Ruby: #{argv}"
             @shell.ruby(argv)
           rescue StandardError => ex
-            puts ex.message.red
-            puts @shell.history.last.yellow
+            puts "  #{ex.message}".red
+            puts "  #{@shell.history.last}".yellow
             false
           end
         end
 
-        puts result.to_s.light_blue
+        puts "  #{result}".light_blue
 
         result
       end
