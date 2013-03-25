@@ -1,0 +1,23 @@
+# rcov generated
+coverage
+
+# rdoc generated
+rdoc
+
+# yard generated
+doc
+.yardoc
+
+# bundler
+.bundle
+
+# packaging
+pkg
+rosh*.gem
+
+# Rubinius
+.rbx
+
+# IDE files
+.idea/
+atlassian-ide-plugin.xml
