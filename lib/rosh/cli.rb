@@ -1,15 +1,18 @@
+require 'etc'
 require 'ripper'
 require 'readline'
-require 'colorize'
 require 'log_switch'
 require 'irb/completion'
+require 'colorize'
 require_relative 'shell'
+
 
 
 class Rosh
   class CLI
-    include Readline
     extend LogSwitch
+
+    include Readline
     include LogSwitch::Mixin
 
     Readline.completion_append_character = ' '
@@ -22,9 +25,20 @@ class Rosh
       @shell = Rosh::Shell.new
     end
 
+    def new_prompt(pwd)
+      prompt = '['.blue
+      prompt << "#{Etc.getlogin}@#{pwd.split('/').last}".red
+      prompt << ']'.blue
+      prompt << '$'.red
+      prompt << ' '
+
+      prompt
+    end
+
     def run
+
       loop do
-        prompt = "[#{@shell.pwd}]$".red.on_white + ' '
+        prompt = new_prompt(@shell.pwd)
         Readline.completion_proc = -> string { @shell.command_abbrevs[string] }
         argv = readline(prompt, true)
 
