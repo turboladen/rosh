@@ -72,7 +72,7 @@ class Rosh
           end
         end
 
-        if [Array, Hash].include? result.class
+        if [Array, Hash, Struct].any? { |klass| result.kind_of? klass }
           ap result
         else
           puts "  #{result}".light_blue
