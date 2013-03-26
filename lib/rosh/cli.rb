@@ -49,6 +49,7 @@ class Rosh
         ruby_prompt(argv) if sexp.nil?
 
         command, args = argv.split ' ', 2
+        next if command.nil?
 
         log "command: #{command}"
         log "args: #{args}"
