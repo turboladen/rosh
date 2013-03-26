@@ -4,9 +4,10 @@ PATH
     rosh (0.1.0)
       colorize
       log_switch
+      sys-proctable
 
 GEM
-  remote: http://rubygems.org/
+  remote: https://rubygems.org/
   specs:
     colorize (0.5.8)
     diff-lcs (1.2.1)
@@ -25,6 +26,7 @@ GEM
       multi_json (~> 1.0)
       simplecov-html (~> 0.7.1)
     simplecov-html (0.7.1)
+    sys-proctable (0.9.3)
     yard (0.8.5.2)
 
 PLATFORMS

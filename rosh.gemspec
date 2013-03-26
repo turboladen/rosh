@@ -16,8 +16,9 @@ Gem::Specification.new do |s|
   s.test_files = Dir.glob("{spec}/**/*")
   s.require_paths = ["lib"]
 
-  s.add_dependency 'log_switch'
   s.add_dependency 'colorize'
+  s.add_dependency 'log_switch'
+  s.add_dependency 'sys-proctable'
 
   s.add_development_dependency 'bundler', '>= 1.0.1'
   s.add_development_dependency 'rake'

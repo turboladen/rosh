@@ -1,4 +1,3 @@
-require 'shellwords'
 require 'readline'
 require 'colorize'
 require 'log_switch'

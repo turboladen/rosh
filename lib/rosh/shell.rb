@@ -2,6 +2,7 @@ require 'open-uri'
 require 'abbrev'
 require 'fileutils'
 require 'log_switch'
+require 'sys/proctable'
 require_relative 'file'
 require_relative 'directory'
 
@@ -64,16 +65,13 @@ class Rosh
       end
     end
 
-    def ps(options=nil)
-      cmd = 'ps '
-      cmd << options if options
+    # @return [Hash<Fixnum,Struct::ProcTableStruct>]
+    def ps
+      Sys::ProcTable.ps.inject({}) do |result, p|
+        result[p.pid] = p
 
-      result = `#{cmd.strip}`
-      result.each_line do |line|
-        puts line
+        result
       end
-
-      result
     end
 
     def cd(path)

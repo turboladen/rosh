@@ -45,7 +45,10 @@ Ruby objects.
 
 == REQUIREMENTS:
 
-* FIX (list of requirements)
+* RubyGems
+  * colorize
+  * log_switch
+  * sys-proctable
 
 == INSTALL:
 
