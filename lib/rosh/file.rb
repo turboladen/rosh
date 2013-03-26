@@ -19,10 +19,6 @@ class Rosh
       @content = new_content
     end
 
-    def to_s
-      @path
-    end
-
     def exists?
       ::File.exist?(@path)
     end

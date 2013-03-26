@@ -43,29 +43,28 @@ class Rosh
       hash
     end
 
-    # @return [Array<Rosh::File,Rosh::Directory>] Each file or directory in the
+    # @return [Hash{String => Rosh::File,Rosh::Directory}] Each file or directory in the
     #   given path.
     def ls(path='')
       path.strip!
-      log "path: '#{path}'"
       path = path.empty? ? './*' : path
       path = path.end_with?('/*') ? path : "#{path}/*"
-      log "path: '#{path}'"
 
+      r = {}
       Dir[path].map do |file|
-        puts file
-
         new_file = if ::File.directory? file
           Rosh::Directory.new file
         elsif ::File.file? file
           Rosh::File.new(file)
         end
 
-        new_file
+        r[file] = new_file
       end
+
+      r
     end
 
-    # @return [Hash<Fixnum,Struct::ProcTableStruct>]
+    # @return [Hash{Fixnum => Struct::ProcTableStruct}]
     def ps
       Sys::ProcTable.ps.inject({}) do |result, p|
         result[p.pid] = p
@@ -83,14 +82,16 @@ class Rosh
       end
     end
 
+    # @params [String] file The filename.
+    # @return [String] The file contents.
     def cat(file)
       begin
-        open(file).each_line do |line|
-          puts line
-        end
+        contents = open(file).read
       rescue Errno::ENOENT, Errno::EISDIR => ex
         puts ex.message.red
       end
+
+      contents
     end
 
     def history

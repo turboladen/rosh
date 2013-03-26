@@ -12,7 +12,6 @@ class Rosh
 
     Readline.completion_append_character = ' '
 
-
     def self.run
       new.run
     end
