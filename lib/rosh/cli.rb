@@ -1,11 +1,13 @@
 require 'etc'
 require 'ripper'
 require 'readline'
-require 'log_switch'
 require 'irb/completion'
-require 'colorize'
-require_relative 'shell'
 
+require 'awesome_print'
+require 'log_switch'
+require 'colorize'
+
+require_relative 'shell'
 
 
 class Rosh
@@ -18,6 +20,7 @@ class Rosh
     Readline.completion_append_character = ' '
 
     def self.run
+      ::Rosh::CLI.log = false
       new.run
     end
 
@@ -68,7 +71,11 @@ class Rosh
           end
         end
 
-        puts "  #{result}".light_blue
+        if [Array, Hash].include? result.class
+          ap result
+        else
+          puts "  #{result}".light_blue
+        end
 
         result
       end

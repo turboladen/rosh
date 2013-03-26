@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
   s.test_files = Dir.glob("{spec}/**/*")
   s.require_paths = ["lib"]
 
+  s.add_dependency 'awesome_print'
   s.add_dependency 'colorize'
   s.add_dependency 'log_switch'
   s.add_dependency 'sys-proctable'
