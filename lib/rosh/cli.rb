@@ -39,38 +39,18 @@ class Rosh
     end
 
     def run
-
       loop do
         prompt = new_prompt(@shell.pwd)
         Readline.completion_proc = -> string { @shell.command_abbrevs[string] }
         argv = readline(prompt, true)
+        next if argv.empty?
 
-        sexp = Ripper.sexp argv
-        ruby_prompt(argv) if sexp.nil?
-
+        multiline_ruby?(argv)
         command, args = argv.split ' ', 2
-        next if command.nil?
 
         log "command: #{command}"
         log "args: #{args}"
-        log "shell methods: #{@shell.commands}"
-
-        result = if @shell.commands.include? command.to_sym
-          if args && !args.empty?
-            @shell.send(command.to_sym, args)
-          else
-            @shell.send(command.to_sym)
-          end
-        else
-          begin
-            puts "Running Ruby: #{argv}"
-            @shell.ruby(argv)
-          rescue StandardError => ex
-            puts "  #{ex.message}".red
-            puts "  #{@shell.history.last}".yellow
-            false
-          end
-        end
+        result = @shell.process_command(command, args)
 
         if [Array, Hash, Struct].any? { |klass| result.kind_of? klass }
           ap result
@@ -80,6 +60,11 @@ class Rosh
 
         result
       end
+    end
+
+    def multiline_ruby?(argv)
+      sexp = Ripper.sexp argv
+      ruby_prompt(argv) if sexp.nil?
     end
 
     def ruby_prompt(first_statement)

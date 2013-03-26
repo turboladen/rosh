@@ -31,6 +31,25 @@ class Rosh
       hash
     end
 
+    def process_command(command, args)
+      if commands.include? command.to_sym
+        if args && !args.empty?
+          self.send(command.to_sym, args)
+        else
+          self.send(command.to_sym)
+        end
+      else
+        begin
+          puts "Running Ruby: #{argv}"
+          self.ruby(argv)
+        rescue StandardError => ex
+          puts "  #{ex.message}".red
+          puts "  #{self..history.last}".yellow
+          false
+        end
+      end
+    end
+
     def reload!
       load __FILE__
       load ::File.expand_path(::File.dirname(__FILE__) + '/commands.rb')
