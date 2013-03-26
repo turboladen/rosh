@@ -1,6 +1,8 @@
+require 'ripper'
 require 'readline'
 require 'colorize'
 require 'log_switch'
+require 'irb/completion'
 require_relative 'shell'
 
 
@@ -23,8 +25,11 @@ class Rosh
     def run
       loop do
         prompt = "[#{@shell.pwd}]$".red.on_white + ' '
-        argv = readline(prompt, true)
         Readline.completion_proc = -> string { @shell.command_abbrevs[string] }
+        argv = readline(prompt, true)
+
+        sexp = Ripper.sexp argv
+        ruby_prompt(argv) if sexp.nil?
 
         command, args = argv.split ' ', 2
 
@@ -52,6 +57,18 @@ class Rosh
         puts "  #{result}".light_blue
 
         result
+      end
+    end
+
+    def ruby_prompt(first_statement)
+      i = 1
+      code = first_statement
+
+      loop do
+        prompt = "ruby[#{i}] >>".red + ' '
+        code << "\n" + readline(prompt, false)
+        break if Ripper.sexp code
+        i += 1
       end
     end
   end
