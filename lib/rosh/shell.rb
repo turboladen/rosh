@@ -62,6 +62,8 @@ class Rosh
         [1, ex]
       end
 
+      @last_exception = result if result.kind_of? Exception
+
       result
     end
 
