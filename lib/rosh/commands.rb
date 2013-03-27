@@ -10,23 +10,27 @@ class Rosh
 
     # @return [Hash{String => Rosh::File,Rosh::Directory}] Each file or directory in the
     #   given path.
-    def ls(path='')
+    def ls(path=Dir.pwd)
       path.strip!
-      path = path.empty? ? './*' : path
-      path = path.end_with?('/*') ? path : "#{path}/*"
-
+      status = 0
       r = {}
-      Dir[path].map do |file|
-        new_file = if ::File.directory? file
-          Rosh::Directory.new file
-        elsif ::File.file? file
-          Rosh::File.new(file)
-        end
 
-        r[file] = new_file
+      begin
+        Dir.entries(path).each do |entry|
+          new_entry = if ::File.directory? "#{path}/#{entry}"
+            Rosh::Directory.new "#{path}/#{entry}"
+          elsif ::File.file? "#{path}/#{entry}"
+            Rosh::File.new "#{path}/#{entry}"
+          end
+
+          r[entry] = new_entry
+        end
+      rescue Errno::ENOENT => ex
+        status = 1
+        r = { path => ex }
       end
 
-      [0, r]
+      [status, r]
     end
 
     def pwd
