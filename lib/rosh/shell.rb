@@ -11,6 +11,7 @@ class Rosh
 
     def initialize
       @pwd = Dir.pwd
+      @exit_status = nil
     end
 
     # @return [Array<Symbol>] List of commands supported by the shell.
@@ -31,8 +32,17 @@ class Rosh
       hash
     end
 
-    def process_command(command, args)
-      if commands.include? command.to_sym
+    def process_command(argv)
+      command, args = argv.split ' ', 2
+
+      log "command: #{command}"
+      log "args: #{args}"
+      if command == '_?'
+        puts _?
+        return
+      end
+
+      @exit_status, result = if commands.include? command.to_sym
         if args && !args.empty?
           self.send(command.to_sym, args)
         else
@@ -43,16 +53,22 @@ class Rosh
           puts "Running Ruby: #{argv}"
           self.ruby(argv)
         rescue StandardError => ex
-          puts "  #{ex.message}".red
-          puts "  #{self..history.last}".yellow
-          false
+          [1, ex.message.red]
         end
       end
+
+      result
+    end
+
+    def _?
+      @exit_status
     end
 
     def reload!
       load __FILE__
       load ::File.expand_path(::File.dirname(__FILE__) + '/commands.rb')
+
+      [0, true]
     end
 
     private

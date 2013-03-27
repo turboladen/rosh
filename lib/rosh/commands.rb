@@ -26,28 +26,31 @@ class Rosh
         r[file] = new_file
       end
 
-      r
+      [0, r]
     end
 
     def pwd
-      @pwd
+      [0, @pwd]
     end
 
     # @return [Hash{Fixnum => Struct::ProcTableStruct}]
     def ps
-      Sys::ProcTable.ps.inject({}) do |result, p|
+      r = Sys::ProcTable.ps.inject({}) do |result, p|
         result[p.pid] = p
 
         result
       end
+
+      [0, r]
     end
 
     def cd(path)
       begin
         FileUtils.chdir path
         @pwd = FileUtils.pwd
+        [0, @pwd]
       rescue Errno::ENOENT => ex
-        puts ex.message.red
+        [1, ex.message.red]
       end
     end
 
@@ -56,11 +59,10 @@ class Rosh
     def cat(file)
       begin
         contents = open(file).read
+        [0, contents]
       rescue Errno::ENOENT, Errno::EISDIR => ex
-        puts ex.message.red
+        [1, ex.message.red]
       end
-
-      contents
     end
 
     def cp(source, destination)
@@ -68,9 +70,13 @@ class Rosh
     end
 
     def history
+      lines = []
+
       Readline::HISTORY.to_a.each_with_index do |cmd, i|
-        puts "  #{i}  #{cmd}"
+        lines << "  #{i}  #{cmd}"
       end
+
+      [0, lines]
     end
 
     def ruby(code)

@@ -30,7 +30,7 @@ class Rosh
 
     def new_prompt(pwd)
       prompt = '['.blue
-      prompt << "#{Etc.getlogin}@#{pwd.split('/').last}".red
+      prompt << "#{Etc.getlogin}@#{pwd[1].split('/').last}".red
       prompt << ']'.blue
       prompt << '$'.red
       prompt << ' '
@@ -45,26 +45,26 @@ class Rosh
         argv = readline(prompt, true)
         next if argv.empty?
 
-        multiline_ruby?(argv)
-        command, args = argv.split ' ', 2
-
-        log "command: #{command}"
-        log "args: #{args}"
-        result = @shell.process_command(command, args)
-
-        if [Array, Hash, Struct].any? { |klass| result.kind_of? klass }
-          ap result
-        else
-          puts "  #{result}".light_blue
-        end
+        argv = ruby_prompt(argv) if multiline_ruby?(argv)
+        result = @shell.process_command(argv)
+        print_result(result)
 
         result
       end
     end
 
+    def print_result(result)
+      if [Array, Hash, Struct].any? { |klass| result.kind_of? klass }
+        ap result
+      else
+        puts "  #{result}".light_blue
+      end
+    end
+
     def multiline_ruby?(argv)
       sexp = Ripper.sexp argv
-      ruby_prompt(argv) if sexp.nil?
+
+      sexp.nil?
     end
 
     def ruby_prompt(first_statement)
@@ -77,6 +77,8 @@ class Rosh
         break if Ripper.sexp code
         i += 1
       end
+
+      code
     end
   end
 end
