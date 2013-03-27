@@ -1,4 +1,3 @@
-require 'abbrev'
 require 'log_switch'
 require_relative 'commands'
 
@@ -20,17 +19,15 @@ class Rosh
       Rosh::Commands.instance_methods
     end
 
-    # @return [Hash] Abbreviations to use for command completion.
-    def command_abbrevs
-      hash = commands.map(&:to_s).abbrev
-
+    # @return [Proc] The lambda to use for Readline's #completion_proc.
+    def completions
+      cmds = commands.map(&:to_s)
       children = Dir["#{@pwd}/*"].map { |f| ::File.basename(f) }
-      hash.merge! children.abbrev
-
       all_children = children.map { |c| Dir["#{c}/**/*"] }.flatten
-      hash.merge! all_children.abbrev
 
-      hash
+      abbrevs = (cmds + children + all_children)
+
+      lambda { |string| abbrevs.grep ( /^#{Regexp.escape(string)}/ ) }
     end
 
     def process_command(argv)

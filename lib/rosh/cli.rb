@@ -41,7 +41,7 @@ class Rosh
     def run
       loop do
         prompt = new_prompt(@shell.pwd)
-        Readline.completion_proc = -> string { @shell.command_abbrevs[string] }
+        Readline.completion_proc = @shell.completions
         argv = readline(prompt, true)
         next if argv.empty?
 
