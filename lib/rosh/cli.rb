@@ -57,7 +57,11 @@ class Rosh
       if [Array, Hash, Struct].any? { |klass| result.kind_of? klass }
         ap result
       else
-        $stdout.puts "  #{result}".light_blue
+        if @shell._? && !@shell._?.zero?
+          $stderr.puts "  #{result}".light_red
+        else
+          $stdout.puts "  #{result}".light_blue
+        end
       end
     end
 
