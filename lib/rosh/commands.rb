@@ -84,8 +84,17 @@ class Rosh
     end
 
     def ruby(code)
-      code.gsub!(/puts/, '$stdout.puts')
-      get_binding.eval(code)
+      status = 0
+
+      result = begin
+        code.gsub!(/puts/, '$stdout.puts')
+        get_binding.eval(code)
+      rescue => ex
+        status = 1
+        ex
+      end
+
+      [status, result]
     end
   end
 end

@@ -12,6 +12,7 @@ class Rosh
     def initialize
       @pwd = Dir.pwd
       @exit_status = nil
+      @last_exception = nil
     end
 
     # @return [Array<Symbol>] List of commands supported by the shell.
@@ -37,24 +38,28 @@ class Rosh
 
       log "command: #{command}"
       log "args: #{args}"
-      if command == '_?'
-        $stdout.puts _?
-        return
+
+      case command
+      when '_?'
+        return _?
+      when '_!'
+        return _!
       end
 
-      @exit_status, result = if commands.include? command.to_sym
-        if args && !args.empty?
-          self.send(command.to_sym, args)
+      @exit_status, result = begin
+        if commands.include? command.to_sym
+          if args && !args.empty?
+            self.send(command.to_sym, args)
+          else
+            self.send(command.to_sym)
+          end
         else
-          self.send(command.to_sym)
-        end
-      else
-        begin
           $stdout.puts "Running Ruby: #{argv}"
           self.ruby(argv)
-        rescue StandardError => ex
-          [1, ex.message.red]
         end
+      rescue StandardError => ex
+        @last_exception = ex
+        [1, ex]
       end
 
       result
@@ -62,6 +67,10 @@ class Rosh
 
     def _?
       @exit_status
+    end
+
+    def _!
+      @last_exception
     end
 
     def reload!
