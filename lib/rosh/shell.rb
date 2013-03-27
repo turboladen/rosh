@@ -38,7 +38,7 @@ class Rosh
       log "command: #{command}"
       log "args: #{args}"
       if command == '_?'
-        puts _?
+        $stdout.puts _?
         return
       end
 
@@ -50,7 +50,7 @@ class Rosh
         end
       else
         begin
-          puts "Running Ruby: #{argv}"
+          $stdout.puts "Running Ruby: #{argv}"
           self.ruby(argv)
         rescue StandardError => ex
           [1, ex.message.red]
