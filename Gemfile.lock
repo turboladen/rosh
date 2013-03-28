@@ -4,17 +4,30 @@ PATH
     rosh (0.1.0)
       awesome_print
       colorize
+      highline
       log_switch
+      net-ssh-simple
       sys-proctable
 
 GEM
   remote: https://rubygems.org/
   specs:
     awesome_print (1.1.0)
+    blockenspiel (0.4.5)
     colorize (0.5.8)
     diff-lcs (1.2.1)
+    hashie (2.0.3)
+    highline (1.6.16)
     log_switch (0.4.0)
     multi_json (1.7.2)
+    net-scp (1.0.4)
+      net-ssh (>= 1.99.1)
+    net-ssh (2.2.2)
+    net-ssh-simple (1.5.8)
+      blockenspiel (~> 0.4.3)
+      hashie (>= 1.1.0)
+      net-scp (~> 1.0.4)
+      net-ssh (~> 2.2.1)
     rake (10.0.3)
     rspec (2.13.0)
       rspec-core (~> 2.13.0)

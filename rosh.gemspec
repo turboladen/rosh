@@ -18,7 +18,9 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'awesome_print'
   s.add_dependency 'colorize'
+  s.add_dependency 'highline'
   s.add_dependency 'log_switch'
+  s.add_dependency 'net-ssh-simple'
   s.add_dependency 'sys-proctable'
 
   s.add_development_dependency 'bundler', '>= 1.0.1'
