@@ -5,17 +5,16 @@ class Rosh
   module BuiltinCommands
     class Cd < Command
       def initialize(path=Dir.home)
-        description = "Changing current working directory to #{path}"
-        super(description)
-
         @path = path == '..' ? '../' : path.strip
+        description = "Changing current working directory to #{@path}"
+        super(description)
       end
 
       def execute
         puts "path: #{@path}"
 
         begin
-          Dir.chdir path
+          Dir.chdir @path
           [0, Dir.pwd]
         rescue Errno::ENOENT => ex
           [1, ex]

@@ -4,6 +4,7 @@ require_relative 'ssh'
 #require_relative 'actions'
 require_relative 'builtin_commands'
 require_relative 'environment'
+require_relative 'shell'
 require_relative 'host/environment'
 require_relative 'host/file_system'
 #require_relative 'part'
@@ -48,6 +49,10 @@ class Rosh
       @ssh ||= Rosh::SSH.new(@hostname, @ssh_options)
     end
 
+    def shell
+      @shell ||= Rosh::Shell.new(@ssh)
+    end
+
     def env
       @env ||= Rosh::Host::Environment.new(@hostname)
     end
@@ -56,6 +61,7 @@ class Rosh
       @fs ||= Rosh::Host::FileSystem.new(@hostname)
     end
 
+=begin
     def action!
       log 'Starting action...'
       log "...hostname: #{@hostname}"
@@ -138,5 +144,6 @@ class Rosh
 
       abort(error.red)
     end
+=end
   end
 end

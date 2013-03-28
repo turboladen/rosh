@@ -1,36 +1,37 @@
 require 'etc'
 require 'ripper'
 require 'readline'
-require 'irb/completion'
+require 'shellwords'
 
 require 'awesome_print'
 require 'log_switch'
 require 'colorize'
 
-require_relative 'shell'
+require_relative 'host'
 
 
 class Rosh
   class CLI
     extend LogSwitch
 
+    include Shellwords
     include Readline
     include LogSwitch::Mixin
 
     Readline.completion_append_character = ' '
 
     def self.run
-      ::Rosh::CLI.log = false
+      #::Rosh::CLI.log = false
       new.run
     end
 
     def initialize
-      @shell = Rosh::Shell.new
+      @host = Rosh::Host.new 'localhost'
     end
 
     def new_prompt(pwd)
       prompt = '['.blue
-      prompt << "#{Etc.getlogin}@#{pwd[1].split('/').last}".red
+      prompt << "#{Etc.getlogin}@#{@host.hostname}:#{pwd[1].split('/').last}".red
       prompt << ']'.blue
       prompt << '$'.red
       prompt << ' '
@@ -40,13 +41,18 @@ class Rosh
 
     def run
       loop do
-        prompt = new_prompt(@shell.pwd)
-        Readline.completion_proc = @shell.completions
+        prompt = new_prompt(@host.shell.pwd.execute)
+        Readline.completion_proc = @host.shell.completions
         argv = readline(prompt, true)
         next if argv.empty?
 
-        argv = ruby_prompt(argv) if multiline_ruby?(argv)
-        result = @shell.process_command(argv)
+        result = if argv.match /\s*ch\s/
+          ch(argv.shellsplit.last)
+        else
+          argv = ruby_prompt(argv) if multiline_ruby?(argv)
+          @host.shell.process_command(argv.shellsplit)
+        end
+
         print_result(result)
 
         result
@@ -57,7 +63,7 @@ class Rosh
       if [Array, Hash, Struct].any? { |klass| result.kind_of? klass }
         ap result
       else
-        if @shell._? && !@shell._?.zero?
+        if @host.shell._? && !@host.shell._?.zero?
           $stderr.puts "  #{result}".light_red
         else
           $stdout.puts "  #{result}".light_blue
@@ -67,8 +73,20 @@ class Rosh
 
     def multiline_ruby?(argv)
       sexp = Ripper.sexp argv
+      lex = Ripper.lex argv
 
       sexp.nil?
+    end
+
+    def ch(hostname)
+      new_host = Rosh::Environment.hosts[hostname.strip]
+
+      if new_host.nil?
+        "No host defined for #{hostname}"
+        @host.shell.instance_variable_set(:@exist_status, 1)
+      else
+        @host = new_host
+      end
     end
 
     def ruby_prompt(first_statement)
