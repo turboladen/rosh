@@ -18,7 +18,7 @@ class Rosh
   class Shell
     extend LogSwitch
     include LogSwitch::Mixin
-    include Rosh::BuiltinCommands
+    #include Rosh::BuiltinCommands
 
     @@builtin_commands = []
 
@@ -34,7 +34,7 @@ class Rosh
         elsif options.empty?
           klass.new(*args, &block).execute(@context).call(@ssh)
         elsif args.empty?
-          klass.new(*args, &block).execute(@context).call(@ssh)
+          klass.new(**options, &block).execute(@context).call(@ssh)
         else
           klass.new(*args, **options, &block).execute(@context).call(@ssh)
         end
@@ -42,8 +42,6 @@ class Rosh
     end
 
     def initialize(ssh)
-      @exit_status = nil
-      @last_exception = nil
       @commands = []
       @ssh = ssh
       @context = @ssh.hostname == 'localhost' ? :local : :remote
@@ -51,7 +49,6 @@ class Rosh
 
     # @return [Array<Symbol>] List of builtin_commands supported by the shell.
     def builtin_commands
-      #Rosh::BuiltinCommands.instance_methods
       @@builtin_commands
     end
 
@@ -84,60 +81,12 @@ class Rosh
       end
     end
 
-    def execute(argv)
-      command = argv.shift
-      args = argv
-
-      log "command: #{command}"
-      log "command class: #{command.class}"
-
-      case command
-      when '_?'
-        return _?
-      when '_!'
-        return _!
-      end
-
-      result = begin
-        if builtin_commands.include? command.to_sym
-          if !args.empty?
-            self.send(command.to_sym, *args)
-          else
-            self.send(command.to_sym)
-          end
-        else
-          $stdout.puts "Running Ruby: #{argv}"
-          self.ruby(argv)
-        end
-      rescue StandardError => ex
-        @last_exception = ex
-        ::Rosh::CommandResult.new(ex, 1)
-      end
-
-      @exit_status = result.status
-      @ssh_result = result.ssh_result
-
-      #@last_exception = result if result.kind_of? Exception
-
-      result
-    end
-
-    def _?
-      @exit_status
-    end
-
-    def _!
-      @last_exception
-    end
-
     def reload!
       load __FILE__
       load ::File.expand_path(::File.dirname(__FILE__) + '/builtin_commands.rb')
 
       [0, true]
     end
-
-    private
 
     def get_binding
       @binding ||= binding
