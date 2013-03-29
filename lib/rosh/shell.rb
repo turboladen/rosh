@@ -20,8 +20,13 @@ class Rosh
     include LogSwitch::Mixin
     include Rosh::BuiltinCommands
 
+    @@builtin_commands = []
+
     Rosh::BuiltinCommands.constants.each do |action_class|
-      define_method(action_class.to_s.downcase.to_sym) do |*args, **options, &block|
+      meth_name = action_class.to_s.downcase.to_sym
+      @@builtin_commands << meth_name
+
+      define_method(meth_name) do |*args, **options, &block|
         klass = Rosh::BuiltinCommands.const_get(action_class)
 
         if options.empty? && args.empty?
@@ -46,11 +51,11 @@ class Rosh
 
     # @return [Array<Symbol>] List of builtin_commands supported by the shell.
     def builtin_commands
-      Rosh::BuiltinCommands.instance_methods
+      #Rosh::BuiltinCommands.instance_methods
+      @@builtin_commands
     end
 
     # @return [Proc] The lambda to use for Readline's #completion_proc.
-=begin
     def completions
       cmds = builtin_commands.map(&:to_s)
       children = Dir["#{Dir.pwd}/*"].map { |f| ::File.basename(f) }
@@ -60,7 +65,6 @@ class Rosh
 
       lambda { |string| abbrevs.grep ( /^#{Regexp.escape(string)}/ ) }
     end
-=end
 
     def add_command(cmd)
       #argv = cmd.shellwords

@@ -31,7 +31,7 @@ class Rosh
 
     def new_prompt(pwd)
       prompt = '['.blue
-      prompt << "#{Etc.getlogin}@#{@host.hostname}:#{pwd.stdout.split('/').last}".red
+      prompt << "#{Etc.getlogin}@#{@host.hostname}:#{pwd.ruby_object.split('/').last}".red
       prompt << ']'.blue
       prompt << '$'.red
       prompt << ' '
@@ -41,10 +41,11 @@ class Rosh
 
     def run
       loop do
-        context = @host.hostname == 'localhost' ? :local : :remote
-        prompt = new_prompt(@host.shell.pwd.execute(context).call(@host.ssh))
+        prompt = new_prompt(@host.shell.pwd)
         Readline.completion_proc = @host.shell.completions
+
         argv = readline(prompt, true)
+
         next if argv.empty?
 
         result = if argv.match /\s*ch\s/
@@ -61,15 +62,13 @@ class Rosh
     end
 
     def print_result(result)
-      ap result.inspect
-
-      if [Array, Hash, Struct].any? { |klass| result.kind_of? klass }
-        ap result
+      if [Array, Hash, Struct].any? { |klass| result.ruby_object.kind_of? klass }
+        ap result.ruby_object
       else
         if @host.shell._? && !@host.shell._?.zero?
-          $stderr.puts "  #{result.stdout}".light_red
+          $stderr.puts "  #{result.ruby_object}".light_red
         else
-          $stdout.puts "  #{result.stderr}".light_blue
+          $stdout.puts "  #{result.ruby_object}".light_blue
         end
       end
     end
