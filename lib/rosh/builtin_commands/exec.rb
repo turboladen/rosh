@@ -14,17 +14,21 @@ class Rosh
 
       def local_execute
         proc do
-          pid, stdin, stdout, stderr = Open4.popen4(@cmd)
-          _, status = Process.waitpid2 pid
+          begin
+            pid, stdin, stdout, stderr = Open4.popen4(@cmd)
+            _, status = Process.waitpid2 pid
 
-          puts "pid: #{pid}"
-          puts "status: #{status.inspect}"
-          puts "exitstatus: #{status.exitstatus}"
+            puts "pid: #{pid}"
+            puts "status: #{status.inspect}"
+            puts "exitstatus: #{status.exitstatus}"
 
-          if status.exitstatus == 0
-            ::Rosh::CommandResult.new(stdout.read, 0)
-          else
-            ::Rosh::CommandResult.new(stderr.read, status.exitstatus)
+            if status.exitstatus == 0
+              ::Rosh::CommandResult.new(stdout.read, 0)
+            else
+              ::Rosh::CommandResult.new(stderr.read, status.exitstatus)
+            end
+          rescue => ex
+            ::Rosh::CommandResult.new(ex, 1)
           end
         end
       end
