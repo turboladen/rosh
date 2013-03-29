@@ -141,22 +141,21 @@ class Rosh
       @ssh_block ||= lambda do |event, _, data|
         case event
         when :start
-          #log 'Starting SSH command...'
-          puts 'Starting SSH command...'
+          $stdout.log 'Starting SSH command...'
         when :stdout
           (@buffer ||= '') << data
 
           while line = @buffer.slice!(/(.*)\r?\n/)
-            print line.light_blue
+            $stdout.print line.light_blue
           end
         when :stderr
           (@buffer ||= '') << data
 
           while line = @buffer.slice!(/(.*)\r?\n/)
-            print line.light_red
+            $stderr.print line.light_red
           end
         when :finish
-          puts 'Finished executing command.'.light_blue
+          $stdout.puts 'Finished executing command.'.light_blue
         end
       end
     end
