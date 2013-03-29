@@ -9,9 +9,9 @@ describe 'Runs cd command in different variations' do
 
   describe 'cd' do
     context 'no args' do
-      context 'execute' do
+      context 'call directly' do
         before do
-          @result = subject.shell.execute(%w[cd])
+          @result = subject.shell.cd
         end
 
         it 'returns a Rosh::CommandResult' do
@@ -27,9 +27,9 @@ describe 'Runs cd command in different variations' do
         end
       end
 
-      context 'call directly' do
+      context 'exec' do
         before do
-          @result = subject.shell.cd
+          @result = subject.shell.exec('cd')
         end
 
         it 'returns a Rosh::CommandResult' do
@@ -40,7 +40,7 @@ describe 'Runs cd command in different variations' do
           @result.status.should be_zero
         end
 
-        it 'has ruby_object that is a Hash of the current directory' do
+        it 'has ruby_object that is an empty string' do
           @result.ruby_object.should == Dir.home
         end
       end
