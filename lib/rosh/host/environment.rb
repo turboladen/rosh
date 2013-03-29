@@ -69,10 +69,10 @@ class Rosh
       # @return [String] The shell type.
       def shell
         command = 'echo $SHELL'
-        #result = Rosh::Environment.hosts[@ssh_hostname].ssh.run(command)
         result = Rosh::Environment.hosts[@ssh_hostname].shell.exec(command)
-        log "STDOUT: #{result.ruby_object.stdout}"
-        %r[(?<shell>[a-z]+)$] =~ result..ssh_result.stdout
+        stdout = result.ssh_result.stdout
+        log "STDOUT: #{stdout}"
+        %r[(?<shell>[a-z]+)$] =~ stdout
 
         shell.to_sym
       end
