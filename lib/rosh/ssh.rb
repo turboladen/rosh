@@ -23,7 +23,7 @@ class Rosh
   #   ssh.run 'touch /var/www/pretty_things/current/tmp/restart.txt'
   #
   class SSH
-    #include LogSwitch::Mixin
+    include LogSwitch::Mixin
 
     DEFAULT_USER = Etc.getlogin
     DEFAULT_TIMEOUT = 1800
@@ -49,8 +49,7 @@ class Rosh
     #
     # @param [Hash] options Net::SSH::Simple options.
     def set(**options)
-      #log "Adding options: #{options}"
-      puts "Adding options: #{options}"
+      log "Adding options: #{options}"
       @options.merge! options
     end
 
@@ -58,8 +57,7 @@ class Rosh
     #
     # @param [Array<Symbol>] option_keys One or many SSH options to unset.
     def unset(*option_keys)
-      #log "Unsetting options: #{option_keys}"
-      puts "Unsetting options: #{option_keys}"
+      log "Unsetting options: #{option_keys}"
 
       option_keys.each do |key|
         @options.delete(key)
@@ -82,8 +80,7 @@ class Rosh
         output = @ssh.ssh(@hostname, command, new_options, &ssh_block)
         Rosh::CommandResult.new(nil, output.exit_code, output)
       rescue Net::SSH::Simple::Error => ex
-        #log "Net::SSH::Simple::Error: #{ex}"
-        puts "Net::SSH::Simple::Error: #{ex}"
+        log "Net::SSH::Simple::Error: #{ex}"
 
         if ex.wrapped.class == Net::SSH::AuthenticationFailed
           if @retried
@@ -116,13 +113,12 @@ class Rosh
         output = @ssh.scp_ul(@hostname, source, destination, new_options)
         Rosh::CommandResult.new(nil, output.exit_code, output)
       rescue Net::SSH::Simple::Error => ex
-        #log "Net::SSH::Simple::Error: #{ex}"
-        puts "Net::SSH::Simple::Error: #{ex}"
+        log "Net::SSH::Simple::Error: #{ex}"
         Rosh::CommandResult.new(nil, 1, ex)
       end
 
-      #log "SCP upload result: #{result.inspect}"
-      puts "SCP upload result: #{result.inspect}"
+      log "SCP upload result: #{result.inspect}"
+
       result
     end
 
