@@ -17,7 +17,7 @@ class Rosh
         result = @ssh.run(cmd)
         @result_block.call(result)
 
-        result.exit_code.zero?
+        result.ssh_result.exit_code.zero?
       end
 
       def directory?
@@ -25,7 +25,7 @@ class Rosh
         result = @ssh.run(cmd)
         @result_block.call(result)
 
-        result.exit_code.zero?
+        result.ssh_result.exit_code.zero?
       end
 
       def link?
@@ -33,7 +33,7 @@ class Rosh
         result = @ssh.run(cmd)
         @result_block.call(result)
 
-        result.exit_code.zero?
+        result.ssh_result.exit_code.zero?
       end
 
       def exists?
@@ -41,7 +41,7 @@ class Rosh
         result = @ssh.run(cmd)
         @result_block.call(result)
 
-        result.exit_code.zero?
+        result.ssh_result.exit_code.zero?
       end
 
       def read
@@ -49,7 +49,7 @@ class Rosh
         result = @ssh.run(cmd)
         @result_block.call(result)
 
-        result.stdout
+        result.ssh_result.stdout
       end
 
       def write(new_content)
@@ -60,7 +60,7 @@ class Rosh
         result = @ssh.upload(source_file.path, @path)
 
         @result_block.call(result)
-        result.stderr.empty?
+        result.ssh_result.stderr.empty?
       ensure
         source_file.close
         source_file.unlink
@@ -69,18 +69,18 @@ class Rosh
       def owner
         cmd = "ls -l #{@path} | awk '{print $3}'"
         result = @ssh.run(cmd)
-        @result_block.call(result)
+        @result_block.call(result.ssh_result)
 
-        result.stdout.strip
+        result.ssh_result.stdout.strip
       end
 
       def owner=(new_owner, sudo: false)
         cmd = "chown #{new_owner} #{@path}"
         cmd.insert(0, 'sudo ') if sudo
         result = @ssh.run(cmd)
-        @result_block.call(result)
+        @result_block.call(result.ssh_result)
 
-        result.exit_code.zero?
+        result.ssh_result.exit_code.zero?
       end
 
       def group
@@ -88,7 +88,7 @@ class Rosh
         result = @ssh.run(cmd)
         @result_block.call(result)
 
-        result.stdout.strip
+        result.ssh_result.stdout.strip
       end
     end
   end
