@@ -23,6 +23,7 @@ class Rosh
   #   ssh.run 'touch /var/www/pretty_things/current/tmp/restart.txt'
   #
   class SSH
+    extend LogSwitch
     include LogSwitch::Mixin
 
     DEFAULT_USER = Etc.getlogin
@@ -157,3 +158,5 @@ class Rosh
     end
   end
 end
+
+Rosh::SSH.log_class_name = true
