@@ -8,9 +8,9 @@ describe 'Runs cat command in different variations' do
   end
 
   describe 'cp' do
-    context 'execute' do
+    context 'exec' do
       before do
-        @result = subject.shell.execute(%W[cat #{__FILE__}])
+        @result = subject.shell.exec(%[cat #{__FILE__}])
       end
 
       it 'returns a Rosh::CommandResult' do
