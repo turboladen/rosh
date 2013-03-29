@@ -23,7 +23,7 @@ class Rosh
         define_method(meth) do
           command = 'uname -a'
           result = Rosh::Environment.hosts[@ssh_hostname].ssh.run(command)
-          extract_os(result)
+          extract_os(result.ssh_result)
 
           instance_variable_get("@#{meth}".to_sym)
         end
@@ -39,7 +39,7 @@ class Rosh
           end
 
           result = Rosh::Environment.hosts[@ssh_hostname].ssh.run(command)
-          extract_distribution(result)
+          extract_distribution(result.ssh_result)
 
           instance_variable_get("@#{meth}".to_sym)
         end
@@ -69,9 +69,10 @@ class Rosh
       # @return [String] The shell type.
       def shell
         command = 'echo $SHELL'
-        result = Rosh::Environment.hosts[@ssh_hostname].ssh.run(command)
-        log "STDOUT: #{result.stdout}"
-        %r[(?<shell>[a-z]+)$] =~ result.stdout
+        #result = Rosh::Environment.hosts[@ssh_hostname].ssh.run(command)
+        result = Rosh::Environment.hosts[@ssh_hostname].shell.exec(command)
+        log "STDOUT: #{result.ruby_object.stdout}"
+        %r[(?<shell>[a-z]+)$] =~ result..ssh_result.stdout
 
         shell.to_sym
       end
@@ -120,3 +121,5 @@ class Rosh
     end
   end
 end
+
+Rosh::Host::Environment.log_class_name = true

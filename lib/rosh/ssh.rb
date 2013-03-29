@@ -1,7 +1,6 @@
 require 'etc'
 require 'net/ssh/simple'
 require 'highline/import'
-#require_relative 'logger'
 require 'log_switch'
 require_relative 'command_result'
 
@@ -74,13 +73,14 @@ class Rosh
     #   with options set in #initialize and via #set.  Can be used to override
     #   those settings as well.
     # @return [Rosh::CommandResult]
+    # @todo Attempt to coerce the output of the SSH command into a Ruby object.
     def run(command, **ssh_options)
       new_options = @options.merge(ssh_options)
       @retried = false
 
-      result = begin
+      begin
         output = @ssh.ssh(@hostname, command, new_options, &ssh_block)
-        Rosh::CommandResult.new(output)
+        Rosh::CommandResult.new(nil, output.exit_code, output)
       rescue Net::SSH::Simple::Error => ex
         #log "Net::SSH::Simple::Error: #{ex}"
         puts "Net::SSH::Simple::Error: #{ex}"
@@ -96,12 +96,8 @@ class Rosh
           end
         end
 
-        Rosh::CommandResult.new(ex, :failed)
+        Rosh::CommandResult.new(nil, 1, ex)
       end
-
-      #log "SSH run result: #{result}"
-      puts "SSH run result: #{result}"
-      result
     end
 
     # Uploads +source+ file to the +destination+ path on the remote box.
