@@ -1,7 +1,5 @@
 require 'log_switch'
-require_relative 'environment'
 require_relative 'command_result'
-#require_relative 'builtin_commands'
 Dir[File.dirname(__FILE__) + '/builtin_commands/*.rb'].each(&method(:require))
 
 
@@ -18,7 +16,6 @@ class Rosh
   class Shell
     extend LogSwitch
     include LogSwitch::Mixin
-    #include Rosh::BuiltinCommands
 
     @@builtin_commands = []
 
@@ -28,6 +25,13 @@ class Rosh
 
       define_method(meth_name) do |*args, **options, &block|
         klass = Rosh::BuiltinCommands.const_get(action_class)
+        Rosh::Environment.command_history << {
+          meth_name => {
+            args: args,
+            options: options,
+            block: block
+          }
+        }
 
         if options.empty? && args.empty?
           klass.new(&block).execute(@context).call(@ssh)
@@ -93,3 +97,5 @@ class Rosh
     end
   end
 end
+
+Rosh::Shell.log_class_name = true

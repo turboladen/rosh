@@ -1,0 +1,10 @@
+---
+:hosts:
+  localhost:
+    :user: Steveloveless
+
+  sloveless-lin.pelco.org:
+    :user: sloveless
+
+:aliases:
+  ls: ls -la

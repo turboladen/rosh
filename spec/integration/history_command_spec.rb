@@ -8,21 +8,21 @@ describe 'Runs history command in different variations' do
   end
 
   describe 'history' do
-    context 'execute' do
+    context 'exec' do
       before do
-        @result = subject.shell.execute(%w[history])
+        @result = subject.shell.exec('history')
       end
 
       it 'returns a Rosh::CommandResult' do
         @result.should be_a Rosh::CommandResult
       end
 
-      it 'returns 0 exit code' do
-        @result.status.should be_zero
+      it 'returns 1 exit code' do
+        @result.status.should == 1
       end
 
-      it 'has ruby_object that is a Hash of the current directory' do
-        @result.ruby_object.should == ['  0  history']
+      it 'has ruby_object that is the exception that occurred when running the command' do
+        @result.ruby_object.should be_a_kind_of Exception
       end
     end
 
@@ -40,7 +40,13 @@ describe 'Runs history command in different variations' do
       end
 
       it 'has ruby_object that is a Hash of the current directory' do
-        @result.ruby_object.should == ['  0  history']
+        @result.ruby_object.should include 0 => {
+          history: {
+            args: [],
+            options: {},
+            block: nil
+          }
+        }
       end
     end
 

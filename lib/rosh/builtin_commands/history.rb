@@ -1,5 +1,5 @@
-require 'readline'
 require_relative '../command'
+require_relative '../environment'
 
 
 class Rosh
@@ -13,18 +13,18 @@ class Rosh
 
       def local_execute
         proc do
-          lines = []
+          lines = {}
 
-          Readline::HISTORY.to_a.each_with_index do |cmd, i|
-            lines << "  #{i}  #{cmd}"
+          Rosh::Environment.command_history.each_with_index do |cmd, i|
+            lines[i] = cmd
           end
 
-          ::Rosh::CommandResult.new(lines, 0)
+          ::Rosh::CommandResult.new(Hash[lines.sort], 0)
         end
       end
 
       def remote_execute
-        proc do
+        proc do |ssh|
           ssh.run 'history'
         end
       end

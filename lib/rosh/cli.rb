@@ -32,10 +32,10 @@ class Rosh
 
     def run
       loop do
-        prompt = new_prompt(@host.shell.pwd)
+        prompt = new_prompt(Dir.pwd)
         Readline.completion_proc = @host.shell.completions
 
-        argv = readline(prompt, true)
+        argv = readline(prompt, false)
         next if argv.empty?
         log "Just read input: #{argv}"
 
@@ -104,7 +104,7 @@ class Rosh
 
     def new_prompt(pwd)
       prompt = '['.blue
-      prompt << "#{Etc.getlogin}@#{@host.hostname}:#{pwd.ruby_object.split('/').last}".red
+      prompt << "#{Etc.getlogin}@#{@host.hostname}:#{pwd.split('/').last}".red
       prompt << ']'.blue
       prompt << '$'.red
       prompt << ' '
