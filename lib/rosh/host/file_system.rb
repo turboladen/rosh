@@ -1,12 +1,9 @@
-#require_relative '../builtin_commands'
 require_relative 'file_system_object'
 
 
 class Rosh
   class Host
     class FileSystem
-      #include Rosh::BuiltinCommands
-
       attr_reader :ssh_hostname
       attr_reader :last_command_result
 
