@@ -12,9 +12,9 @@ describe 'Runs cp command in different variations' do
       Tempfile.new('rosh_cp_spec')
     end
 
-    context 'execute' do
+    context 'exec' do
       before do
-        @result = subject.shell.execute(%W[cp #{__FILE__} #{tmpfile.path}])
+        @result = subject.shell.exec(%[cp #{__FILE__} #{tmpfile.path}])
       end
 
       it 'returns a Rosh::CommandResult' do
@@ -26,7 +26,7 @@ describe 'Runs cp command in different variations' do
       end
 
       it 'has ruby_object that is a Hash of the current directory' do
-        @result.ruby_object.should == true
+        @result.ruby_object.should == ''
       end
     end
 
