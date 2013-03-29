@@ -114,11 +114,11 @@ class Rosh
       result = begin
         #output = @ssh.scp_ul(@hostname, source, destination, new_options, &ssh_block)
         output = @ssh.scp_ul(@hostname, source, destination, new_options)
-        Rosh::CommandResult.new(output)
+        Rosh::CommandResult.new(nil, output.exit_code, output)
       rescue Net::SSH::Simple::Error => ex
         #log "Net::SSH::Simple::Error: #{ex}"
         puts "Net::SSH::Simple::Error: #{ex}"
-        Rosh::CommandResult.new(ex, :failed)
+        Rosh::CommandResult.new(nil, 1, ex)
       end
 
       #log "SCP upload result: #{result.inspect}"
