@@ -80,7 +80,7 @@ class Rosh
 
       # Extracts info about the operating system based on uname info.
       #
-      # @param [Rosh::ActionResult] result The result of the `uname -a`
+      # @param [Rosh::CommandResult] result The result of the `uname -a`
       #   command.
       def extract_os(result)
         log "STDOUT: #{result.stdout}"
@@ -102,7 +102,7 @@ class Rosh
 
       # Extracts info about the distribution.
       #
-      # @param [Rosh::ActionResult] result
+      # @param [Rosh::CommandResult] result
       # @todo What if @operating_system isn't set yet?
       def extract_distribution(result)
         log "STDOUT: #{result.stdout}"

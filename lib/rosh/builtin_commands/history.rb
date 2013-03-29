@@ -1,3 +1,7 @@
+require 'readline'
+require_relative '../command'
+
+
 class Rosh
   module BuiltinCommands
     class History < Command
@@ -7,14 +11,22 @@ class Rosh
         super(DESCRIPTION)
       end
 
-      def execute
-        lines = []
+      def local_execute
+        proc do
+          lines = []
 
-        Readline::HISTORY.to_a.each_with_index do |cmd, i|
-          lines << "  #{i}  #{cmd}"
+          Readline::HISTORY.to_a.each_with_index do |cmd, i|
+            lines << "  #{i}  #{cmd}"
+          end
+
+          ::Rosh::CommandResult.new(lines, 0)
         end
+      end
 
-        [0, lines]
+      def remote_execute
+        proc do
+          ssh.run 'history'
+        end
       end
     end
   end

@@ -3,7 +3,7 @@ require 'net/ssh/simple'
 require 'highline/import'
 #require_relative 'logger'
 require 'log_switch'
-require_relative 'action_result'
+require_relative 'command_result'
 
 
 class Rosh
@@ -32,6 +32,8 @@ class Rosh
     # @return [Hash] The Net::SSH::Simple options that were during initialization
     #   and via #set.
     attr_reader :options
+
+    attr_reader :hostname
 
     # @param [String] hostname Name or IP of the host to SSH in to.
     # @param [Hash] options Net::SSH::Simple options.
@@ -71,14 +73,14 @@ class Rosh
     # @param [Hash] ssh_options Net::SSH::Simple options.  These will get merged
     #   with options set in #initialize and via #set.  Can be used to override
     #   those settings as well.
-    # @return [Rosh::ActionResult]
+    # @return [Rosh::CommandResult]
     def run(command, **ssh_options)
       new_options = @options.merge(ssh_options)
       @retried = false
 
       result = begin
         output = @ssh.ssh(@hostname, command, new_options, &ssh_block)
-        Rosh::ActionResult.new(output)
+        Rosh::CommandResult.new(output)
       rescue Net::SSH::Simple::Error => ex
         #log "Net::SSH::Simple::Error: #{ex}"
         puts "Net::SSH::Simple::Error: #{ex}"
@@ -94,7 +96,7 @@ class Rosh
           end
         end
 
-        Rosh::ActionResult.new(ex, :failed)
+        Rosh::CommandResult.new(ex, :failed)
       end
 
       #log "SSH run result: #{result}"
@@ -109,18 +111,18 @@ class Rosh
     # @param [Hash] ssh_options Net::SSH::Simple options.  These will get merged
     #   with options set in #initialize and via #set.  Can be used to override
     #   those settings as well.
-    # @return [Rosh::ActionResult]
+    # @return [Rosh::CommandResult]
     def upload(source, destination, **ssh_options)
       new_options = @options.merge(ssh_options)
 
       result = begin
         #output = @ssh.scp_ul(@hostname, source, destination, new_options, &ssh_block)
         output = @ssh.scp_ul(@hostname, source, destination, new_options)
-        Rosh::ActionResult.new(output)
+        Rosh::CommandResult.new(output)
       rescue Net::SSH::Simple::Error => ex
         #log "Net::SSH::Simple::Error: #{ex}"
         puts "Net::SSH::Simple::Error: #{ex}"
-        Rosh::ActionResult.new(ex, :failed)
+        Rosh::CommandResult.new(ex, :failed)
       end
 
       #log "SCP upload result: #{result.inspect}"

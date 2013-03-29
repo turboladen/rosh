@@ -1,3 +1,6 @@
+require_relative '../command'
+
+
 class Rosh
   module BuiltinCommands
     class Pwd < Command
@@ -7,10 +10,16 @@ class Rosh
         super(DESCRIPTION)
       end
 
-      # @return [Hash{String => Rosh::File,Rosh::Directory}] Each file or directory in the
-      #   given path.
-      def execute
-        [0, Dir.pwd]
+      def local_execute
+        proc do
+          ::Rosh::CommandResult.new(Dir.pwd, 0)
+        end
+      end
+
+      def remote_execute
+        proc do |ssh|
+          ssh.run 'pwd'
+        end
       end
     end
   end

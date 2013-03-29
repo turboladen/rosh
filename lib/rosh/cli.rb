@@ -31,7 +31,7 @@ class Rosh
 
     def new_prompt(pwd)
       prompt = '['.blue
-      prompt << "#{Etc.getlogin}@#{@host.hostname}:#{pwd[1].split('/').last}".red
+      prompt << "#{Etc.getlogin}@#{@host.hostname}:#{pwd.stdout.split('/').last}".red
       prompt << ']'.blue
       prompt << '$'.red
       prompt << ' '
@@ -41,7 +41,8 @@ class Rosh
 
     def run
       loop do
-        prompt = new_prompt(@host.shell.pwd.execute)
+        context = @host.hostname == 'localhost' ? :local : :remote
+        prompt = new_prompt(@host.shell.pwd.execute(context).call(@host.ssh))
         Readline.completion_proc = @host.shell.completions
         argv = readline(prompt, true)
         next if argv.empty?
@@ -50,7 +51,7 @@ class Rosh
           ch(argv.shellsplit.last)
         else
           argv = ruby_prompt(argv) if multiline_ruby?(argv)
-          @host.shell.process_command(argv.shellsplit)
+          @host.shell.execute(argv.shellsplit)
         end
 
         print_result(result)
@@ -60,13 +61,15 @@ class Rosh
     end
 
     def print_result(result)
+      ap result.inspect
+
       if [Array, Hash, Struct].any? { |klass| result.kind_of? klass }
         ap result
       else
         if @host.shell._? && !@host.shell._?.zero?
-          $stderr.puts "  #{result}".light_red
+          $stderr.puts "  #{result.stdout}".light_red
         else
-          $stdout.puts "  #{result}".light_blue
+          $stdout.puts "  #{result.stderr}".light_blue
         end
       end
     end
@@ -82,9 +85,10 @@ class Rosh
       new_host = Rosh::Environment.hosts[hostname.strip]
 
       if new_host.nil?
-        "No host defined for #{hostname}"
-        @host.shell.instance_variable_set(:@exist_status, 1)
+        puts "No host defined for #{hostname}"
+        @host.shell.instance_variable_set(:@exit_status, 1)
       else
+        puts "Changed to host #{hostname}"
         @host = new_host
       end
     end

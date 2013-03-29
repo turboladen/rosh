@@ -1,8 +1,3 @@
-require 'open-uri'
-require 'fileutils'
-require 'sys/proctable'
-require_relative 'host/file_system'
-
 Dir[File.dirname(__FILE__) + '/builtin_commands/*.rb'].each(&method(:require))
 
 

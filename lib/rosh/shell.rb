@@ -1,17 +1,47 @@
 require 'log_switch'
-require_relative 'builtin_commands'
 require_relative 'environment'
+require_relative 'command_result'
+#require_relative 'builtin_commands'
+Dir[File.dirname(__FILE__) + '/builtin_commands/*.rb'].each(&method(:require))
 
 
 class Rosh
+
+  # Each Rosh Host provides a Shell that allows for executing shell commands on
+  # that host.  You can run commands using two approaches: on-demand, where
+  # commands are executed as they are encountered in your logic, and compiled,
+  # where commands are gathered up, then all run when you call #process_all.
+  #
+  # All commands return a CommandResult, which contains an exit code, the Ruby
+  # object that the command output represents, and, if the command was run over
+  # SSH, the SSH output.
   class Shell
     extend LogSwitch
     include LogSwitch::Mixin
     include Rosh::BuiltinCommands
 
+    Rosh::BuiltinCommands.constants.each do |action_class|
+      define_method(action_class.to_s.downcase.to_sym) do |*args, **options, &block|
+        klass = Rosh::BuiltinCommands.const_get(action_class)
+
+        if options.empty? && args.empty?
+          klass.new(&block).execute(@context).call(@ssh)
+        elsif options.empty?
+          klass.new(*args, &block).execute(@context).call(@ssh)
+        elsif args.empty?
+          klass.new(*args, &block).execute(@context).call(@ssh)
+        else
+          klass.new(*args, **options, &block).execute(@context).call(@ssh)
+        end
+      end
+    end
+
     def initialize(ssh)
       @exit_status = nil
       @last_exception = nil
+      @commands = []
+      @ssh = ssh
+      @context = @ssh.hostname == 'localhost' ? :local : :remote
     end
 
     # @return [Array<Symbol>] List of builtin_commands supported by the shell.
@@ -20,6 +50,7 @@ class Rosh
     end
 
     # @return [Proc] The lambda to use for Readline's #completion_proc.
+=begin
     def completions
       cmds = builtin_commands.map(&:to_s)
       children = Dir["#{Dir.pwd}/*"].map { |f| ::File.basename(f) }
@@ -29,8 +60,27 @@ class Rosh
 
       lambda { |string| abbrevs.grep ( /^#{Regexp.escape(string)}/ ) }
     end
+=end
 
-    def process_command(argv)
+    def add_command(cmd)
+      #argv = cmd.shellwords
+
+      klass_name = Rosh::BuiltinCommands.constants.find do |action_class|
+        cmd == action_class.to_s.downcase
+      end
+      klass = Rosh::BuiltinCommands.const_get(klass_name)
+      klass.new(*args, **options, &block)
+
+      @commands << cmd
+    end
+
+    def run_all
+      until @commands.empty? do
+        execute @commands.shift
+      end
+    end
+
+    def execute(argv)
       command = argv.shift
       args = argv
 
@@ -44,14 +94,12 @@ class Rosh
         return _!
       end
 
-      @exit_status, result = begin
+      result = begin
         if builtin_commands.include? command.to_sym
-          if args && !args.empty?
-            args.each_with_index { |a, i| log "arg#{i}: #{a}" }
-            self.send(command.to_sym, *args).execute
+          if !args.empty?
+            self.send(command.to_sym, *args)
           else
-            log "<#{command}>"
-            self.send(command.to_sym).execute
+            self.send(command.to_sym)
           end
         else
           $stdout.puts "Running Ruby: #{argv}"
@@ -59,10 +107,13 @@ class Rosh
         end
       rescue StandardError => ex
         @last_exception = ex
-        [1, ex]
+        ::Rosh::CommandResult.new(ex, 1)
       end
 
-      @last_exception = result if result.kind_of? Exception
+      @exit_status = result.status
+      @ssh_result = result.ssh_result
+
+      #@last_exception = result if result.kind_of? Exception
 
       result
     end

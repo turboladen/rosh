@@ -50,7 +50,7 @@ class Rosh
     end
 
     def shell
-      @shell ||= Rosh::Shell.new(@ssh)
+      @shell ||= Rosh::Shell.new(ssh)
     end
 
     def env

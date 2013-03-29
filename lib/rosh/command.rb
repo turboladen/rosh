@@ -1,5 +1,6 @@
 require 'colorize'
 #require_relative 'logger'
+require_relative 'command_result'
 
 
 class Rosh
@@ -19,8 +20,20 @@ class Rosh
       puts "description: #{@description}"
     end
 
-    def execute
-      warn 'Should be implemented by child commands.'
+    def execute(context=:local)
+      if context == :local
+        local_execute
+      else
+        remote_execute
+      end
+    end
+
+    def local_execute
+      warn 'Implement in child'
+    end
+
+    def remote_execute
+      warn 'Implement in child'
     end
 
     def handle_on_fail

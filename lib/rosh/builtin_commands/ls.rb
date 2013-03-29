@@ -8,34 +8,42 @@ class Rosh
     class Ls < Command
       DESCRIPTION = 'Lists files in the given directory.'
 
-      def initialize(path=Dir.pwd)
+      def initialize(path=nil)
         super(DESCRIPTION)
 
-        @path = path.strip
+        @path = path ? path.strip : nil
       end
 
       # @return [Hash{String => Rosh::File,Rosh::Directory}] Each file or directory in the
       #   given path.
-      def execute
-        status = 0
-        r = {}
+      def local_execute
+        proc do
+          @path ||= Dir.pwd
+          r = {}
 
-        begin
-          Dir.entries(@path).each do |entry|
-            new_entry = if ::File.directory? "#{@path}/#{entry}"
-              Rosh::Directory.new "#{@path}/#{entry}"
-            elsif ::File.file? "#{@path}/#{entry}"
-              Rosh::File.new "#{@path}/#{entry}"
+          begin
+            Dir.entries(@path).each do |entry|
+              new_entry = if ::File.directory? "#{@path}/#{entry}"
+                Rosh::Directory.new "#{@path}/#{entry}"
+              elsif ::File.file? "#{@path}/#{entry}"
+                Rosh::File.new "#{@path}/#{entry}"
+              end
+
+              r[entry] = new_entry
             end
 
-            r[entry] = new_entry
+            ::Rosh::CommandResult.new(r, 0)
+          rescue Errno::ENOENT => ex
+            r = { path => ex }
+            ::Rosh::CommandResult.new(r, 1)
           end
-        rescue Errno::ENOENT => ex
-          status = 1
-          r = { path => ex }
         end
+      end
 
-        [status, r]
+      def remote_execute
+        proc do |ssh|
+          ssh.run "ls #{@path}"
+        end
       end
     end
   end
