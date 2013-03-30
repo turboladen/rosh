@@ -97,7 +97,7 @@ class Rosh
         end
 
         @kernel_version = version
-        @architecture = arch
+        @architecture = arch.downcase.to_sym
       end
 
       # Extracts info about the distribution.
