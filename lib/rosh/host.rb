@@ -1,12 +1,9 @@
 require 'colorize'
-#require_relative 'logger'
 require_relative 'ssh'
-#require_relative 'actions'
 require_relative 'environment'
 require_relative 'shell'
 require_relative 'host/environment'
 require_relative 'host/file_system'
-#require_relative 'part'
 
 
 class Rosh
