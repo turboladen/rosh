@@ -104,7 +104,7 @@ class Rosh
 
     def reload!
       load __FILE__
-      load ::File.expand_path(::File.dirname(__FILE__) + '/builtin_commands.rb')
+      Dir["builtin_commands/**/*.rb"].each(&method(:load))
 
       [0, true]
     end
