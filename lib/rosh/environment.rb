@@ -1,23 +1,31 @@
 require 'yaml'
+require 'erb'
+require 'etc'
+require 'log_switch'
 require_relative 'host'
 
 
 class Rosh
   class Environment
+    extend LogSwitch
+
+    def self.config
+      return @config if @config
+
+      if ::File.exists? 'rosh_config.yml'
+        erb = ERB.new(::File.read('rosh_config.yml'))
+        @config = YAML.load(erb.result)
+      end
+    end
+
     def self.hosts
       return @hosts if @hosts
 
-      if ::File.exists? 'rosh_config.yml'
-        config = YAML.load_file 'rosh_config.yml'
-      end
-
-      puts "reading hosts"
-      p config[:hosts]
       @hosts = {}
 
       config[:hosts].each do |hostname, options|
-        puts "hostname: #{hostname}"
-        puts "optison: #{options}"
+        log "Read hostname: #{hostname}"
+        log "Read options: #{options}"
         @hosts[hostname] = Rosh::Host.new(hostname, **options)
       end
 
@@ -30,6 +38,16 @@ class Rosh
 
     def self.current_hostname=(hostname)
       @current_hostname = hostname
+    end
+
+    def self.path
+      config[:path]
+    end
+
+    private
+
+    def self.get_binding
+      binding
     end
   end
 end

@@ -1,5 +1,6 @@
 require 'log_switch'
 require_relative 'command_result'
+require_relative 'environment'
 Dir[File.dirname(__FILE__) + '/builtin_commands/*.rb'].each(&method(:require))
 
 
@@ -54,20 +55,31 @@ class Rosh
       @context = @ssh.hostname == 'localhost' ? :local : :remote
       @using_cli = false
       @non_cli_history = []
+      log "Path: #{Rosh::Environment.path}"
     end
 
     # @return [Array<Symbol>] List of builtin_commands supported by the shell.
     def builtin_commands
-      @@builtin_commands
+      @@builtin_commands.map(&:to_s)
+    end
+
+    def child_files
+      Dir["#{Dir.pwd}/*"].map { |f| ::File.basename(f) }
+    end
+
+    def path_commands
+      Rosh::Environment.path.map do |dir|
+        Dir["#{dir}/*"].map { |f| ::File.basename(f) }
+      end.flatten
     end
 
     # @return [Proc] The lambda to use for Readline's #completion_proc.
     def completions
-      cmds = builtin_commands.map(&:to_s)
-      children = Dir["#{Dir.pwd}/*"].map { |f| ::File.basename(f) }
+      cmds = builtin_commands
+      children = child_files
       all_children = children.map { |c| Dir["#{c}/**/*"] }.flatten
 
-      abbrevs = (cmds + children + all_children)
+      abbrevs = (cmds + children + all_children + path_commands)
 
       lambda { |string| abbrevs.grep ( /^#{Regexp.escape(string)}/ ) }
     end

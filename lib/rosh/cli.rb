@@ -92,6 +92,10 @@ class Rosh
           else
             @host.shell.send(command.to_sym)
           end
+        elsif @host.shell.path_commands.include? command
+          @host.shell.exec(argv)
+        elsif @host.shell.path_commands.include? command.split('/').last
+          @host.shell.exec(argv)
         else
           $stdout.puts "Running Ruby: #{argv}"
           @host.shell.ruby(argv, @host.shell.get_binding)
