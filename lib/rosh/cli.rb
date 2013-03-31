@@ -27,6 +27,7 @@ class Rosh
 
     def initialize
       @host = Rosh::Host.new 'localhost'
+      @host.shell.using_cli = true
       @last_result = nil
     end
 
@@ -35,7 +36,7 @@ class Rosh
         prompt = new_prompt(Dir.pwd)
         Readline.completion_proc = @host.shell.completions
 
-        argv = readline(prompt, false)
+        argv = readline(prompt, true)
         next if argv.empty?
         log "Just read input: #{argv}"
 
@@ -127,7 +128,6 @@ class Rosh
 
     def multiline_ruby?(argv)
       sexp = Ripper.sexp argv
-      lex = Ripper.lex argv
 
       sexp.nil?
     end

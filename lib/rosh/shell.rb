@@ -25,15 +25,16 @@ class Rosh
 
       define_method(meth_name) do |*args, **options, &block|
         klass = Rosh::BuiltinCommands.const_get(action_class)
-        Rosh::Environment.command_history << {
-          meth_name => {
-            args: args,
-            options: options,
-            block: block
-          }
-        }
 
-        if options.empty? && args.empty?
+        unless @using_cli
+          cmd = "#{meth_name} #{args.join(' ')}".strip
+          @non_cli_history.push(cmd)
+        end
+
+        if meth_name == :history
+          history_array = @using_cli ? Readline::HISTORY.to_a : @non_cli_history
+          klass.new(history_array, &block).execute(@context).call(@ssh)
+        elsif options.empty? && args.empty?
           klass.new(&block).execute(@context).call(@ssh)
         elsif options.empty?
           klass.new(*args, &block).execute(@context).call(@ssh)
@@ -45,10 +46,14 @@ class Rosh
       end
     end
 
+    attr_accessor :using_cli
+
     def initialize(ssh)
       @commands = []
       @ssh = ssh
       @context = @ssh.hostname == 'localhost' ? :local : :remote
+      @using_cli = false
+      @non_cli_history = []
     end
 
     # @return [Array<Symbol>] List of builtin_commands supported by the shell.

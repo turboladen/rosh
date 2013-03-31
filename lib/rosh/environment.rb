@@ -31,9 +31,5 @@ class Rosh
     def self.current_hostname=(hostname)
       @current_hostname = hostname
     end
-
-    def self.command_history
-      @command_history ||= []
-    end
   end
 end
