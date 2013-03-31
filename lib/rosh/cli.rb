@@ -86,7 +86,7 @@ class Rosh
       log "new argv: #{new_argv}"
 
       result = begin
-        if @host.shell.builtin_commands.include? command.to_sym
+        if @host.shell.builtin_commands.include? command
           if !args.empty?
             @host.shell.send(command.to_sym, *args)
           else
