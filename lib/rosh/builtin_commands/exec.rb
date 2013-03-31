@@ -1,5 +1,5 @@
 require_relative '../command'
-require 'open4'
+require 'pty'
 
 
 class Rosh
@@ -14,30 +14,20 @@ class Rosh
 
       def local_execute
         proc do
-=begin
+          result = ''
+
           begin
-            pid, stdin, stdout, stderr = Open4.popen4(@cmd)
-            _, status = Process.waitpid2 pid
-
-
-            out = stdout.read
-            err = stderr.read
-            puts "pid: #{pid}"
-            puts "status: #{status.inspect}"
-            puts "exitstatus: #{status.exitstatus}"
-
-            if status.exitstatus == 0
-              puts out
-              ::Rosh::CommandResult.new(out, 0)
-            else
-              puts err
-              ::Rosh::CommandResult.new(err, status.exitstatus)
+            PTY.spawn(@cmd) do |stdin, stdout, pid|
+              begin
+                stdin.each { |line| print line; result << line }
+              rescue Errno::EIO
+                puts "Errno:EIO error, but this probably just means " +
+                  "that the process has finished giving output"
+              end
             end
-          rescue => ex
-            ::Rosh::CommandResult.new(ex, 1)
+          rescue PTY::ChildExited
+            puts 'The child process exited!'
           end
-=end
-          result = system(@cmd)
 
           ::Rosh::CommandResult.new(result, 0)
         end
