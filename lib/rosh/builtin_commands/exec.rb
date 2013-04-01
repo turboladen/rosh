@@ -14,22 +14,11 @@ class Rosh
 
       def local_execute
         proc do
-          result = ''
+          result = system(@cmd)
 
-          begin
-            PTY.spawn(@cmd) do |stdin, stdout, pid|
-              begin
-                stdin.each { |line| print line; result << line }
-              rescue Errno::EIO
-                puts "Errno:EIO error, but this probably just means " +
-                  "that the process has finished giving output"
-              end
-            end
-          rescue PTY::ChildExited
-            puts 'The child process exited!'
-          end
+          status = result ? 0 : 1
 
-          ::Rosh::CommandResult.new(result, 0)
+          ::Rosh::CommandResult.new(result, status)
         end
       end
 
