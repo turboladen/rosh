@@ -1,7 +1,7 @@
 require 'log_switch'
+Dir[File.dirname(__FILE__) + '/builtin_commands/*.rb'].each(&method(:require))
 require_relative 'command_result'
 require_relative 'environment'
-Dir[File.dirname(__FILE__) + '/builtin_commands/*.rb'].each(&method(:require))
 
 
 class Rosh
@@ -50,7 +50,7 @@ class Rosh
     attr_accessor :using_cli
 
     def initialize(ssh)
-      @commands = []
+      @stored_commands = []
       @ssh = ssh
       @context = @ssh.hostname == 'localhost' ? :local : :remote
       @using_cli = false
@@ -84,27 +84,39 @@ class Rosh
       lambda { |string| abbrevs.grep ( /^#{Regexp.escape(string)}/ ) }
     end
 
-    def add_command(cmd)
-      #argv = cmd.shellwords
-
+    def store_command(cmd, *args, **options, &block)
       klass_name = Rosh::BuiltinCommands.constants.find do |action_class|
         cmd == action_class.to_s.downcase
       end
-      klass = Rosh::BuiltinCommands.const_get(klass_name)
-      klass.new(*args, **options, &block)
 
-      @commands << cmd
+      raise "Unknown command: '#{cmd}'" unless klass_name
+
+      klass = Rosh::BuiltinCommands.const_get(klass_name)
+
+      cmd_object = if options.empty? && args.empty?
+        klass.new(&block)
+      elsif options.empty?
+        klass.new(*args, &block)
+      elsif args.empty?
+        klass.new(**options, &block)
+      else
+        klass.new(*args, **options, &block)
+      end
+
+      @stored_commands << cmd_object
     end
 
-    def run_all
-      until @commands.empty? do
-        execute @commands.shift
+    def exec_stored
+      until @stored_commands.empty? do
+        result = exec(@stored_commands.shift)
+        yield result if block_given?
+        result
       end
     end
 
     def reload!
       load __FILE__
-      Dir["builtin_commands/**/*.rb"].each(&method(:load))
+      Dir['builtin_commands/**/*.rb'].each(&method(:load))
 
       [0, true]
     end

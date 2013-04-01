@@ -17,6 +17,7 @@ GEM
     blockenspiel (0.4.5)
     colorize (0.5.8)
     diff-lcs (1.2.1)
+    fakefs (0.4.2)
     hashie (2.0.3)
     highline (1.6.16)
     log_switch (0.4.0)
@@ -51,6 +52,7 @@ PLATFORMS
 
 DEPENDENCIES
   bundler (>= 1.0.1)
+  fakefs
   rake
   rosh!
   rspec (>= 2.12.0)

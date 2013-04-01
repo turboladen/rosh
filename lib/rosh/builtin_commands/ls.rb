@@ -34,7 +34,7 @@ class Rosh
 
             ::Rosh::CommandResult.new(r, 0)
           rescue Errno::ENOENT => ex
-            r = { path => ex }
+            r = { @path => ex }
             ::Rosh::CommandResult.new(r, 1)
           end
         end
