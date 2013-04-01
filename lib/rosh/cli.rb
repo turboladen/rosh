@@ -29,6 +29,7 @@ class Rosh
       @host = Rosh::Host.new 'localhost'
       @host.shell.using_cli = true
       @last_result = nil
+      ENV['SHELL'] = ::File.expand_path($0)
     end
 
     def run
@@ -108,10 +109,12 @@ class Rosh
     end
 
     def new_prompt(pwd)
+      _, width = Readline.get_screen_size
       prompt = '['.blue
       prompt << "#{Etc.getlogin}@#{@host.hostname}:#{pwd.split('/').last}".red
       prompt << ']'.blue
-      prompt << '$'.red
+      prompt << ("%#{width - 30}s" % %w[suppe234234234r])
+      prompt << "\n$".red
       prompt << ' '
 
       prompt
