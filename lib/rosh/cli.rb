@@ -114,9 +114,8 @@ class Rosh
       prompt = '['.blue
       prompt << "#{Etc.getlogin}@#{@host.hostname}:#{pwd.split('/').last}".red
       prompt << ']'.blue
-      prompt << ("%#{width - 30}s".yellow % %[git: #{git}]) unless git.empty?
-      prompt << "$".red
-      prompt << ' '
+      prompt << ("%#{width - 30}s".yellow % "[git(#{git.strip})]") unless git.empty?
+      prompt << '$ '.red
 
       prompt
     end
