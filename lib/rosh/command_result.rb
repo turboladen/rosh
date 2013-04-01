@@ -23,11 +23,11 @@ class Rosh
     #   not representative of failed commands--they are, rather, most likely
     #   due to a problem with making the SSH connection.
     def exception?
-      !!@exception
+      @ruby_object.kind_of?(Exception)
     end
 
     def failed?
-      @status == :failed
+      !@status.zero?
     end
 
     def no_change?
@@ -55,20 +55,6 @@ class Rosh
     # @return [String] All attributes as YAML.
     def to_yaml
       self.to_hash.to_yaml
-    end
-
-    private
-
-    def set_attribs_from_ssh_result(ssh_result)
-      @stdout = ssh_result.stdout
-      @stderr = ssh_result.stderr
-      @command = ssh_result.cmd
-      @started_at = ssh_result.start_at
-      @finished_at = ssh_result.finish_at
-      @last_event_at = ssh_result.last_event_at
-      @last_keepalive_at = ssh_result.last_keepalive_at
-      @ssh_options = ssh_result.opts
-      @exit_code = ssh_result.exit_code
     end
   end
 end
