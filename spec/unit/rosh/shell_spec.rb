@@ -78,9 +78,9 @@ describe Rosh::Shell do
       it 'creates a new command object from the cmd name and adds it to @stored_commands' do
         expect {
           subject.store_command('ls')
-        }.to change { subject.instance_variable_get(:@stored_commands).size }.by 1
+        }.to change { subject.instance_variable_get(:@command_queue).size }.by 1
 
-        subject.instance_variable_get(:@stored_commands).first.
+        subject.instance_variable_get(:@command_queue).first.
           should be_a Rosh::BuiltinCommands::Ls
       end
     end
@@ -89,9 +89,9 @@ describe Rosh::Shell do
       it 'creates a new command object from the cmd name and adds it to @stored_commands' do
         expect {
           subject.store_command('ls', '/')
-        }.to change { subject.instance_variable_get(:@stored_commands).size }.by 1
+        }.to change { subject.instance_variable_get(:@command_queue).size }.by 1
 
-        subject.instance_variable_get(:@stored_commands).first.
+        subject.instance_variable_get(:@command_queue).first.
           should be_a Rosh::BuiltinCommands::Ls
       end
     end
@@ -102,7 +102,7 @@ describe Rosh::Shell do
       pending 'Working more with screenplay'
 
       before do
-        subject.instance_variable_set(:@stored_commands)
+        subject.instance_variable_set(:@command_queue)
       end
     end
   end

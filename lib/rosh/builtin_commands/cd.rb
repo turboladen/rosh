@@ -4,7 +4,7 @@ require_relative '../command'
 class Rosh
   module BuiltinCommands
     class Cd < Command
-      def initialize(path=Dir.home)
+      def initialize(path)
         @path = path == '..' ? '../' : path.strip
         description = "Changing current working directory to #{@path}"
         super(description)

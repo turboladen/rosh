@@ -1,5 +1,6 @@
 require 'log_switch'
 Dir[File.dirname(__FILE__) + '/builtin_commands/*.rb'].each(&method(:require))
+Dir[File.dirname(__FILE__) + '/command_wrappers/*.rb'].each(&method(:require))
 require_relative 'command_result'
 require_relative 'environment'
 
@@ -18,49 +19,71 @@ class Rosh
     extend LogSwitch
     include LogSwitch::Mixin
 
-    @@builtin_commands = []
+    @@builtin_commands = %i[cat cd ch cp exec history ls ps pwd ruby]
+    @@wrapper_commands = %i[brew]
 
-    Rosh::BuiltinCommands.constants.each do |action_class|
-      meth_name = action_class.to_s.downcase.to_sym
-      @@builtin_commands << meth_name
+    def cat(file)
+      Rosh::BuiltinCommands::Cat.new(file).execute(@context).call(@ssh)
+    end
 
-      define_method(meth_name) do |*args, **options, &block|
-        klass = Rosh::BuiltinCommands.const_get(action_class)
+    def cd(path=Dir.home)
+      Rosh::BuiltinCommands::Cd.new(path).execute(@context).call(@ssh)
+    end
 
-        unless @using_cli
-          cmd = "#{meth_name} #{args.join(' ')}".strip
-          @non_cli_history.push(cmd)
-        end
+    def cp(source, destination)
+      Rosh::BuiltinCommands::Cp.new(source, destination).execute(@context).call(@ssh)
+    end
 
-        if meth_name == :history
-          history_array = @using_cli ? Readline::HISTORY.to_a : @non_cli_history
-          klass.new(history_array, &block).execute(@context).call(@ssh)
-        elsif options.empty? && args.empty?
-          klass.new(&block).execute(@context).call(@ssh)
-        elsif options.empty?
-          klass.new(*args, &block).execute(@context).call(@ssh)
-        elsif args.empty?
-          klass.new(**options, &block).execute(@context).call(@ssh)
-        else
-          klass.new(*args, **options, &block).execute(@context).call(@ssh)
-        end
-      end
+    def exec(cmd)
+      Rosh::BuiltinCommands::Exec.new(cmd).execute(@context).call(@ssh)
+    end
+
+    def history
+      history_array = @using_cli ? Readline::HISTORY.to_a : @non_cli_history
+      Rosh::BuiltinCommands::History.new(history_array).execute(@context).call(@ssh)
+    end
+
+    def ls(path=nil)
+      Rosh::BuiltinCommands::Ls.new(path).execute(@context).call(@ssh)
+    end
+
+    def ps
+      Rosh::BuiltinCommands::Ps.new.execute(@context).call(@ssh)
+    end
+
+    def pwd
+      Rosh::BuiltinCommands::Pwd.new.execute(@context).call(@ssh)
+    end
+
+    def ruby(code)
+      Rosh::BuiltinCommands::Ruby.new(code, get_binding).execute(@context).call(@ssh)
+    end
+
+    def brew
+      @brew ||= Rosh::CommandWrappers::Brew.new()
     end
 
     attr_accessor :using_cli
 
     def initialize(ssh)
-      @stored_commands = []
       @ssh = ssh
       @context = @ssh.hostname == 'localhost' ? :local : :remote
-      @using_cli = false
+
       @non_cli_history = []
+      @using_cli = false
+      @command_queue = []
+
       log "Path: #{Rosh::Environment.path}"
     end
 
     # @return [Array<Symbol>] List of builtin_commands supported by the shell.
     def builtin_commands
       @@builtin_commands.map(&:to_s)
+    end
+
+    # @return [Array<Symbol>] List of builtin_commands supported by the shell.
+    def wrapper_commands
+      @@wrapper_commands.map(&:to_s)
     end
 
     def child_files
@@ -103,12 +126,12 @@ class Rosh
         klass.new(*args, **options, &block)
       end
 
-      @stored_commands << cmd_object
+      @command_queue << cmd_object
     end
 
     def exec_stored
-      until @stored_commands.empty? do
-        result = exec(@stored_commands.shift)
+      until @command_queue.empty? do
+        result = exec(@command_queue.shift)
         yield result if block_given?
         result
       end

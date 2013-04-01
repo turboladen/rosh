@@ -99,7 +99,7 @@ class Rosh
           @host.shell.exec(argv)
         else
           $stdout.puts "Running Ruby: #{argv}"
-          @host.shell.ruby(argv, @host.shell.get_binding)
+          @host.shell.ruby(argv)
         end
       rescue StandardError => ex
         ::Rosh::CommandResult.new(ex, 1)
