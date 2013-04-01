@@ -6,5 +6,15 @@
   sloveless-lin.pelco.org:
     :user: sloveless
 
+:path:
+  - /Users/<%= Etc.getlogin %>/.rbenv/shims
+  - /usr/local/bin
+  - /usr/local/sbin
+  - /usr/bin
+  - /bin
+  - /usr/sbin
+  - /sbin
+  - /Users/<%= Etc.getlogin %>/bin
+
 :aliases:
   ls: ls -la
