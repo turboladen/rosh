@@ -6,8 +6,10 @@ class Rosh
     class Pwd < Command
       DESCRIPTION = 'Displays the current working directory.'
 
-      def initialize
+      def initialize(force=false)
         super(DESCRIPTION)
+
+        @force = force
       end
 
       def local_execute
@@ -15,7 +17,17 @@ class Rosh
       end
 
       def remote_execute
-        Rosh::Environment.current_host.ssh.run 'pwd'
+        pwd = if @force
+          result = Rosh::Environment.current_host.ssh.run 'pwd'
+
+          unless result.ssh_result.stdout.empty?
+            result.ssh_result.stdout
+          end
+        else
+          ::Rosh::Environment.current_host.shell.env[:pwd]
+        end
+
+        ::Rosh::CommandResult.new(pwd, 0)
       end
     end
   end
