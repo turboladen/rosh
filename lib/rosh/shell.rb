@@ -158,9 +158,10 @@ class Rosh
 
     def reload!
       load __FILE__
-      Dir['builtin_commands/**/*.rb'].each(&method(:load))
+      Dir[::File.dirname(__FILE__) + '/builtin_commands/*.rb'].each(&method(:load))
+      Dir[::File.dirname(__FILE__) + '/command_wrappers/*.rb'].each(&method(:load))
 
-      [0, true]
+      Rosh::CommandResult.new(true, 1)
     end
 
     def get_binding
