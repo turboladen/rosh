@@ -42,36 +42,18 @@ class Rosh
         next if argv.empty?
         log "Just read input: #{argv}"
 
-        if argv == '_?'
-          $stdout.puts @last_result.exit_status
-          next
-        elsif argv == '_!'
-          result = if @last_result && @last_result.ruby_object.kind_of?(Exception)
-            @last_result.ruby_object
-          else
-            nil
-          end
+        next if checking_exit_status(argv)
+        next if checking_last_result(argv)
+        next if changing_host(argv)
 
-          $stdout.puts result
-          result
-          next
+        if multiline_ruby?(argv)
+          argv = ruby_prompt(argv)
+          log "Multi-line Ruby; argv is now: #{argv}"
         else
-          log 'Not a global shell var'
+          log 'Not multiline Ruby'
         end
 
-        result = if argv.match /^\s*ch\s/
-          ch(argv.shellsplit.last)
-        else
-          if multiline_ruby?(argv)
-            argv = ruby_prompt(argv)
-            log "Multi-line Ruby; argv is now: #{argv}"
-          else
-            log 'Not multiline Ruby'
-          end
-
-          execute(argv)
-        end
-
+        result = execute(argv)
         @last_result = result
         print_result(result)
 
@@ -147,19 +129,6 @@ class Rosh
       sexp.nil?
     end
 
-    def ch(hostname)
-      new_host = Rosh::Environment.hosts[hostname.strip]
-
-      if new_host.nil?
-        log "No host defined for #{hostname}"
-        Rosh::CommandResult.new(new_host, 1)
-      else
-        log "Changed to host #{hostname}"
-        @host = new_host
-        Rosh::CommandResult.new(new_host, 0)
-      end
-    end
-
     def ruby_prompt(first_statement)
       i = 1
       code = first_statement
@@ -173,6 +142,58 @@ class Rosh
 
       code
     end
+
+    private
+
+    def checking_exit_status(argv)
+      if argv == '_?'
+        $stdout.puts @last_result.exit_status
+
+        return @last_result.exit_status
+      end
+
+      false
+    end
+
+    def checking_last_result(argv)
+      if argv == '_!'
+        result = if @last_result && @last_result.ruby_object.kind_of?(Exception)
+          @last_result.ruby_object
+        else
+          nil
+        end
+
+        $stdout.puts result
+
+        return result || true
+      end
+
+      false
+    end
+
+    def changing_host(argv)
+      if argv.match /^\s*ch\s/
+        ch(argv.shellsplit.last)
+
+        return true
+      end
+
+      false
+    end
+
+    def ch(hostname)
+      new_host = Rosh::Environment.hosts[hostname.strip]
+
+      if new_host.nil?
+        log "No host defined for '#{hostname}'"
+        Rosh::CommandResult.new(new_host, 1)
+      else
+        log "Changed to host '#{hostname}'"
+        @host = new_host
+        Rosh::CommandResult.new(new_host, 0)
+      end
+    end
+
   end
 end
 
