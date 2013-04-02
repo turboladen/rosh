@@ -65,6 +65,21 @@ class Rosh
     def ruby(code)
       Rosh::BuiltinCommands::Ruby.new(code, get_binding).send(@context)
     end
+
+    def save_command_set(name, &block)
+      @command_sets[name] = block
+    end
+
+    def exec_command_set(name=nil)
+      if name
+        log "Executing command set '#{name}'"
+        @command_sets[name].call(self)
+      else
+        @command_sets.each do |name, blk|
+          log "Executing command set '#{name}'"
+          blk.call(self)
+        end
+      end
     end
 
     def brew
@@ -89,7 +104,7 @@ class Rosh
 
       @non_cli_history = []
       @using_cli = false
-      @command_queue = []
+      @command_sets = {}
 
       log "Path: #{Rosh::Environment.path}"
     end
@@ -124,28 +139,6 @@ class Rosh
       abbrevs = (cmds + children + all_children + path_commands + hosts)
 
       lambda { |string| abbrevs.grep ( /^#{Regexp.escape(string)}/ ) }
-    end
-
-    def store_command(cmd, *args, **options, &block)
-      klass_name = Rosh::BuiltinCommands.constants.find do |action_class|
-        cmd == action_class.to_s.downcase
-      end
-
-      raise "Unknown command: '#{cmd}'" unless klass_name
-
-      klass = Rosh::BuiltinCommands.const_get(klass_name)
-
-      cmd_object = if options.empty? && args.empty?
-        klass.new(&block)
-      elsif options.empty?
-        klass.new(*args, &block)
-      elsif args.empty?
-        klass.new(**options, &block)
-      else
-        klass.new(*args, **options, &block)
-      end
-
-      @command_queue << cmd_object
     end
 
     def exec_stored
