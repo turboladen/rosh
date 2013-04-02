@@ -32,6 +32,7 @@ class Rosh
       def remote_execute
         #ssh.run "cat #{@file}"
         warn 'Not implemented yet.'
+        local_execute
       end
     end
   end
