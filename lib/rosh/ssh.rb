@@ -44,6 +44,8 @@ class Rosh
       @options[:user] = DEFAULT_USER unless @options.has_key? :user
       @options[:timeout] = DEFAULT_TIMEOUT unless @options.has_key? :timeout
       @ssh = Net::SSH::Simple.new(@options)
+
+      log "Initialized for '#{@hostname}'"
     end
 
     # Easy way to set a(n) SSH option(s).
