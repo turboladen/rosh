@@ -23,7 +23,9 @@ Gem::Specification.new do |s|
   s.add_dependency 'net-ssh-simple'
   s.add_dependency 'sys-proctable'
 
+  s.add_development_dependency 'aruba'
   s.add_development_dependency 'bundler', '>= 1.0.1'
+  s.add_development_dependency 'cucumber'
   s.add_development_dependency 'fakefs'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec', '>= 2.12.0'
