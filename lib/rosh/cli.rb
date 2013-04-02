@@ -133,7 +133,7 @@ class Rosh
         log 'Printing a pretty object'
         ap result.ruby_object
       else
-        if @_exit_status && !@_exit_status.zero?
+        if result.status && !result.status.zero?
           $stderr.puts "  #{result.ruby_object}".light_red
         else
           $stdout.puts "  #{result.ruby_object}".light_blue
