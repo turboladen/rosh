@@ -14,20 +14,16 @@ class Rosh
       end
 
       def local_execute
-        proc do
-          begin
-            FileUtils.cp(@source, @destination)
-            ::Rosh::CommandResult.new(true, 0)
-          rescue Errno::ENOENT => ex
-            ::Rosh::CommandResult.new(ex, 1)
-          end
+        begin
+          FileUtils.cp(@source, @destination)
+          ::Rosh::CommandResult.new(true, 0)
+        rescue Errno::ENOENT => ex
+          ::Rosh::CommandResult.new(ex, 1)
         end
       end
 
       def remote_execute
-        proc do |ssh|
-          ssh.run "cp #{@source} #{@destination}"
-        end
+        Rosh::Environment.current_host.ssh.run "cp #{@source} #{@destination}"
       end
     end
   end

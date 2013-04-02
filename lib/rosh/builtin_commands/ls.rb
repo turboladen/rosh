@@ -17,7 +17,6 @@ class Rosh
       # @return [Hash{String => Rosh::File,Rosh::Directory}] Each file or directory in the
       #   given path.
       def local_execute
-        proc do
           @path ||= Dir.pwd
           r = {}
 
@@ -37,13 +36,10 @@ class Rosh
             r = { @path => ex }
             ::Rosh::CommandResult.new(r, 1)
           end
-        end
       end
 
       def remote_execute
-        proc do |ssh|
-          ssh.run "ls #{@path}"
-        end
+        Rosh::Environment.current_host.ssh.run "ls #{@path}"
       end
     end
   end

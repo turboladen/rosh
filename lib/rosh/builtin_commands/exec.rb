@@ -13,19 +13,15 @@ class Rosh
       end
 
       def local_execute
-        proc do
-          result = system(@cmd)
+        result = system(@cmd)
 
-          status = result ? 0 : 1
+        status = result ? 0 : 1
 
-          ::Rosh::CommandResult.new(result, status)
-        end
+        ::Rosh::CommandResult.new(result, status)
       end
 
       def remote_execute
-        proc do |ssh|
-          ssh.run @cmd
-        end
+        Rosh::Environment.current_host.ssh.run @cmd
       end
     end
   end

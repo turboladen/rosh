@@ -16,20 +16,16 @@ class Rosh
 
       # @return [String] The file contents.
       def local_execute
-        proc do
-          begin
-            contents = open(@file).read
-            ::Rosh::CommandResult.new(contents, 0)
-          rescue Errno::ENOENT, Errno::EISDIR => ex
-            ::Rosh::CommandResult.new(ex, 1)
-          end
+        begin
+          contents = open(@file).read
+          ::Rosh::CommandResult.new(contents, 0)
+        rescue Errno::ENOENT, Errno::EISDIR => ex
+          ::Rosh::CommandResult.new(ex, 1)
         end
       end
 
       def remote_execute
-        proc do |ssh|
-          ssh.run "cat #{@file}"
-        end
+        Rosh::Environment.current_host.ssh.run "cat #{@file}"
       end
     end
   end

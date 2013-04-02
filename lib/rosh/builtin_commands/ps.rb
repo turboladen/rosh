@@ -13,21 +13,17 @@ class Rosh
 
       # @return [Hash{Fixnum => Struct::ProcTableStruct}]
       def local_execute
-        proc do
-          r = Sys::ProcTable.ps.inject({}) do |result, p|
-            result[p.pid] = p
+        r = Sys::ProcTable.ps.inject({}) do |result, p|
+          result[p.pid] = p
 
-            result
-          end
-
-          ::Rosh::CommandResult.new(Hash[r.sort], 0)
+          result
         end
+
+        ::Rosh::CommandResult.new(Hash[r.sort], 0)
       end
 
       def remote_execute
-        proc do |ssh|
-          ssh.run 'ps -aux'
-        end
+        Rosh::Environment.current_host.ssh.run 'ps -aux'
       end
     end
   end

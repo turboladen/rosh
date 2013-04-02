@@ -11,15 +11,11 @@ class Rosh
       end
 
       def local_execute
-        proc do
-          ::Rosh::CommandResult.new(Dir.pwd, 0)
-        end
+        ::Rosh::CommandResult.new(Dir.pwd, 0)
       end
 
       def remote_execute
-        proc do |ssh|
-          ssh.run 'pwd'
-        end
+        Rosh::Environment.current_host.ssh.run 'pwd'
       end
     end
   end

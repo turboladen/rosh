@@ -13,21 +13,17 @@ class Rosh
       end
 
       def local_execute
-        proc do
-          lines = {}
+        lines = {}
 
-          @history_array.each_with_index do |cmd, i|
-            lines[i] = cmd
-          end
-
-          ::Rosh::CommandResult.new(Hash[lines.sort], 0)
+        @history_array.each_with_index do |cmd, i|
+          lines[i] = cmd
         end
+
+        ::Rosh::CommandResult.new(Hash[lines.sort], 0)
       end
 
       def remote_execute
-        proc do |ssh|
-          ssh.run 'history'
-        end
+        Rosh::Environment.current_host.ssh.run 'history'
       end
     end
   end

@@ -16,26 +16,22 @@ class Rosh
 
       # @return [String] The file contents.
       def local_execute
-        proc do
-          status = 0
+        status = 0
 
-          result = begin
-            @code.gsub!(/puts/, '$stdout.puts')
-            @binding.eval(@code)
-          rescue => ex
-            status = 1
-            ex
-          end
-
-          ::Rosh::CommandResult.new(result, status)
+        result = begin
+          @code.gsub!(/puts/, '$stdout.puts')
+          @binding.eval(@code)
+        rescue => ex
+          status = 1
+          ex
         end
+
+        ::Rosh::CommandResult.new(result, status)
       end
 
       def remote_execute
-        proc do |ssh|
-          #ssh.run "cat #{@file}"
-          warn 'Not implemented yet.'
-        end
+        #ssh.run "cat #{@file}"
+        warn 'Not implemented yet.'
       end
     end
   end

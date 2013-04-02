@@ -11,7 +11,7 @@ class Rosh
         super(description)
       end
 
-      def execute
+      def local_execute
         host = Rosh::Environment.hosts[@hostname]
 
         host.nil? ? [1, "No host defined for #{@hostname}"] : [0, host]
