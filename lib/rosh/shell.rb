@@ -32,6 +32,8 @@ class Rosh
       if result.exit_status.zero?
         @env[:pwd] = result.ruby_object
         log "pwd is now #{@env[:pwd]}"
+      else
+        log "cd to #{path} failed!  pwd is now #{@env[:pwd]}"
       end
 
       result
@@ -164,3 +166,4 @@ class Rosh
 end
 
 Rosh::Shell.log_class_name = true
+Rosh::Shell.log = true
