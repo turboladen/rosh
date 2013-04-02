@@ -13,7 +13,7 @@ class Rosh
       end
 
       def local_execute
-        ::Rosh::CommandResult.new(Dir.pwd, 0)
+        ::Rosh::CommandResult.new(ENV['PWD'], 0)
       end
 
       def remote_execute
