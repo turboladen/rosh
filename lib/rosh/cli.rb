@@ -47,6 +47,8 @@ class Rosh
 
     def run
       loop do
+        log "Current host is: #{Rosh::Environment.current_host.hostname}"
+        log "Current shell env is: #{Rosh::Environment.current_host.shell.env}"
         prompt = new_prompt
         Readline.completion_proc = @host.shell.completions
 
@@ -103,9 +105,9 @@ class Rosh
 
     def new_prompt
       user_and_host = '['.blue
-      user_and_host << "#{@host.shell.env[:user]}".red
-      user_and_host << "@#{@host.shell.env[:hostname]}".red
-      user_and_host << ":#{@host.shell.env[:pwd].split('/').last}".red
+      user_and_host << "#{Rosh::Environment.current_host.shell.env[:user]}".red
+      user_and_host << "@#{Rosh::Environment.current_host.shell.env[:hostname]}".red
+      user_and_host << ":#{Rosh::Environment.current_host.shell.env[:pwd].split('/').last}".red
       user_and_host << ']'.blue
 
       _, width = Readline.get_screen_size
