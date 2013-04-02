@@ -72,11 +72,20 @@ class Rosh
     end
 
     attr_accessor :using_cli
+    attr_reader :env
 
     def initialize(ssh)
       @ssh = ssh
       @context = @ssh.hostname == 'localhost' ? :local_execute : :remote_execute
       log "Context: #{@context}"
+
+      @env = {}
+      @env = {
+        hostname: @ssh.hostname,
+        pwd: pwd(true).ruby_object,
+        user: @ssh.options[:user],
+        #path: Rosh::Environment.
+      }
 
       @non_cli_history = []
       @using_cli = false
