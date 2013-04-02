@@ -152,11 +152,11 @@ class Rosh
 
       if new_host.nil?
         log "No host defined for #{hostname}"
-        @_exit_status = 1
+        Rosh::CommandResult.new(new_host, 1)
       else
         log "Changed to host #{hostname}"
-        @_exit_status = 0
         @host = new_host
+        Rosh::CommandResult.new(new_host, 0)
       end
     end
 
