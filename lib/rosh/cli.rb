@@ -26,6 +26,7 @@ class Rosh
     end
 
     def initialize
+      Rosh::Environment.current_hostname = 'localhost'
       @host = Rosh::Host.new 'localhost'
       @host.shell.using_cli = true
       @last_result = nil
