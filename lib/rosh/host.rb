@@ -25,6 +25,7 @@ class Rosh
   #
   class Host
     include Rosh::BuiltinCommands
+    extend LogSwitch
     include LogSwitch::Mixin
 
     attr_reader :hostname
