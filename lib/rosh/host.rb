@@ -29,6 +29,7 @@ class Rosh
     include LogSwitch::Mixin
 
     attr_reader :hostname
+    attr_reader :ssh
 
     def initialize(hostname, **ssh_options)
       @hostname = hostname
@@ -39,14 +40,12 @@ class Rosh
       unless Rosh::Environment.hosts[hostname]
         Rosh::Environment.hosts[hostname] = self
       end
-    end
 
-    def ssh
-      @ssh ||= Rosh::SSH.new(@hostname, @ssh_options)
+      @ssh = Rosh::SSH.new(@hostname, @ssh_options)
     end
 
     def shell
-      @shell ||= Rosh::Shell.new(ssh)
+      @shell ||= Rosh::Shell.new(@ssh)
     end
 
     def env
