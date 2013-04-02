@@ -26,8 +26,15 @@ class Rosh
       Rosh::BuiltinCommands::Cat.new(file).send(@context)
     end
 
-    def cd(path=Dir.home)
-      Rosh::BuiltinCommands::Cd.new(path).send(@context)
+    def cd(path)
+      result = Rosh::BuiltinCommands::Cd.new(path).send(@context)
+
+      if result.exit_status.zero?
+        @env[:pwd] = result.ruby_object
+        log "pwd is now #{@env[:pwd]}"
+      end
+
+      result
     end
 
     def cp(source, destination)
@@ -51,8 +58,8 @@ class Rosh
       Rosh::BuiltinCommands::Ps.new.send(@context)
     end
 
-    def pwd
-      Rosh::BuiltinCommands::Pwd.new.send(@context)
+    def pwd(force=false)
+      Rosh::BuiltinCommands::Pwd.new(force).send(@context)
     end
 
     def ruby(code)
