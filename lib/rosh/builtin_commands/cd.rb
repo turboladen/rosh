@@ -11,18 +11,22 @@ class Rosh
       end
 
       def local_execute
-        puts "path: #{@path}"
+        path = ::File.expand_path @path
 
         begin
-          Dir.chdir @path
-          ::Rosh::CommandResult.new(Dir.pwd, 0)
+          Dir.chdir ::File.expand_path(path)
+          ::Rosh::CommandResult.new(path, 0)
         rescue Errno::ENOENT => ex
           ::Rosh::CommandResult.new(ex, 1)
         end
       end
 
       def remote_execute
-        Rosh::Environment.current_host.ssh.run "cd #{@path}"
+        result = Rosh::Environment.current_host.ssh.run "cd #{@path} && pwd"
+
+        if result.exit_status.zero?
+          Rosh::CommandResult.new(result.ssh_result.stdout, 0)
+        end
       end
     end
   end
