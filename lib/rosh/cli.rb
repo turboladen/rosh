@@ -109,12 +109,19 @@ class Rosh
     end
 
     def new_prompt(pwd)
+      user_and_host = '['.blue
+      user_and_host << "#{Etc.getlogin}@#{@host.hostname}:#{pwd.split('/').last}".red
+      user_and_host << ']'.blue
+
       _, width = Readline.get_screen_size
       git = %x[git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/']
-      prompt = '['.blue
-      prompt << "#{Etc.getlogin}@#{@host.hostname}:#{pwd.split('/').last}".red
-      prompt << ']'.blue
-      prompt << ("%#{width - 30}s".yellow % "[git(#{git.strip})]") unless git.empty?
+
+      prompt = user_and_host
+
+      unless git.empty?
+        prompt << ("%#{width + 42 - user_and_host.size}s".yellow % "[git(#{git.strip})]")
+      end
+
       prompt << '$ '.red
 
       prompt
