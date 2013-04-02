@@ -103,8 +103,9 @@ class Rosh
       cmds = builtin_commands
       children = child_files
       all_children = children.map { |c| Dir["#{c}/**/*"] }.flatten
+      hosts = Rosh::Environment.hosts.keys
 
-      abbrevs = (cmds + children + all_children + path_commands)
+      abbrevs = (cmds + children + all_children + path_commands + hosts)
 
       lambda { |string| abbrevs.grep ( /^#{Regexp.escape(string)}/ ) }
     end
