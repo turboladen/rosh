@@ -138,7 +138,7 @@ class Rosh
       @ssh_block ||= lambda do |event, _, data|
         case event
         when :start
-          $stdout.log 'Starting SSH command...'
+          $stdout.puts 'Starting SSH command...'
         when :stdout
           (@buffer ||= '') << data
 
