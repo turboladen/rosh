@@ -23,40 +23,41 @@ class Rosh
     @@wrapper_commands = %i[brew]
 
     def cat(file)
-      Rosh::BuiltinCommands::Cat.new(file).execute(@context).call(@ssh)
+      Rosh::BuiltinCommands::Cat.new(file).send(@context)
     end
 
     def cd(path=Dir.home)
-      Rosh::BuiltinCommands::Cd.new(path).execute(@context).call(@ssh)
+      Rosh::BuiltinCommands::Cd.new(path).send(@context)
     end
 
     def cp(source, destination)
-      Rosh::BuiltinCommands::Cp.new(source, destination).execute(@context).call(@ssh)
+      Rosh::BuiltinCommands::Cp.new(source, destination).send(@context)
     end
 
     def exec(cmd)
-      Rosh::BuiltinCommands::Exec.new(cmd).execute(@context).call(@ssh)
+      Rosh::BuiltinCommands::Exec.new(cmd).send(@context)
     end
 
     def history
       history_array = @using_cli ? Readline::HISTORY.to_a : @non_cli_history
-      Rosh::BuiltinCommands::History.new(history_array).execute(@context).call(@ssh)
+      Rosh::BuiltinCommands::History.new(history_array).send(@context)
     end
 
     def ls(path=nil)
-      Rosh::BuiltinCommands::Ls.new(path).execute(@context).call(@ssh)
+      Rosh::BuiltinCommands::Ls.new(path).send(@context)
     end
 
     def ps
-      Rosh::BuiltinCommands::Ps.new.execute(@context).call(@ssh)
+      Rosh::BuiltinCommands::Ps.new.send(@context)
     end
 
     def pwd
-      Rosh::BuiltinCommands::Pwd.new.execute(@context).call(@ssh)
+      Rosh::BuiltinCommands::Pwd.new.send(@context)
     end
 
     def ruby(code)
-      Rosh::BuiltinCommands::Ruby.new(code, get_binding).execute(@context).call(@ssh)
+      Rosh::BuiltinCommands::Ruby.new(code, get_binding).send(@context)
+    end
     end
 
     def brew
@@ -67,7 +68,8 @@ class Rosh
 
     def initialize(ssh)
       @ssh = ssh
-      @context = @ssh.hostname == 'localhost' ? :local : :remote
+      @context = @ssh.hostname == 'localhost' ? :local_execute : :remote_execute
+      log "Context: #{@context}"
 
       @non_cli_history = []
       @using_cli = false
