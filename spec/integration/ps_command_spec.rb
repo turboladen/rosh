@@ -18,7 +18,7 @@ describe 'Runs ps command in different variations' do
       end
 
       it 'returns 0 exit code' do
-        @result.status.should be_zero
+        @result.exit_status.should be_zero
       end
 
       it 'has ruby_object that is a Hash of the current process list' do
@@ -37,7 +37,7 @@ describe 'Runs ps command in different variations' do
       end
 
       it 'returns 0 exit code' do
-        @result.status.should be_zero
+        @result.exit_status.should be_zero
       end
 
       it 'has ruby_object that is a Hash of the current directory' do

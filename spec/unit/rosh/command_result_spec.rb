@@ -40,7 +40,7 @@ describe Rosh::CommandResult do
       last_keepalive_at: 'last_keepalive_at',
       ssh_options: 'opts',
       started_at: 'start_at',
-      status: nil,
+      exit_status: nil,
       stderr: 'stderr',
       stdout: 'stdout',
     }
@@ -68,13 +68,13 @@ describe Rosh::CommandResult do
         subject.exit_code.should == 'exit_code'
       end
 
-      context 'with status param' do
+      context 'with exit_status param' do
         subject { Rosh::CommandResult.new(error, :test) }
-        its(:status) { should == :failure }
+        its(:exit_status) { should == :failure }
       end
 
-      context 'without status param' do
-        its(:status) { should == :failure }
+      context 'without exit_status param' do
+        its(:exit_status) { should == :failure }
       end
     end
 
@@ -93,13 +93,13 @@ describe Rosh::CommandResult do
         subject.exit_code.should == 'exit_code'
       end
 
-      context 'with status param' do
+      context 'with exit_status param' do
         subject { Rosh::CommandResult.new(result, :test) }
-        its(:status) { should == :test }
+        its(:exit_status) { should == :test }
       end
 
-      context 'without status param' do
-        its(:status) { should be_nil }
+      context 'without exit_status param' do
+        its(:exit_status) { should be_nil }
       end
     end
   end
@@ -122,7 +122,7 @@ describe Rosh::CommandResult do
 
       before do
         expected_hash[:exception] = actual_exception
-        expected_hash[:status] = :failure
+        expected_hash[:exit_status] = :failure
       end
 
       it 'returns a Hash' do
@@ -145,7 +145,7 @@ describe Rosh::CommandResult do
 
       before do
         expected_hash[:exception] = actual_exception
-        expected_hash[:status] = :failure
+        expected_hash[:exit_status] = :failure
       end
 
       it 'returns a String of JSON' do
@@ -172,7 +172,7 @@ describe Rosh::CommandResult do
 
       before do
         expected_hash[:exception] = actual_exception
-        expected_hash[:status] = :failure
+        expected_hash[:exit_status] = :failure
       end
 
       it 'returns a String of YAML' do

@@ -43,7 +43,7 @@ class Rosh
         log "Just read input: #{argv}"
 
         if argv == '_?'
-          $stdout.puts @last_result.status
+          $stdout.puts @last_result.exit_status
           next
         elsif argv == '_!'
           result = if @last_result && @last_result.ruby_object.kind_of?(Exception)
@@ -133,7 +133,7 @@ class Rosh
         log 'Printing a pretty object'
         ap result.ruby_object
       else
-        if result.status && !result.status.zero?
+        if result.exit_status && !result.exit_status.zero?
           $stderr.puts "  #{result.ruby_object}".light_red
         else
           $stdout.puts "  #{result.ruby_object}".light_blue

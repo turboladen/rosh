@@ -7,14 +7,14 @@ class Rosh
 
   class CommandResult
 
-    attr_accessor :status
+    attr_accessor :exit_status
 
     attr_reader :ruby_object
 
     attr_reader :ssh_result
 
     def initialize(ruby_object, status=nil, ssh_result=nil)
-      @status = status
+      @exit_status = status
       @ruby_object = ruby_object
       @ssh_result = ssh_result
     end
@@ -27,15 +27,15 @@ class Rosh
     end
 
     def failed?
-      !@status.zero?
+      !@exit_status.zero?
     end
 
     def no_change?
-      @status == :no_change
+      @exit_status == :no_change
     end
 
     def updated?
-      @status == :updated
+      @exit_status == :updated
     end
 
     # @return [Hash] All attributes as a Hash.
