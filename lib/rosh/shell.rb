@@ -22,72 +22,6 @@ class Rosh
     @@builtin_commands = %i[cat cd ch cp exec history ls ps pwd ruby]
     @@wrapper_commands = %i[brew]
 
-    def cat(file)
-      Rosh::BuiltinCommands::Cat.new(file).send(@context)
-    end
-
-    def cd(path)
-      result = Rosh::BuiltinCommands::Cd.new(path).send(@context)
-
-      if result.exit_status.zero?
-        @env[:pwd] = result.ruby_object
-        log "pwd is now #{@env[:pwd]}"
-      else
-        log "cd to #{path} failed!  pwd is now #{@env[:pwd]}"
-      end
-
-      result
-    end
-
-    def cp(source, destination)
-      Rosh::BuiltinCommands::Cp.new(source, destination).send(@context)
-    end
-
-    def exec(cmd)
-      Rosh::BuiltinCommands::Exec.new(cmd).send(@context)
-    end
-
-    def history
-      history_array = @using_cli ? Readline::HISTORY.to_a : @non_cli_history
-      Rosh::BuiltinCommands::History.new(history_array).send(@context)
-    end
-
-    def ls(path=nil)
-      Rosh::BuiltinCommands::Ls.new(path).send(@context)
-    end
-
-    def ps
-      Rosh::BuiltinCommands::Ps.new.send(@context)
-    end
-
-    def pwd(force=false)
-      Rosh::BuiltinCommands::Pwd.new(force).send(@context)
-    end
-
-    def ruby(code)
-      Rosh::BuiltinCommands::Ruby.new(code, get_binding).send(@context)
-    end
-
-    def save_command_set(name, &block)
-      @command_sets[name] = block
-    end
-
-    def exec_command_set(name=nil)
-      if name
-        log "Executing command set '#{name}'"
-        @command_sets[name].call(self)
-      else
-        @command_sets.each do |name, blk|
-          log "Executing command set '#{name}'"
-          blk.call(self)
-        end
-      end
-    end
-
-    def brew
-      @brew ||= Rosh::CommandWrappers::Brew.new()
-    end
-
     attr_accessor :using_cli
     attr_reader :env
 
@@ -143,11 +77,19 @@ class Rosh
       lambda { |string| abbrevs.grep ( /^#{Regexp.escape(string)}/ ) }
     end
 
-    def exec_stored
-      until @command_queue.empty? do
-        result = exec(@command_queue.shift)
-        yield result if block_given?
-        result
+    def save_command_set(name, &block)
+      @command_sets[name] = block
+    end
+
+    def exec_command_set(name=nil)
+      if name
+        log "Executing command set '#{name}'"
+        @command_sets[name].call(self)
+      else
+        @command_sets.each do |name, blk|
+          log "Executing command set '#{name}'"
+          blk.call(self)
+        end
       end
     end
 
@@ -161,6 +103,56 @@ class Rosh
 
     def get_binding
       @binding ||= binding
+    end
+
+    def cat(file)
+      Rosh::BuiltinCommands::Cat.new(file).send(@context)
+    end
+
+    def cd(path)
+      result = Rosh::BuiltinCommands::Cd.new(path).send(@context)
+
+      if result.exit_status.zero?
+        @env[:pwd] = result.ruby_object
+        log "pwd is now #{@env[:pwd]}"
+      else
+        log "cd to #{path} failed!  pwd is now #{@env[:pwd]}"
+      end
+
+      result
+    end
+
+    def cp(source, destination)
+      Rosh::BuiltinCommands::Cp.new(source, destination).send(@context)
+    end
+
+    def exec(cmd)
+      Rosh::BuiltinCommands::Exec.new(cmd).send(@context)
+    end
+
+    def history
+      history_array = @using_cli ? Readline::HISTORY.to_a : @non_cli_history
+      Rosh::BuiltinCommands::History.new(history_array).send(@context)
+    end
+
+    def ls(path=nil)
+      Rosh::BuiltinCommands::Ls.new(path).send(@context)
+    end
+
+    def ps
+      Rosh::BuiltinCommands::Ps.new.send(@context)
+    end
+
+    def pwd(force=false)
+      Rosh::BuiltinCommands::Pwd.new(force).send(@context)
+    end
+
+    def ruby(code)
+      Rosh::BuiltinCommands::Ruby.new(code, get_binding).send(@context)
+    end
+
+    def brew
+      @brew ||= Rosh::CommandWrappers::Brew.new()
     end
   end
 end
