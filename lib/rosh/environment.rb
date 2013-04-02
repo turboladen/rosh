@@ -24,8 +24,8 @@ class Rosh
       @hosts = {}
 
       config[:hosts].each do |hostname, options|
-        log "Read hostname: #{hostname}"
-        log "Read options: #{options}"
+        self.log "Read hostname: #{hostname}"
+        self.log "Read options: #{options}"
         @hosts[hostname] = Rosh::Host.new(hostname, **options)
       end
 
