@@ -47,7 +47,7 @@ class Rosh
 
     def run
       loop do
-        prompt = new_prompt(Dir.pwd)
+        prompt = new_prompt
         Readline.completion_proc = @host.shell.completions
 
         argv = readline(prompt, true)
@@ -61,8 +61,6 @@ class Rosh
         if multiline_ruby?(argv)
           argv = ruby_prompt(argv)
           log "Multi-line Ruby; argv is now: #{argv}"
-        else
-          log 'Not multiline Ruby'
         end
 
         result = execute(argv)
@@ -103,9 +101,11 @@ class Rosh
       result
     end
 
-    def new_prompt(pwd)
+    def new_prompt
       user_and_host = '['.blue
-      user_and_host << "#{Etc.getlogin}@#{@host.hostname}:#{pwd.split('/').last}".red
+      user_and_host << "#{@host.shell.env[:user]}".red
+      user_and_host << "@#{@host.shell.env[:hostname]}".red
+      user_and_host << ":#{@host.shell.env[:pwd].split('/').last}".red
       user_and_host << ']'.blue
 
       _, width = Readline.get_screen_size
@@ -201,6 +201,7 @@ class Rosh
         Rosh::CommandResult.new(new_host, 1)
       else
         log "Changed to host '#{hostname}'"
+        Rosh::Environment.current_hostname = hostname.strip
         @host = new_host
         Rosh::CommandResult.new(new_host, 0)
       end
