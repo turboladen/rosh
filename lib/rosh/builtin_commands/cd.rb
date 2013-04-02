@@ -22,7 +22,7 @@ class Rosh
       end
 
       def remote_execute
-        Rosh::Environment.current_host.ssh.run "pwd #{@path}"
+        Rosh::Environment.current_host.ssh.run "cd #{@path}"
       end
     end
   end
