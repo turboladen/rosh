@@ -17,6 +17,10 @@ class Rosh
       @exit_status = status
       @ruby_object = ruby_object
       @ssh_result = ssh_result
+
+      if @ssh_result.is_a?(Net::SSH::Simple::Result) && @ruby_object.nil?
+        @ruby_object = @ssh_result.stdout
+      end
     end
 
     # @return [Boolean] Tells if the result was an exception.  Exceptions are
