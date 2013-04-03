@@ -131,16 +131,12 @@ class Rosh
       @ssh.close
     end
 
-    def pwd
-      result = run('pwd')
+    def cat(file)
+      run "cat #{file}"
+    end
 
-      if result.ssh_result.is_a? Net::SSH::Simple::Error
-        exit_code = result.ssh_result.result.exit_code || 1
-        CommandResult.new(result.ssh_result.wrapped, exit_code,
-          result.ssh_result)
-      else
-        CommandResult.new(result.ssh_result.stdout.strip, 0, result.ssh_result)
-      end
+    def pwd
+      run('pwd')
     end
 
     private

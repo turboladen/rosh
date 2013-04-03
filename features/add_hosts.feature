@@ -6,8 +6,9 @@ Feature: Add hosts
     Given there is a host at "192.168.33.102"
     When I add that host to the shell
     Then I can run commands on it:
-    | Command |
-    | pwd   |
+    | Command | Arg1          |
+    | pwd     |               |
+    | cat     | '/etc/hosts'  |
     And get a response as a Ruby object
 
   Scenario: Update a remote host

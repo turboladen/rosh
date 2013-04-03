@@ -15,7 +15,14 @@ end
 
 Then(/^I can run commands on it:$/) do |table|
   @results = table.hashes.inject({}) do |result, column|
-    result[column['Command']] = @rosh.hosts[@ip].shell.send(column['Command'].to_sym)
+    command = column['Command'].to_sym
+    arg1 = column['Arg1']
+
+    result[command] = if arg1.nil? || arg1.empty?
+      @rosh.hosts[@ip].shell.send(command)
+    else
+      @rosh.hosts[@ip].shell.send(command, arg1)
+    end
 
     result
   end
@@ -26,8 +33,11 @@ And(/^get a response as a Ruby object$/) do
     result.should be_a Rosh::CommandResult
 
     case command
-    when 'pwd'
+    when :pwd
       result.ruby_object.should match %r[/\w+/\w+]
+    when :cat
+    else
+      raise "Got unexpected command: #{command}"
     end
   end
 end
