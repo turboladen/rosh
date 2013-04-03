@@ -1,59 +1,25 @@
-require 'colorize'
-require_relative 'ssh'
-require_relative 'environment'
-require_relative 'shell'
-require_relative 'host/environment'
-require_relative 'host/file_system'
+require 'socket'
+require_relative 'local_shell'
+require_relative 'remote_shell'
 
 
 class Rosh
-
-  # An Host runs Rosh::Actions on a remote host.
-  #
-  #   host = Rosh::Host.new 'my_box'
-  #
-  #   host.brew formula: 'rbenv'
-  #   host.subversion repository: 'http://entmenu.googlecode.com/svn/trunk/',
-  #     destination: '/tmp/entmenu'
-  #   host.directory path: '/tmp/entmenu', state: :absent
-  #   host.shell command: %[/usr/bin/env python -V]
-  #   host.directory path: '/tmp/steve'
-  #   host.directory path: '/tmp/steve', state: :absent
-  #   host.script source_file: 'script_test.rb', args: '--first-arg'
-  #
-  #   host.action!
-  #
   class Host
-    include Rosh::BuiltinCommands
-    extend LogSwitch
-    include LogSwitch::Mixin
-
     attr_reader :hostname
-    attr_reader :ssh
+    attr_reader :shell
 
     def initialize(hostname, **ssh_options)
       @hostname = hostname
-      @ssh_options = ssh_options
 
-      log "Initialized for host: #{@hostname}"
-
-      unless Rosh::Environment.hosts[hostname]
-        Rosh::Environment.hosts[hostname] = self
+      @shell = if hostname == 'localhost'
+        Rosh::LocalShell.new
+      else
+        Rosh::RemoteShell.new(@hostname, ssh_options)
       end
-
-      @ssh = Rosh::SSH.new(@hostname, @ssh_options)
     end
 
-    def shell
-      @shell ||= Rosh::Shell.new(@ssh)
-    end
-
-    def env
-      @env ||= Rosh::Host::Environment.new(@hostname)
-    end
-
-    def fs
-      @fs ||= Rosh::Host::FileSystem.new(@hostname)
+    def set(**ssh_options)
+      @shell.set(ssh_options)
     end
   end
 end
