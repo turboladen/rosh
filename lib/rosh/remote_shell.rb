@@ -5,6 +5,7 @@ require 'highline/import'
 require 'log_switch'
 require_relative 'command_result'
 require_relative 'remote_dir'
+require_relative 'errors'
 
 
 class Rosh
@@ -154,7 +155,8 @@ class Rosh
         @internal_pwd = Rosh::RemoteDir.new(result.ruby_object)
         Rosh::CommandResult.new(@internal_pwd, 0, result.ssh_result)
       else
-        result
+        error = Rosh::ErrorENOENT.new
+        Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
       end
     end
 

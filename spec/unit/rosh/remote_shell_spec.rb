@@ -234,10 +234,6 @@ describe Rosh::RemoteShell do
         it 'returns a CommandResult with ruby object a Rosh::RemoteDir' do
           @r.ruby_object.should be_a Rosh::RemoteDir
         end
-
-        it 'returns the same path as Dir.pwd' do
-          pending
-        end
       end
 
       context 'path is absolute' do
@@ -261,16 +257,23 @@ describe Rosh::RemoteShell do
       let(:result) do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 1
+        r.stub(:ssh_result)
 
         r
       end
 
       context 'path is relative' do
-        it 'returns a CommandResult with exit status 1' do
+        before do
           subject.should_receive(:run).with("cd #{path} && pwd").and_return result
+          @r = subject.cd('path')
+        end
 
-          r = subject.cd('path')
-          r.exit_status.should eq 1
+        it 'returns a CommandResult with exit status 1' do
+          @r.exit_status.should eq 1
+        end
+
+        it 'returns a CommandResult with ruby object a Rosh::ErrorENOENT' do
+          @r.ruby_object.should be_a Rosh::ErrorENOENT
         end
       end
 
