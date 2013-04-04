@@ -1,12 +1,30 @@
 #!/usr/bin/env ruby
 
 
-require_relative '../lib/rosh/cli'
 
+arg = ARGV.pop
 
-begin
-  Rosh::CLI.run
+if arg == '--irb'
+  require 'irb'
+  require_relative '../lib/rosh'
+  IRB.setup '../lib/rosh'
+
+  def r
+    @r ||= Rosh.new
+  end
+
+  r.add_host('192.168.33.102', :deb, user: 'vagrant',
+    keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
+
+  IRB.start
+else
+  require_relative '../lib/rosh/cli'
+
+  begin
+    Rosh::CLI.run
+  end
 end
+
 
 
 
