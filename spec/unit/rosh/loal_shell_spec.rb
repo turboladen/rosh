@@ -77,6 +77,124 @@ describe Rosh::LocalShell do
     end
   end
 
+  describe '#ls' do
+    let(:path) { '/home/path' }
+
+    context 'path exists' do
+      let(:file_system_object) do
+        double 'Rosh::LocalFileSystemObject'
+      end
+
+      before do
+        Dir.should_receive(:entries).with(path).and_return [path]
+        Rosh::LocalFileSystemObject.should_receive(:create).
+          and_return file_system_object
+      end
+
+      context 'path is relative' do
+        before do
+          subject.should_receive(:preprocess_path).with('path').and_return path
+          @r = subject.ls('path')
+        end
+
+        it 'returns a CommandResult with exit status 0' do
+          @r.exit_status.should eq 0
+        end
+
+        it 'returns a CommandResult with ruby object an Array of LocalFileSystemObjects' do
+          @r.ruby_object.should eq [file_system_object]
+        end
+      end
+
+      context 'path is absolute' do
+        before do
+          subject.should_receive(:preprocess_path).with(path).and_return path
+          @r = subject.ls('/home/path')
+        end
+
+        it 'returns a CommandResult with exit status 0' do
+          @r.exit_status.should eq 0
+        end
+
+        it 'returns a CommandResult with ruby object an Array of LocalFileSystemObjects' do
+          @r.ruby_object.should eq [file_system_object]
+        end
+      end
+    end
+
+    context 'path does not exist' do
+      before do
+        Dir.should_receive(:entries).with('/home/path').and_raise Errno::ENOENT
+      end
+
+      context 'path is relative' do
+        before do
+          subject.should_receive(:preprocess_path).with('path').and_return path
+          @r = subject.ls('path')
+        end
+
+        it 'returns a CommandResult with exit status 1' do
+          @r.exit_status.should eq 1
+        end
+
+        it 'returns a CommandResult with ruby object an Errno::ENOENT' do
+          @r.ruby_object.should be_a Errno::ENOENT
+        end
+      end
+
+      context 'path is absolute' do
+        before do
+          subject.should_receive(:preprocess_path).with('/home/path').and_return path
+          @r = subject.ls('/home/path')
+        end
+
+        it 'returns a CommandResult with exit status 1' do
+          @r.exit_status.should eq 1
+        end
+
+        it 'returns a CommandResult with ruby object an Errno::ENOENT' do
+          @r.ruby_object.should be_a Errno::ENOENT
+        end
+      end
+    end
+
+    context 'path is not a directory' do
+      before do
+        Dir.should_receive(:entries).with('/home/path').and_raise Errno::ENOTDIR
+      end
+
+      context 'path is relative' do
+        before do
+          subject.should_receive(:preprocess_path).with('path').and_return path
+          @r = subject.ls('path')
+        end
+
+        it 'returns a CommandResult with exit status 1' do
+          @r.exit_status.should eq 1
+        end
+
+        it 'returns a CommandResult with ruby object an Errno::ENOTDIR' do
+          @r.ruby_object.should be_a Errno::ENOTDIR
+        end
+      end
+
+      context 'path is absolute' do
+        before do
+          subject.should_receive(:preprocess_path).with('/home/path').and_return path
+          @r = subject.ls('/home/path')
+        end
+
+        it 'returns a CommandResult with exit status 1' do
+          @r.exit_status.should eq 1
+        end
+
+        it 'returns a CommandResult with ruby object an Errno::ENOTDIR' do
+          @r.ruby_object.should be_a Errno::ENOTDIR
+        end
+      end
+    end
+  end
+
   describe '#pwd' do
     before do
       subject.instance_variable_set(:@internal_pwd, 'some dir')

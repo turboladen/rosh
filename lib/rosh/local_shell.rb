@@ -1,5 +1,6 @@
 require 'open-uri'
 require_relative 'command_result'
+require_relative 'local_file_system_object'
 
 
 class Rosh
@@ -39,6 +40,24 @@ class Rosh
       end
     end
 
+    # @param [String] path Path to the directory to list its contents.
+    # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
+    #   is an Array of Rosh::LocalFileSystemObjects.  On fail, #exit_status is
+    #   1, #ruby_object is a Errno::ENOENT.
+    def ls(path=nil)
+      path = preprocess_path(path)
+
+      begin
+        fso_array = Dir.entries(path).map do |entry|
+          Rosh::LocalFileSystemObject.create("#{path}/#{entry}")
+        end
+
+        Rosh::CommandResult.new(fso_array, 0)
+      rescue Errno::ENOENT, Errno::ENOTDIR => ex
+        Rosh::CommandResult.new(ex, 1)
+      end
+    end
+
     # @return [Rosh::CommandResult] #exit_status is 0, #ruby_object is the
     #   current working directory as a Dir.
     def pwd
@@ -48,6 +67,7 @@ class Rosh
     private
 
     def preprocess_path(path)
+      path = '' unless path
       path.strip!
 
       File.expand_path(path)
