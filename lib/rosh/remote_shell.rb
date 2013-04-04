@@ -102,10 +102,14 @@ class Rosh
         end
 
         if ex.wrapped.class == Net::SSH::Disconnect
-          unless retried
+          if retried
+            $stdout.puts 'Tried to reconnect to the remote host, but failed.'.red
+          else
+            log 'Host disconnected us; retrying to connect...'
+            retried = true
             @ssh = Net::SSH::Simple.new(@options)
             run(command, new_options)
-            retried = true
+            retry
           end
         end
 
