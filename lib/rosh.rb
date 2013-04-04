@@ -8,7 +8,11 @@ class Rosh
     @hosts = {}
   end
 
-  def add_host(hostname, **ssh_options)
-    @hosts[hostname] = Rosh::Host.new(hostname, ssh_options)
+  def add_host(hostname, host_alias=nil, **ssh_options)
+    if host_alias.nil?
+      @hosts[hostname] = Rosh::Host.new(hostname, ssh_options)
+    else
+      @hosts[host_alias] = Rosh::Host.new(hostname, ssh_options)
+    end
   end
 end
