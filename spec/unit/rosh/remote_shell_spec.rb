@@ -191,7 +191,7 @@ describe Rosh::RemoteShell do
 
         result = subject.pwd
         result.should be_a Rosh::CommandResult
-        result.ruby_object.should == 'some path'
+        result.ruby_object.should be_a Rosh::RemoteDir
         result.exit_status.should == 0
       end
     end
@@ -230,17 +230,25 @@ describe Rosh::RemoteShell do
         let(:result) do
           r = double 'Rosh::CommandResult'
           r.stub(:exit_status).and_return 0
-          r.stub(:ruby_object).and_return 'new path'
+          r.stub(:ruby_object).and_return path
           r.stub(:ssh_result).and_return 'ssh output'
 
           r
         end
 
-        it 'returns a CommandResult with exit status 0' do
-          subject.should_receive(:run).with('cd /home/path && pwd').and_return result
+        let(:path) { '/home/path' }
 
-          r = subject.cd('path')
-          r.exit_status.should eq 0
+        before do
+          subject.should_receive(:run).with("cd #{path} && pwd").and_return result
+          @r = subject.cd('path')
+        end
+
+        it 'returns a CommandResult with exit status 0' do
+          @r.exit_status.should eq 0
+        end
+
+        it 'returns a CommandResult with ruby object a Dir' do
+          @r.ruby_object.should be_a Rosh::RemoteDir
         end
 
         it 'returns the same path as Dir.pwd' do
@@ -272,17 +280,26 @@ describe Rosh::RemoteShell do
       let(:result) do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 0
-        r.stub(:ruby_object).and_return 'new path'
+        r.stub(:ruby_object).and_return path
         r.stub(:ssh_result).and_return 'ssh output'
 
         r
       end
 
-      it 'returns a CommandResult with exit status 1' do
-        subject.should_receive(:run).with('cd /etc/init.d && pwd').and_return result
+      let(:path) { '/etc/init.d' }
 
-        r = subject.cd('/etc/init.d')
-        r.exit_status.should eq 0
+      before do
+        subject.should_receive(:run).with("cd #{path} && pwd").and_return result
+
+        @r = subject.cd('/etc/init.d')
+      end
+
+      it 'returns a CommandResult with exit status 0' do
+        @r.exit_status.should eq 0
+      end
+
+      it 'returns a CommandResult with ruby object a Rosh::RemoteDir' do
+        @r.ruby_object.should be_a Rosh::RemoteDir
       end
     end
   end
@@ -315,11 +332,18 @@ describe Rosh::RemoteShell do
           r
         end
 
-        it 'returns a CommandResult with exit status 1' do
+        before do
           subject.should_receive(:run).with('cat /home/path').and_return result
 
-          r = subject.cat('path')
-          r.exit_status.should eq 0
+          @r = subject.cat('path')
+        end
+
+        it 'returns a CommandResult with exit status 0' do
+          @r.exit_status.should eq 0
+        end
+
+        it 'returns a CommandResult with ruby object a String' do
+          @r.ruby_object.should eq 'new path'
         end
       end
     end

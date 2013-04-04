@@ -4,6 +4,7 @@ require 'net/ssh/simple'
 require 'highline/import'
 require 'log_switch'
 require_relative 'command_result'
+require_relative 'remote_dir'
 
 
 class Rosh
@@ -150,7 +151,7 @@ class Rosh
       result = run "cd #{path} && pwd"
 
       if result.exit_status.zero?
-        @internal_pwd = result.ruby_object
+        @internal_pwd = Rosh::RemoteDir.new(result.ruby_object)
         Rosh::CommandResult.new(@internal_pwd, 0, result.ssh_result)
       else
         result
@@ -160,7 +161,7 @@ class Rosh
     def pwd
       unless @internal_pwd
         result = run('pwd')
-        @internal_pwd = result.ruby_object
+        @internal_pwd = Rosh::RemoteDir.new(result.ruby_object)
       end
 
       Rosh::CommandResult.new(@internal_pwd, 0)
