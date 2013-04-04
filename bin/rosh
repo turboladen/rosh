@@ -15,6 +15,7 @@ if arg == '--irb'
 
   r.add_host('192.168.33.102', :deb, user: 'vagrant',
     keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
+  r.add_host('localhost', :local)
 
   IRB.start
 else
