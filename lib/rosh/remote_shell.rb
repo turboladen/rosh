@@ -46,6 +46,7 @@ class Rosh
       @options[:timeout] = DEFAULT_TIMEOUT unless @options.has_key? :timeout
       @ssh = Net::SSH::Simple.new(@options)
 
+      @internal_pwd = nil
       log "Initialized for '#{@hostname}'"
     end
 
@@ -97,6 +98,14 @@ class Rosh
           end
         end
 
+        if ex.wrapped.class == Net::SSH::Disconnect
+          unless @retried
+            @ssh = Net::SSH::Simple.new(@options)
+            run(command, new_options)
+            @retried = true
+          end
+        end
+
         Rosh::CommandResult.new(nil, 1, ex)
       end
     end
@@ -132,11 +141,29 @@ class Rosh
     end
 
     def cat(file)
+      file = preprocess_path(file)
       run "cat #{file}"
     end
 
+    def cd(path)
+      path = preprocess_path(path)
+      result = run "cd #{path} && pwd"
+
+      if result.exit_status.zero?
+        @internal_pwd = result.ruby_object
+        Rosh::CommandResult.new(@internal_pwd, 0, result.ssh_result)
+      else
+        result
+      end
+    end
+
     def pwd
-      run('pwd')
+      unless @internal_pwd
+        result = run('pwd')
+        @internal_pwd = result.ruby_object
+      end
+
+      Rosh::CommandResult.new(@internal_pwd, 0)
     end
 
     private
@@ -166,6 +193,16 @@ class Rosh
           $stdout.puts 'Finished executing command.'.light_blue
         end
       end
+    end
+
+    def preprocess_path(path)
+      path.strip!
+
+      unless path.start_with? '/'
+        path = "#{@internal_pwd}/#{path}"
+      end
+
+      path
     end
   end
 end
