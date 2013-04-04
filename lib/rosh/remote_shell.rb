@@ -4,6 +4,7 @@ require 'net/ssh/simple'
 require 'highline/import'
 require 'log_switch'
 require_relative 'command_result'
+require_relative 'remote_file_system_object'
 require_relative 'remote_dir'
 require_relative 'errors'
 
@@ -151,7 +152,7 @@ class Rosh
       result = run "cat #{file}"
 
       if result.ssh_result.stderr.match %r[No such file or directory]
-        error = Rosh::ErrorENOENT.new, result.ssh_result.stderr
+        error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
         return Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
       end
 
@@ -167,14 +168,36 @@ class Rosh
       result = run "cd #{path} && pwd"
 
       if result.exit_status.zero?
-        @internal_pwd = Rosh::RemoteDir.new(result.ruby_object)
+        @internal_pwd = Rosh::RemoteDir.new(result.ruby_object, self)
         Rosh::CommandResult.new(@internal_pwd, 0, result.ssh_result)
       elsif result.ssh_result.stderr.match %r[No such file or directory]
-        error = Rosh::ErrorENOENT.new, result.ssh_result.stderr
-        return Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
+        error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
+        Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
       else
         result
       end
+    end
+
+    # @param [String] path Path to the directory to list its contents.
+    # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
+    #   is an Array of Rosh::RemoteFileSystemObjects.  On fail, #exit_status is
+    #   the status given by the remote host's failed 'ls' command, #ruby_object
+    #   is a Rosh::ErrorENOENT.
+    def ls(path=nil)
+      path = preprocess_path(path)
+      result = run "ls #{path}"
+
+      if result.ssh_result.stderr.match %r[No such file or directory]
+        error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
+        return Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
+      end
+
+      listing = result.ruby_object.split.map do |entry|
+        full_path = "#{path}/#{entry}"
+        Rosh::RemoteFileSystemObject.create(full_path, self)
+      end
+
+      Rosh::CommandResult.new(listing, 0, result.ssh_result)
     end
 
     # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
@@ -182,7 +205,7 @@ class Rosh
     def pwd
       unless @internal_pwd
         result = run('pwd')
-        @internal_pwd = Rosh::RemoteDir.new(result.ruby_object)
+        @internal_pwd = Rosh::RemoteDir.new(result.ruby_object, self)
       end
 
       Rosh::CommandResult.new(@internal_pwd, 0)
@@ -218,7 +241,10 @@ class Rosh
     end
 
     def preprocess_path(path)
+      path = '' unless path
       path.strip!
+
+      pwd unless @internal_pwd
 
       unless path.start_with? '/'
         path = "#{@internal_pwd.to_path}/#{path}"

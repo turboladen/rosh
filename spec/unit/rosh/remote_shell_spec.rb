@@ -173,41 +173,6 @@ describe Rosh::RemoteShell do
     end
   end
 
-  describe '#pwd' do
-    let(:result) do
-      r = double 'Rosh::CommandResult'
-      r.stub(:ruby_object).and_return 'some path'
-
-      r
-    end
-
-    context '@internal_pwd is not set' do
-      before do
-        subject.instance_variable_set(:@internal_pwd, nil)
-      end
-
-      it 'runs "pwd" over ssh' do
-        subject.should_receive(:run).with('pwd').and_return result
-
-        result = subject.pwd
-        result.should be_a Rosh::CommandResult
-        result.ruby_object.should be_a Rosh::RemoteDir
-        result.exit_status.should == 0
-      end
-    end
-
-    context '@internal_pwd is set' do
-      it 'does not run "pwd" over ssh, but returns @internal_pwd' do
-        subject.should_not_receive(:run).with('pwd')
-
-        result = subject.pwd
-        result.should be_a Rosh::CommandResult
-        result.ruby_object.should == '/home'
-        result.exit_status.should == 0
-      end
-    end
-  end
-
   describe '#cd' do
     let(:path) { '/home/path' }
 
@@ -259,7 +224,7 @@ describe Rosh::RemoteShell do
       let(:result) do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 1
-        r.stub(:ssh_result)
+        r.stub_chain(:ssh_result, :stderr).and_return 'No such file or directory'
 
         r
       end
@@ -379,6 +344,134 @@ describe Rosh::RemoteShell do
         it 'returns a CommandResult with ruby object a Rosh::ErrorENOENT' do
           @r.ruby_object.should be_a Rosh::ErrorENOENT
         end
+      end
+    end
+  end
+
+  describe '#ls' do
+    let(:path) { '/home/path' }
+
+    context 'path exists' do
+      let(:result) do
+        r = double 'Rosh::CommandResult'
+        r.stub(:exit_status).and_return 0
+        r.stub(:ruby_object).and_return path
+        r.stub_chain(:ssh_result, :stderr).and_return ''
+
+        r
+      end
+
+      let(:file_system_object) do
+        double 'Rosh::RemoteFileSystemObject'
+      end
+
+      before do
+        Rosh::RemoteFileSystemObject.should_receive(:create).
+          and_return file_system_object
+      end
+
+      context 'path is relative' do
+        before do
+          subject.should_receive(:preprocess_path).with('path').and_return path
+          subject.should_receive(:run).with("ls #{path}").and_return result
+          @r = subject.ls('path')
+        end
+
+        it 'returns a CommandResult with exit status 0' do
+          @r.exit_status.should eq 0
+        end
+
+        it 'returns a CommandResult with ruby object an Array of RemoteFileSystemObjects' do
+          @r.ruby_object.should == [file_system_object]
+        end
+      end
+
+      context 'path is absolute' do
+        before do
+          subject.should_receive(:preprocess_path).with(path).and_return path
+          subject.should_receive(:run).with("ls #{path}").and_return result
+
+          @r = subject.ls('/home/path')
+        end
+
+        it 'returns a CommandResult with exit status 0' do
+          @r.exit_status.should eq 0
+        end
+
+        it 'returns a CommandResult with ruby object an Array of RemoteFileSystemObjects' do
+          @r.ruby_object.should == [file_system_object]
+        end
+      end
+    end
+
+    context 'path does not exist' do
+      let(:result) do
+        r = double 'Rosh::CommandResult'
+        r.stub(:exit_status).and_return 1
+        r.stub_chain(:ssh_result, :stderr).and_return 'No such file or directory'
+
+        r
+      end
+
+      context 'path is relative' do
+        before do
+          subject.should_receive(:preprocess_path).with('path').and_return path
+          subject.should_receive(:run).with("ls #{path}").and_return result
+          @r = subject.ls('path')
+        end
+
+        it 'returns a CommandResult with exit status 1' do
+          @r.exit_status.should eq 1
+        end
+
+        it 'returns a CommandResult with ruby object a Rosh::ErrorENOENT' do
+          @r.ruby_object.should be_a Rosh::ErrorENOENT
+        end
+      end
+
+      context 'path is absolute' do
+        it 'returns a CommandResult with exit status 1' do
+          subject.should_receive(:preprocess_path).with(path).and_return path
+          subject.should_receive(:run).with("ls #{path}").and_return result
+
+          r = subject.ls('/home/path')
+          r.exit_status.should eq 1
+        end
+      end
+    end
+  end
+
+  describe '#pwd' do
+    let(:result) do
+      r = double 'Rosh::CommandResult'
+      r.stub(:ruby_object).and_return 'some path'
+
+      r
+    end
+
+    context '@internal_pwd is not set' do
+      before do
+        subject.instance_variable_set(:@internal_pwd, nil)
+      end
+
+      it 'runs "pwd" over ssh' do
+        subject.should_receive(:run).with('pwd').and_return result
+
+        result = subject.pwd
+        result.should be_a Rosh::CommandResult
+        result.ruby_object.should be_a Rosh::RemoteDir
+        result.exit_status.should == 0
+      end
+    end
+
+    context '@internal_pwd is set' do
+      it 'does not run "pwd" over ssh, but returns @internal_pwd' do
+        subject.should_not_receive(:run).with('pwd')
+
+        result = subject.pwd
+        result.should be_a Rosh::CommandResult
+        result.ruby_object.should == '/home'
+        result.exit_status.should == 0
       end
     end
   end
