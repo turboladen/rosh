@@ -151,7 +151,7 @@ class Rosh
       result = run "cat #{file}"
 
       if result.ssh_result.stderr.match %r[No such file or directory]
-        error = Rosh::ErrorENOENT.new
+        error = Rosh::ErrorENOENT.new, result.ssh_result.stderr
         return Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
       end
 
@@ -166,7 +166,7 @@ class Rosh
         @internal_pwd = Rosh::RemoteDir.new(result.ruby_object)
         Rosh::CommandResult.new(@internal_pwd, 0, result.ssh_result)
       elsif result.ssh_result.stderr.match %r[No such file or directory]
-        error = Rosh::ErrorENOENT.new
+        error = Rosh::ErrorENOENT.new, result.ssh_result.stderr
         return Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
       else
         result
