@@ -19,7 +19,7 @@ class Rosh
       @ssh_result = ssh_result
 
       if @ssh_result.is_a?(Net::SSH::Simple::Result) && @ruby_object.nil?
-        @ruby_object = @ssh_result.stdout
+        @ruby_object = @ssh_result.stdout.strip
       end
     end
 
