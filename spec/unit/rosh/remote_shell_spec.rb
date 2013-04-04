@@ -236,11 +236,15 @@ describe Rosh::RemoteShell do
           r
         end
 
-        it 'returns a CommandResult with exit status 1' do
+        it 'returns a CommandResult with exit status 0' do
           subject.should_receive(:run).with('cd /home/path && pwd').and_return result
 
           r = subject.cd('path')
           r.exit_status.should eq 0
+        end
+
+        it 'returns the same path as Dir.pwd' do
+          pending
         end
       end
     end
