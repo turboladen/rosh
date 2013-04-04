@@ -209,72 +209,7 @@ describe Rosh::RemoteShell do
   end
 
   describe '#cd' do
-    context 'path is relative' do
-      context 'path does not exist' do
-        let(:result) do
-          r = double 'Rosh::CommandResult'
-          r.stub(:exit_status).and_return 1
-
-          r
-        end
-
-        it 'returns a CommandResult with exit status 1' do
-          subject.should_receive(:run).with('cd /home/path && pwd').and_return result
-
-          r = subject.cd('path')
-          r.exit_status.should eq 1
-        end
-      end
-
-      context 'path exists' do
-        let(:result) do
-          r = double 'Rosh::CommandResult'
-          r.stub(:exit_status).and_return 0
-          r.stub(:ruby_object).and_return path
-          r.stub(:ssh_result).and_return 'ssh output'
-
-          r
-        end
-
-        let(:path) { '/home/path' }
-
-        before do
-          subject.should_receive(:run).with("cd #{path} && pwd").and_return result
-          @r = subject.cd('path')
-        end
-
-        it 'returns a CommandResult with exit status 0' do
-          @r.exit_status.should eq 0
-        end
-
-        it 'returns a CommandResult with ruby object a Dir' do
-          @r.ruby_object.should be_a Rosh::RemoteDir
-        end
-
-        it 'returns the same path as Dir.pwd' do
-          pending
-        end
-      end
-    end
-
-    context 'path is absolute' do
-      context 'path does not exist' do
-        let(:result) do
-          r = double 'Rosh::CommandResult'
-          r.stub(:exit_status).and_return 1
-
-          r
-        end
-
-        it 'returns a CommandResult with exit status 1' do
-          subject.should_receive(:run).with('cd /etc/init.d && pwd').and_return result
-
-          r = subject.cd('/etc/init.d')
-          r.exit_status.should eq 1
-        end
-
-      end
-    end
+    let(:path) { '/home/path' }
 
     context 'path exists' do
       let(:result) do
@@ -286,20 +221,66 @@ describe Rosh::RemoteShell do
         r
       end
 
-      let(:path) { '/etc/init.d' }
+      context 'path is relative' do
+        before do
+          subject.should_receive(:run).with("cd #{path} && pwd").and_return result
+          @r = subject.cd('path')
+        end
 
-      before do
-        subject.should_receive(:run).with("cd #{path} && pwd").and_return result
+        it 'returns a CommandResult with exit status 0' do
+          @r.exit_status.should eq 0
+        end
 
-        @r = subject.cd('/etc/init.d')
+        it 'returns a CommandResult with ruby object a Rosh::RemoteDir' do
+          @r.ruby_object.should be_a Rosh::RemoteDir
+        end
+
+        it 'returns the same path as Dir.pwd' do
+          pending
+        end
       end
 
-      it 'returns a CommandResult with exit status 0' do
-        @r.exit_status.should eq 0
+      context 'path is absolute' do
+        before do
+          subject.should_receive(:run).with("cd #{path} && pwd").and_return result
+
+          @r = subject.cd('/home/path')
+        end
+
+        it 'returns a CommandResult with exit status 0' do
+          @r.exit_status.should eq 0
+        end
+
+        it 'returns a CommandResult with ruby object a Rosh::RemoteDir' do
+          @r.ruby_object.should be_a Rosh::RemoteDir
+        end
+      end
+    end
+
+    context 'path does not exist' do
+      let(:result) do
+        r = double 'Rosh::CommandResult'
+        r.stub(:exit_status).and_return 1
+
+        r
       end
 
-      it 'returns a CommandResult with ruby object a Rosh::RemoteDir' do
-        @r.ruby_object.should be_a Rosh::RemoteDir
+      context 'path is relative' do
+        it 'returns a CommandResult with exit status 1' do
+          subject.should_receive(:run).with("cd #{path} && pwd").and_return result
+
+          r = subject.cd('path')
+          r.exit_status.should eq 1
+        end
+      end
+
+      context 'path is absolute' do
+        it 'returns a CommandResult with exit status 1' do
+          subject.should_receive(:run).with("cd #{path} && pwd").and_return result
+
+          r = subject.cd('/home/path')
+          r.exit_status.should eq 1
+        end
       end
     end
   end
