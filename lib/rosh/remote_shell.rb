@@ -142,9 +142,20 @@ class Rosh
       @ssh.close
     end
 
+    # @param [String] file The path of the file to cat.
+    # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
+    #   is a String with the file contents.  On fail, #exit_status is 1,
+    #   #ruby_object is a Rosh::ErrorNOENT error.
     def cat(file)
       file = preprocess_path(file)
-      run "cat #{file}"
+      result = run "cat #{file}"
+
+      if result.ssh_result.stderr.match %r[No such file or directory]
+        error = Rosh::ErrorENOENT.new
+        return Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
+      end
+
+      result
     end
 
     def cd(path)

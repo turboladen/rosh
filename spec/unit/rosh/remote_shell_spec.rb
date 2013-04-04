@@ -216,7 +216,7 @@ describe Rosh::RemoteShell do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 0
         r.stub(:ruby_object).and_return path
-        r.stub(:ssh_result).and_return 'ssh output'
+        r.stub(:ssh_result)
 
         r
       end
@@ -300,7 +300,7 @@ describe Rosh::RemoteShell do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 0
         r.stub(:ruby_object).and_return 'file contents'
-        r.stub(:ssh_result).and_return 'ssh output'
+        r.stub_chain(:ssh_result, :stderr).and_return ''
 
         r
       end
@@ -342,6 +342,7 @@ describe Rosh::RemoteShell do
       let(:result) do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 1
+        r.stub_chain(:ssh_result, :stderr).and_return 'No such file or directory'
 
         r
       end
