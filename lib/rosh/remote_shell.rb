@@ -158,6 +158,10 @@ class Rosh
       result
     end
 
+    # @param [String] path The path of the directory to change to.
+    # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
+    #   is a Rosh::RemoteDir.  On fail, #exit_status is 1, #ruby_object is a
+    #   Rosh::ErrorNOENT error.
     def cd(path)
       path = preprocess_path(path)
       result = run "cd #{path} && pwd"
@@ -173,6 +177,8 @@ class Rosh
       end
     end
 
+    # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
+    #   is a Rosh::RemoteDir.
     def pwd
       unless @internal_pwd
         result = run('pwd')
