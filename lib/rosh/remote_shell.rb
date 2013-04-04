@@ -81,7 +81,7 @@ class Rosh
     # @todo Attempt to coerce the output of the SSH command into a Ruby object.
     def run(command, **ssh_options)
       new_options = @options.merge(ssh_options)
-      @retried = false
+      retried = false
 
       begin
         output = @ssh.ssh(@hostname, command, new_options, &ssh_block)
@@ -90,10 +90,10 @@ class Rosh
         log "Net::SSH::Simple::Error: #{ex}"
 
         if ex.wrapped.class == Net::SSH::AuthenticationFailed
-          if @retried
+          if retried
             puts 'Authentication failed.'.red
           else
-            @retried = true
+            retried = true
             password = ask('Enter your password:  ') { |q| q.echo = false }
             new_options.merge! password: password
             retry
@@ -101,10 +101,10 @@ class Rosh
         end
 
         if ex.wrapped.class == Net::SSH::Disconnect
-          unless @retried
+          unless retried
             @ssh = Net::SSH::Simple.new(@options)
             run(command, new_options)
-            @retried = true
+            retried = true
           end
         end
 
@@ -165,9 +165,11 @@ class Rosh
       if result.exit_status.zero?
         @internal_pwd = Rosh::RemoteDir.new(result.ruby_object)
         Rosh::CommandResult.new(@internal_pwd, 0, result.ssh_result)
-      else
+      elsif result.ssh_result.stderr.match %r[No such file or directory]
         error = Rosh::ErrorENOENT.new
-        Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
+        return Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
+      else
+        result
       end
     end
 
