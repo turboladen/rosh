@@ -49,6 +49,28 @@ class Rosh
 
       result.ssh_result.exit_code.zero?
     end
+
+    def owner
+      cmd = "ls -l #{@path} | awk '{print $3}'"
+      result = @remote_shell.run(cmd)
+
+      result.ssh_result.stdout.strip
+    end
+
+    def owner=(new_owner, sudo: false)
+      cmd = "chown #{new_owner} #{@path}"
+      cmd.insert(0, 'sudo ') if sudo
+      result = @remote_shell.run(cmd)
+
+      result.ssh_result.exit_code.zero?
+    end
+
+    def group
+      cmd = "ls -l #{@path} | awk '{print $4}'"
+      result = @remote_shell.run(cmd)
+
+      result.ssh_result.stdout.strip
+    end
   end
 end
 
