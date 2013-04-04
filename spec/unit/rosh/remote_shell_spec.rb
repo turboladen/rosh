@@ -223,6 +223,7 @@ describe Rosh::RemoteShell do
 
       context 'path is relative' do
         before do
+          subject.should_receive(:preprocess_path).with('path').and_return path
           subject.should_receive(:run).with("cd #{path} && pwd").and_return result
           @r = subject.cd('path')
         end
@@ -238,6 +239,7 @@ describe Rosh::RemoteShell do
 
       context 'path is absolute' do
         before do
+          subject.should_receive(:preprocess_path).with(path).and_return path
           subject.should_receive(:run).with("cd #{path} && pwd").and_return result
 
           @r = subject.cd('/home/path')
@@ -264,6 +266,7 @@ describe Rosh::RemoteShell do
 
       context 'path is relative' do
         before do
+          subject.should_receive(:preprocess_path).with('path').and_return path
           subject.should_receive(:run).with("cd #{path} && pwd").and_return result
           @r = subject.cd('path')
         end
@@ -279,6 +282,7 @@ describe Rosh::RemoteShell do
 
       context 'path is absolute' do
         it 'returns a CommandResult with exit status 1' do
+          subject.should_receive(:preprocess_path).with(path).and_return path
           subject.should_receive(:run).with("cd #{path} && pwd").and_return result
 
           r = subject.cd('/home/path')
@@ -289,37 +293,23 @@ describe Rosh::RemoteShell do
   end
 
   describe '#cat' do
-    context 'path is relative' do
-      context 'path does not exist' do
-        let(:result) do
-          r = double 'Rosh::CommandResult'
-          r.stub(:exit_status).and_return 1
+    let(:path) { '/etc/hosts' }
 
-          r
-        end
+    context 'path exists' do
+      let(:result) do
+        r = double 'Rosh::CommandResult'
+        r.stub(:exit_status).and_return 0
+        r.stub(:ruby_object).and_return 'file contents'
+        r.stub(:ssh_result).and_return 'ssh output'
 
-        it 'returns a CommandResult with exit status 1' do
-          subject.should_receive(:run).with('cat /home/path').and_return result
-
-          r = subject.cat('path')
-          r.exit_status.should eq 1
-        end
+        r
       end
 
-      context 'path exists' do
-        let(:result) do
-          r = double 'Rosh::CommandResult'
-          r.stub(:exit_status).and_return 0
-          r.stub(:ruby_object).and_return 'new path'
-          r.stub(:ssh_result).and_return 'ssh output'
-
-          r
-        end
-
+      context 'path is relative' do
         before do
-          subject.should_receive(:run).with('cat /home/path').and_return result
-
-          @r = subject.cat('path')
+          subject.should_receive(:preprocess_path).with('hosts').and_return path
+          subject.should_receive(:run).with('cat /etc/hosts').and_return result
+          @r = subject.cat('hosts')
         end
 
         it 'returns a CommandResult with exit status 0' do
@@ -327,44 +317,67 @@ describe Rosh::RemoteShell do
         end
 
         it 'returns a CommandResult with ruby object a String' do
-          @r.ruby_object.should eq 'new path'
+          @r.ruby_object.should eq 'file contents'
         end
       end
-    end
 
-    context 'path is absolute' do
-      context 'path does not exist' do
-        let(:result) do
-          r = double 'Rosh::CommandResult'
-          r.stub(:exit_status).and_return 1
-
-          r
-        end
-
-        it 'returns a CommandResult with exit status 1' do
+      context 'path is absolute' do
+        before do
+          subject.should_receive(:preprocess_path).with(path).and_return path
           subject.should_receive(:run).with('cat /etc/hosts').and_return result
+          @r = subject.cat('/etc/hosts')
+        end
 
-          r = subject.cat('/etc/hosts')
-          r.exit_status.should eq 1
+        it 'returns a CommandResult with exit status 0' do
+          @r.exit_status.should eq 0
+        end
+
+        it 'returns a CommandResult with ruby object a String' do
+          @r.ruby_object.should eq 'file contents'
         end
       end
     end
 
-    context 'path exists' do
+    context 'path does not exist' do
       let(:result) do
         r = double 'Rosh::CommandResult'
-        r.stub(:exit_status).and_return 0
-        r.stub(:ruby_object).and_return 'new path'
-        r.stub(:ssh_result).and_return 'ssh output'
+        r.stub(:exit_status).and_return 1
 
         r
       end
 
-      it 'returns a CommandResult with exit status 1' do
-        subject.should_receive(:run).with('cat /etc/hosts').and_return result
+      context 'path is relative' do
+        before do
+          subject.should_receive(:preprocess_path).with('hosts').and_return path
+          subject.should_receive(:run).with('cat /etc/hosts').and_return result
 
-        r = subject.cat('/etc/hosts')
-        r.exit_status.should eq 0
+          @r = subject.cat('hosts')
+        end
+
+        it 'returns a CommandResult with exit status 1' do
+          @r.exit_status.should eq 1
+        end
+
+        it 'returns a CommandResult with ruby object a Rosh::ErrorENOENT' do
+          @r.ruby_object.should be_a Rosh::ErrorENOENT
+        end
+      end
+
+      context 'path is absolute' do
+        before do
+          subject.should_receive(:preprocess_path).with(path).and_return path
+          subject.should_receive(:run).with('cat /etc/hosts').and_return result
+
+          @r = subject.cat('/etc/hosts')
+        end
+
+        it 'returns a CommandResult with exit status 1' do
+          @r.exit_status.should eq 1
+        end
+
+        it 'returns a CommandResult with ruby object a Rosh::ErrorENOENT' do
+          @r.ruby_object.should be_a Rosh::ErrorENOENT
+        end
       end
     end
   end

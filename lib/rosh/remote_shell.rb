@@ -202,7 +202,7 @@ class Rosh
       path.strip!
 
       unless path.start_with? '/'
-        path = "#{@internal_pwd}/#{path}"
+        path = "#{@internal_pwd.to_path}/#{path}"
       end
 
       path
