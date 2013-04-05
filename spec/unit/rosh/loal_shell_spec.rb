@@ -127,6 +127,38 @@ describe Rosh::LocalShell do
     end
   end
 
+  describe '#exec' do
+    context 'invalid command' do
+      before do
+        subject.should_receive(:system).and_return nil
+        @r = subject.exec('bskldfjlsk')
+      end
+
+      it 'returns a CommandResult with exit status 1' do
+        @r.exit_status.should == 1
+      end
+
+      it 'returns a CommandResult with ruby object nil' do
+        @r.ruby_object.should be_nil
+      end
+    end
+
+    context 'valid command' do
+      before do
+        subject.should_receive(:system).and_return 'a file'
+        @r = subject.exec('ls')
+      end
+
+      it 'returns a CommandResult with exit status 0' do
+        @r.exit_status.should == 0
+      end
+
+      it 'returns a CommandResult with ruby object nil' do
+        @r.ruby_object.should == 'a file'
+      end
+    end
+  end
+
   describe '#ls' do
     let(:path) { '/home/path' }
 

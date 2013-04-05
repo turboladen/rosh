@@ -18,9 +18,9 @@ class Rosh
 
       begin
         contents = open(file).read
-        ::Rosh::CommandResult.new(contents, 0)
+        Rosh::CommandResult.new(contents, 0)
       rescue Errno::ENOENT, Errno::EISDIR => ex
-        ::Rosh::CommandResult.new(ex, 1)
+        Rosh::CommandResult.new(ex, 1)
       end
     end
 
@@ -35,9 +35,9 @@ class Rosh
       begin
         Dir.chdir(path)
         @internal_pwd = Dir.new(Dir.pwd)
-        ::Rosh::CommandResult.new(@internal_pwd, 0)
+        Rosh::CommandResult.new(@internal_pwd, 0)
       rescue Errno::ENOENT, Errno::ENOTDIR => ex
-        ::Rosh::CommandResult.new(ex, 1)
+        Rosh::CommandResult.new(ex, 1)
       end
     end
 
@@ -56,6 +56,17 @@ class Rosh
       rescue Errno::ENOENT, Errno::EISDIR => ex
         Rosh::CommandResult.new(ex, 1)
       end
+    end
+
+    # @param [String] command The system command to execute.
+    # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
+    #   is the output of the command as a String.  On fail, #exit_status is 1,
+    #   #ruby_object is +nil+.
+    def exec(command)
+      result = system(command)
+      status = result ? 0 : 1
+
+      Rosh::CommandResult.new(result, status)
     end
 
     # @param [String] path Path to the directory to list its contents.
