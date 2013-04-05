@@ -1,3 +1,6 @@
+require 'etc'
+
+
 class Rosh
   class LocalFileSystemObject
     File.singleton_methods.each do |meth|
@@ -53,6 +56,50 @@ class Rosh
 
     def initialize(path)
       @path = path
+    end
+
+    # Wrapper for #chown that allows setting user/group owner using key/value
+    # pairs.  If no value is given for user or group, nothing will be changed.
+    #
+    # @param [Hash] options
+    # @option options [String] :user_name Name of the user to make owner.
+    # @option options [Fixnum] :user_uid UID of the user to make owner.
+    # @option options [String] :group_name Name of the group to make owner.
+    # @option options [Fixnum] :group_uid UID of the group to make owner.
+    # @return [Hash{Symbol => Struct::Passwd, Struct::Group}] The owning user
+    # and group of the file system object.
+    def owner(**options)
+      if options.empty?
+        return {
+          user: Etc.getpwuid(stat.uid),
+          group: Etc.getgrgid(stat.gid)
+        }
+      end
+
+      user_uid = if options[:user_name]
+        user = Etc.getpwnam(options[:user_name])
+        user.uid
+      elsif options[:user_uid]
+        options[:user_uid]
+      end
+
+      group_uid = if options[:group_name]
+        group = Etc.getgrnam(options[:group_name])
+        group.gid
+      elsif options[:group_uid]
+        options[:group_uid]
+      end
+
+      if chown(user_uid, group_uid) == 1
+        {
+          user: Etc.getpwuid(stat.uid),
+          group: Etc.getgrgid(stat.gid)
+        }
+      end
+    end
+
+    def group
+      Etc.getgrgid(stat.gid)
     end
   end
 end

@@ -275,4 +275,40 @@ describe Rosh::LocalFile do
   describe '#zero?' do
     specify { subject.zero?.should be_false }
   end
+
+  describe '#owner' do
+    it 'returns a Hash of :user and :group' do
+      subject.owner.should include :user, :group
+      subject.owner[:user].should be_a Struct::Passwd
+      subject.owner[:group].should be_a Struct::Group
+    end
+
+    context ':user_name' do
+      it 'changes the user' do
+        subject.owner user_name: Etc.getlogin
+      end
+    end
+
+    context ':user_uid' do
+      it 'changes the user' do
+        subject.owner user_uid: Etc.getpwnam(Etc.getlogin).uid
+      end
+    end
+
+    context ':group_name' do
+      it 'changes the group' do
+        subject.owner group_name: Etc.getgrgid(Etc.getpwnam(Etc.getlogin).gid).name
+      end
+    end
+
+    context ':group_uid' do
+      it 'changes the group' do
+        subject.owner group_uid: Etc.getpwnam(Etc.getlogin).gid
+      end
+    end
+  end
+
+  describe '#group' do
+    specify { subject.group.should be_a Struct::Group }
+  end
 end
