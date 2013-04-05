@@ -257,4 +257,19 @@ describe Rosh::LocalShell do
       r.ruby_object.should == 'some dir'
     end
   end
+
+  describe '#ps' do
+    before do
+      @r = subject.ps
+    end
+
+    it 'returns a CommandResult with exit status 0' do
+      @r.exit_status.should be_zero
+    end
+
+    it 'returns a CommandResult with ruby object an Array of Struct::ProcTableStructs' do
+      @r.ruby_object.should be_an Array
+      @r.ruby_object.first.should be_a Struct::ProcTableStruct
+    end
+  end
 end

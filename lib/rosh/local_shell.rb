@@ -1,4 +1,5 @@
 require 'open-uri'
+require 'sys/proctable'
 require_relative 'command_result'
 require_relative 'local_file_system_object'
 
@@ -78,7 +79,14 @@ class Rosh
     # @return [Rosh::CommandResult] #exit_status is 0, #ruby_object is the
     #   current working directory as a Dir.
     def pwd
-      ::Rosh::CommandResult.new(@internal_pwd, 0)
+      Rosh::CommandResult.new(@internal_pwd, 0)
+    end
+
+    # @return [Rosh::CommandResult] #exit_status is 0, #ruby_object is an Array
+    #   of Struct::ProcTableStructs.  See https://github.com/djberg96/sys-proctable
+    #   for more info.
+    def ps
+      Rosh::CommandResult.new(Sys::ProcTable.ps, 0)
     end
 
     private
