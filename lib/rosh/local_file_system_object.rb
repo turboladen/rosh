@@ -2,7 +2,7 @@ class Rosh
   class LocalFileSystemObject
     File.singleton_methods.each do |meth|
       arg_methods = %i[
-        identical? basename expand_path link new open realdirpath realpath rename
+        identical? basename expand_path link open realdirpath realpath rename
         symlink truncate delete unlink
       ]
 
@@ -12,7 +12,7 @@ class Rosh
 
       two_args_before_path_methods = %i[chown lchown utime]
 
-      do_not_define_methods = %i[join umask]
+      do_not_define_methods = %i[join umask new]
 
       if arg_methods.include? meth
         define_method(meth) do |*args|

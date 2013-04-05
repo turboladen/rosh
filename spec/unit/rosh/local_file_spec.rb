@@ -156,10 +156,6 @@ describe Rosh::LocalFile do
     specify { subject.mtime.should be_a Time }
   end
 
-  describe '#new' do
-    specify { subject.new.should be_a File }
-  end
-
   describe '#open' do
     specify { subject.open.should be_a File }
   end
