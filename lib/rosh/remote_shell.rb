@@ -208,6 +208,22 @@ class Rosh
       Rosh::CommandResult.new(true, result.exit_status, result.ssh_result)
     end
 
+    # @param [String] command The system command to execute.
+    # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
+    #   is the output of the command as a String.  On fail, #exit_status is 1,
+    #   #ruby_object is the output of the failed command as a String.
+    def exec(command)
+      command = "cd #{@internal_pwd.to_path} && #{command}"
+      result = run(command)
+
+      unless result.exit_status.zero?
+        return Rosh::CommandResult.new(result.ssh_result.stderr, result.exit_status,
+          result.ssh_result)
+      end
+
+      result
+    end
+
     # @param [String] path Path to the directory to list its contents.
     # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
     #   is an Array of Rosh::RemoteFileSystemObjects.  On fail, #exit_status is

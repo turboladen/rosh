@@ -427,6 +427,65 @@ describe Rosh::RemoteShell do
     end
   end
 
+  describe '#exec' do
+    context 'invalid command' do
+      let(:result) do
+        r = double 'Rosh::CommandResult'
+        r.stub(:exit_status).and_return 1
+        r.stub(:ssh_result).and_return 'ssh output'
+        r.stub_chain(:ssh_result, :stderr).and_return 'command not found'
+
+        r
+      end
+
+      let(:internal_pwd) do
+        double 'Rosh::RemoteDir', to_path: '/home'
+      end
+
+      before do
+        subject.instance_variable_set(:@internal_pwd, internal_pwd)
+        subject.should_receive(:run).with('cd /home && blah').and_return result
+        @r = subject.exec('blah')
+      end
+
+      it 'returns a CommandResult with exit status 1' do
+        @r.exit_status.should == 1
+      end
+
+      it 'returns a CommandResult with ruby object the output of the failed command' do
+        @r.ruby_object.should == 'command not found'
+      end
+    end
+
+    context 'valid command' do
+      let(:result) do
+        r = double 'Rosh::CommandResult'
+        r.stub(:exit_status).and_return 0
+        r.stub(:ruby_object).and_return 'some output'
+
+        r
+      end
+
+      let(:internal_pwd) do
+        double 'Rosh::RemoteDir', to_path: '/home'
+      end
+
+      before do
+        subject.instance_variable_set(:@internal_pwd, internal_pwd)
+        subject.should_receive(:run).with('cd /home && blah').and_return result
+        @r = subject.exec('blah')
+      end
+
+      it 'returns a CommandResult with exit status 0' do
+        @r.exit_status.should == 0
+      end
+
+      it 'returns a CommandResult with ruby object the output of the command' do
+        @r.ruby_object.should == 'some output'
+      end
+    end
+  end
+
   describe '#ls' do
     let(:path) { '/home/path' }
 
