@@ -133,7 +133,7 @@ describe Rosh::LocalDir do
   end
 
   describe '#open' do
-    specify { subject.open.should be_a File }
+    specify { subject.open.should be_a Dir }
   end
 
   describe '#owned?' do
@@ -250,5 +250,37 @@ describe Rosh::LocalDir do
 
   describe '#zero?' do
     specify { subject.zero?.should be_false }
+  end
+
+  describe '#entries' do
+    it 'returns an Array of LocalFileSystemObjects' do
+      subject.entries.should be_an Array
+      subject.entries[0].should be_a Rosh::LocalDir
+      subject.entries[1].should be_a Rosh::LocalDir
+    end
+  end
+
+  describe '#each' do
+    context 'block given' do
+      it 'yields each entry' do
+        subject.each do |entry|
+          entry.should be_a Rosh::LocalDir
+        end
+      end
+    end
+
+    context 'block not given' do
+      it 'returns an Enumerable' do
+        subject.each.should be_a Enumerable
+      end
+    end
+  end
+
+  describe '#open' do
+    it 'yields each non-Rosh entry to the block' do
+      subject.open do |entry|
+        entry.should be_a Dir
+      end
+    end
   end
 end
