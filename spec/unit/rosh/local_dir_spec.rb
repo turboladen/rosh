@@ -1,25 +1,17 @@
 require 'spec_helper'
-require 'rosh/local_file'
-require 'tempfile'
+require 'rosh/local_dir'
+require 'tmpdir'
 
 
-describe Rosh::LocalFile do
-  let(:file) do
-    f = Tempfile.open('rosh_test')
-    f.write 'content'
-    f.close
-
-    f
+describe Rosh::LocalDir do
+  let(:dir) do
+     Dir.mktmpdir 'rosh_test'
   end
 
-  after do
-    file.unlink
-  end
-
-  subject { Rosh::LocalFile.new(file.path) }
+  subject { Rosh::LocalDir.new(dir) }
 
   describe '#absolute_path' do
-    specify { subject.absolute_path.should == File.expand_path(file.path) }
+    specify { subject.absolute_path.should == dir }
   end
 
   describe '#atime' do
@@ -27,7 +19,7 @@ describe Rosh::LocalFile do
   end
 
   describe '#basename' do
-    specify { subject.basename.should == File.basename(file.path) }
+    specify { subject.basename.should match %r[rosh_test] }
   end
 
   describe '#blockdev?' do
@@ -51,31 +43,27 @@ describe Rosh::LocalFile do
   end
 
   describe '#delete' do
-    specify do
-      expect { subject.delete }.to_not raise_exception
-    end
+    specify { subject.should respond_to :delete }
   end
 
   describe '#unlink' do
-    specify do
-      expect { subject.unlink }.to_not raise_exception
-    end
+    specify { subject.should respond_to :unlink }
   end
 
   describe '#directory?' do
-    specify { subject.directory?.should be_false }
+    specify { subject.directory?.should be_true }
   end
 
   describe '#dirname' do
-    specify { subject.dirname.should eq File.dirname(file) }
+    specify { subject.dirname.should eq Dir.tmpdir }
   end
 
   describe '#executable?' do
-    specify { subject.executable?.should be_false }
+    specify { subject.executable?.should be_true }
   end
 
   describe '#executable_real?' do
-    specify { subject.executable_real?.should be_false }
+    specify { subject.executable_real?.should be_true }
   end
 
   describe '#exist?' do
@@ -87,7 +75,7 @@ describe Rosh::LocalFile do
   end
 
   describe '#expand_path' do
-    specify { subject.expand_path.should eq file.path }
+    specify { subject.expand_path.should eq dir }
   end
 
   describe '#extname' do
@@ -95,7 +83,7 @@ describe Rosh::LocalFile do
   end
 
   describe '#file?' do
-    specify { subject.file?.should be_true }
+    specify { subject.file?.should be_false }
   end
 
   describe '#fnmatch' do
@@ -107,11 +95,11 @@ describe Rosh::LocalFile do
   end
 
   describe '#ftype' do
-    specify { subject.ftype.should eq 'file' }
+    specify { subject.ftype.should eq 'directory' }
   end
 
   describe '#grpowned?' do
-    specify { subject.should respond_to :grpowned? }
+    specify { subject.grpowned?.should be_false }
   end
 
   describe '#identical?' do
@@ -133,19 +121,7 @@ describe Rosh::LocalFile do
   end
 
   describe '#link' do
-    let(:link) do
-      Dir.tmpdir + '/test_link'
-    end
-
-    after do
-      FileUtils.rm_f link
-    end
-
-    specify do
-      expect {
-        subject.link(link).should be_zero
-      }.to_not raise_exception
-    end
+    specify { subject.should respond_to :link }
   end
 
   describe '#lstat' do
@@ -169,7 +145,7 @@ describe Rosh::LocalFile do
   end
 
   describe '#path' do
-    specify { subject.path.should eq file.path }
+    specify { subject.path.should eq dir }
   end
 
   describe '#pipe?' do
@@ -205,7 +181,7 @@ describe Rosh::LocalFile do
   end
 
   describe '#size' do
-    specify { subject.size.should eq 7 }
+    specify { subject.size.should > 0 }
   end
 
   describe '#size?' do
@@ -249,7 +225,7 @@ describe Rosh::LocalFile do
   end
 
   describe '#truncate' do
-    specify { subject.truncate(1).should eq 0 }
+    specify { subject.should_not respond_to :truncate }
   end
 
   describe '#umask' do
