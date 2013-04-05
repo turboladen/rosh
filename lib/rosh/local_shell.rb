@@ -100,6 +100,25 @@ class Rosh
       Rosh::CommandResult.new(Sys::ProcTable.ps, 0)
     end
 
+    # @param [String] code The Ruby code to execute.
+    # @return [Rosh::CommandResult] If the Ruby code raises an exception,
+    #   #exit_status will be 1 and #ruby_object will be the exception that was
+    #   raised.  If no exception was raised, #exit_status will be 0 and
+    #   #ruby_object will be the object returned from the code that was executed.
+    def ruby(code)
+      status = 0
+
+      result = begin
+        code.gsub!(/puts/, '$stdout.puts')
+        get_binding.eval(code)
+      rescue => ex
+        status = 1
+        ex
+      end
+
+      Rosh::CommandResult.new(result, status)
+    end
+
     private
 
     def preprocess_path(path)
@@ -107,6 +126,14 @@ class Rosh
       path.strip!
 
       File.expand_path(path)
+    end
+
+    # @return [Binding] Binding to use for executing Ruby code in.
+    def get_binding
+      @binding ||= eval('private; binding',
+        TOPLEVEL_BINDING,
+        __FILE__,
+        __LINE__ - 3)
     end
   end
 end

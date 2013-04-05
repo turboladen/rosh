@@ -304,4 +304,38 @@ describe Rosh::LocalShell do
       @r.ruby_object.first.should be_a Struct::ProcTableStruct
     end
   end
+
+  describe '#ruby' do
+    context 'the executed code raises an exception' do
+      before do
+        @r = subject.ruby 'raise'
+      end
+
+      it 'returns a CommandResult with exit status 1' do
+        @r.exit_status.should == 1
+      end
+
+      it 'returns a CommandResult with ruby object the exception that was raised' do
+        @r.ruby_object.should be_a RuntimeError
+      end
+    end
+
+    context 'the executed code saves a value to a variable' do
+      before do
+        @r = subject.ruby 'var = [1, 2, 3]'
+      end
+
+      it 'returns a CommandResult with exit status 0' do
+        @r.exit_status.should == 0
+      end
+
+      it 'returns a CommandResult with ruby object the value that was saved' do
+        @r.ruby_object.should == [1, 2, 3]
+      end
+
+      it 'allows subsequent #ruby calls to access that saved variable' do
+        expect { subject.ruby 'var' }.to_not raise_exception
+      end
+    end
+  end
 end
