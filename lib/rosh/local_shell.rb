@@ -40,6 +40,23 @@ class Rosh
       end
     end
 
+    # @param [String] source The path to the file to copy.
+    # @param [String] destination The destination to copy the file to.
+    # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
+    #   is +true+.  On fail, #exit_status is 1, #ruby_object is the Exception
+    #   that was raised.
+    def cp(source, destination)
+      source = preprocess_path(source)
+      destination = preprocess_path(destination)
+
+      begin
+        FileUtils.cp(source, destination)
+        Rosh::CommandResult.new(true, 0)
+      rescue Errno::ENOENT, Errno::EISDIR => ex
+        Rosh::CommandResult.new(ex, 1)
+      end
+    end
+
     # @param [String] path Path to the directory to list its contents.
     # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
     #   is an Array of Rosh::LocalFileSystemObjects.  On fail, #exit_status is

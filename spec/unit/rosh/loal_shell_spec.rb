@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'rosh/local_shell'
+require 'tempfile'
 
 
 describe Rosh::LocalShell do
@@ -73,6 +74,55 @@ describe Rosh::LocalShell do
         r.should be_a Rosh::CommandResult
         r.ruby_object.should be_a Dir
         r.exit_status.should eq 0
+      end
+    end
+  end
+
+  describe '#cp' do
+    context 'source does not exist' do
+      before do
+        FileUtils.should_receive(:cp).and_raise Errno::ENOENT
+        @r = subject.cp('source', 'destination')
+      end
+
+
+      it 'returns a CommandResult with exit status 1' do
+        @r.exit_status.should eq 1
+      end
+
+      it 'returns a CommandResult with ruby object a Errno::ENOENT' do
+        @r.ruby_object.should be_a Errno::ENOENT
+      end
+    end
+
+    context 'source is a directory' do
+      before do
+        FileUtils.should_receive(:cp).and_raise Errno::EISDIR
+        @r = subject.cp('source', 'destination')
+      end
+
+
+      it 'returns a CommandResult with exit status 1' do
+        @r.exit_status.should eq 1
+      end
+
+      it 'returns a CommandResult with ruby object a Errno::EISDIR' do
+        @r.ruby_object.should be_a Errno::EISDIR
+      end
+    end
+
+    context 'destination exists' do
+      let(:dest) do
+        Tempfile.new('rosh_test')
+      end
+
+      after do
+        dest.unlink
+      end
+
+      it 'overwrites the destination' do
+        subject.cp(__FILE__, dest.path)
+        File.size(__FILE__).should == File.size(dest.path)
       end
     end
   end
