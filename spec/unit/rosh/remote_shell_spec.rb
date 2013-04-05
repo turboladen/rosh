@@ -348,6 +348,85 @@ describe Rosh::RemoteShell do
     end
   end
 
+  describe '#cp' do
+    let(:source) { '/home/path' }
+
+    context 'source does not exist' do
+      let(:result) do
+        r = double 'Rosh::CommandResult'
+        r.stub(:exit_status).and_return 1
+        r.stub_chain(:ssh_result, :stderr).and_return 'No such file or directory'
+
+        r
+      end
+
+      before do
+        subject.should_receive(:preprocess_path).with(source).and_return source
+        subject.should_receive(:preprocess_path).with('dest').and_return 'dest'
+        subject.should_receive(:run).with("cp #{source} dest").and_return result
+        @r = subject.cp(source, 'dest')
+      end
+
+      it 'returns a CommandResult with exit status 1' do
+        @r.exit_status.should eq 1
+      end
+
+      it 'returns a CommandResult with ruby object Rosh::ErrorENOENT' do
+        @r.ruby_object.should be_a Rosh::ErrorENOENT
+      end
+    end
+
+    context 'source is a directory' do
+      let(:result) do
+        r = double 'Rosh::CommandResult'
+        r.stub(:exit_status).and_return 1
+        r.stub_chain(:ssh_result, :stderr).and_return 'omitting directory'
+
+        r
+      end
+
+      before do
+        subject.should_receive(:preprocess_path).with(source).and_return source
+        subject.should_receive(:preprocess_path).with('dest').and_return 'dest'
+        subject.should_receive(:run).with("cp #{source} dest").and_return result
+        @r = subject.cp(source, 'dest')
+      end
+
+      it 'returns a CommandResult with exit status 1' do
+        @r.exit_status.should eq 1
+      end
+
+      it 'returns a CommandResult with ruby object Rosh::ErrorEISDIR' do
+        @r.ruby_object.should be_a Rosh::ErrorEISDIR
+      end
+    end
+
+    context 'destination exists' do
+      let(:result) do
+        r = double 'Rosh::CommandResult'
+        r.stub(:exit_status).and_return 0
+        r.stub_chain(:ssh_result, :stderr).and_return ''
+
+        r
+      end
+
+      before do
+        subject.should_receive(:preprocess_path).with(source).and_return source
+        subject.should_receive(:preprocess_path).with('dest').and_return 'dest'
+        subject.should_receive(:run).with("cp #{source} dest").and_return result
+        @r = subject.cp(source, 'dest')
+      end
+
+      it 'returns a CommandResult with exit status 0' do
+        @r.exit_status.should eq 0
+      end
+
+      it 'returns a CommandResult with ruby object the CommandResult' do
+        @r.ruby_object.should == true
+      end
+    end
+  end
+
   describe '#ls' do
     let(:path) { '/home/path' }
 

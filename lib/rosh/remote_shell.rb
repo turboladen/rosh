@@ -182,6 +182,30 @@ class Rosh
       end
     end
 
+    # @param [String] source The path to the file to copy.
+    # @param [String] destination The destination to copy the file to.
+    # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
+    #   is +true+.  On fail, #exit_status is 1, #ruby_object is the Exception
+    #   that was raised.
+    def cp(source, destination)
+      source = preprocess_path(source)
+      destination = preprocess_path(destination)
+
+      result = run "cp #{source} #{destination}"
+
+      if result.ssh_result.stderr.match %r[No such file or directory]
+        error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
+        return Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
+      end
+
+      if result.ssh_result.stderr.match %r[omitting directory]
+        error = Rosh::ErrorEISDIR.new(result.ssh_result.stderr)
+        return Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
+      end
+
+      Rosh::CommandResult.new(true, result.exit_status, result.ssh_result)
+    end
+
     # @param [String] path Path to the directory to list its contents.
     # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
     #   is an Array of Rosh::RemoteFileSystemObjects.  On fail, #exit_status is
