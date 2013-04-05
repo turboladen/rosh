@@ -307,7 +307,7 @@ class Rosh
 
       pwd unless @internal_pwd
 
-      unless path.start_with? '/'
+      unless path.start_with?('/') || path.start_with?('$')
         path = "#{@internal_pwd.to_path}/#{path}"
       end
 
