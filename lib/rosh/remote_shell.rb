@@ -6,10 +6,12 @@ require 'log_switch'
 require_relative 'command_result'
 require_relative 'remote_file_system_object'
 require_relative 'remote_dir'
+require_relative 'remote_proc_table'
 require_relative 'errors'
 
 
 class Rosh
+
 
   # Wrapper for Net::SSH::Simple to allow for a) not having to pass in the
   # hostname with every SSH call, and b) handle STDOUT and STDERR the same way
@@ -226,6 +228,37 @@ class Rosh
       end
 
       Rosh::CommandResult.new(listing, 0, result.ssh_result)
+    end
+
+    # Runs `ps auxe` on the remote host and converts each line of process info
+    # to a Rosh::RemoteProcTable.
+    #
+    # @return [Rosh::CommandResult] #exit_status is 0, #ruby_object is an Array
+    #   of Rosh::RemoteProcTable objects.
+    def ps
+      result = run('ps auxe')
+      list = []
+
+      result.ssh_result.stdout.each_line do |line|
+        match_data = %r[(?<user>\S+)\s+(?<pid>\S+)\s+(?<cpu>\S+)\s+(?<mem>\S+)\s+(?<vsz>\S+)\s+(?<rss>\S+)\s+(?<tty>\S+)\s+(?<stat>\S+)\s+(?<start>\S+)\s+(?<time>\S+)\s+(?<cmd>[^\n]+)].match(line)
+
+        next if match_data[:user] == 'USER'
+        list << Rosh::RemoteProcTable.new(
+          match_data[:user],
+          match_data[:pid].to_i,
+          match_data[:cpu].to_f,
+          match_data[:mem].to_f,
+          match_data[:vsz].to_i,
+          match_data[:rss].to_i,
+          match_data[:tty],
+          match_data[:stat],
+          Time.parse(match_data[:start]),
+          match_data[:time],
+          match_data[:cmd].strip
+        )
+      end
+
+      Rosh::CommandResult.new(list, 0)
     end
 
     # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object

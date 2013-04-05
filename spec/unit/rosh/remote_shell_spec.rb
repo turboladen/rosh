@@ -520,6 +520,47 @@ describe Rosh::RemoteShell do
     end
   end
 
+  describe '#ps' do
+    let(:ps_list) do
+      <<-PS
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.0  0.2   2036   716 ?        Ss   18:45   0:01 init [2]
+      PS
+    end
+
+    let(:result) do
+      r = double 'Rosh::CommandResult'
+      r.stub_chain(:ssh_result, :stdout).and_return ps_list
+
+      r
+    end
+
+    before do
+      subject.should_receive(:run).with('ps auxe').and_return result
+      @r = subject.ps
+    end
+
+    it 'returns a CommandResult with exit status 0' do
+      @r.exit_status.should be_zero
+    end
+
+    it 'returns a CommandResult with ruby object an Array of Rosh::RemoteProcTable' do
+      @r.ruby_object.should be_a Array
+      @r.ruby_object.first.should be_a Rosh::RemoteProcTable
+      @r.ruby_object.first.user.should == 'root'
+      @r.ruby_object.first.pid.should == 1
+      @r.ruby_object.first.cpu.should == 0.0
+      @r.ruby_object.first.mem.should == 0.2
+      @r.ruby_object.first.vsz.should == 2036
+      @r.ruby_object.first.rss.should == 716
+      @r.ruby_object.first.tty.should == '?'
+      @r.ruby_object.first.stat.should == 'Ss'
+      @r.ruby_object.first.start.should == Time.parse('18:45')
+      @r.ruby_object.first.time.should == '0:01'
+      @r.ruby_object.first.command.should == 'init [2]'
+    end
+  end
+
   describe '#pwd' do
     let(:result) do
       r = double 'Rosh::CommandResult'
