@@ -288,6 +288,10 @@ class Rosh
       Rosh::CommandResult.new(@internal_pwd, 0)
     end
 
+    def ruby(code)
+      Rosh::CommandResult.new('Not implemented', 1)
+    end
+
     private
 
     # DRYed up block to hand over to SSH commands for keeping handling of stdout
