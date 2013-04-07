@@ -54,7 +54,7 @@ class Rosh
       @ssh = Net::SSH::Simple.new(@options)
 
       @internal_pwd = nil
-      @last_result = nil
+      @last_result = Rosh::CommandResult.new(nil, 0)
       log "Initialized for '#{@hostname}'"
     end
 

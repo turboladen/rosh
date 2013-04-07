@@ -11,7 +11,7 @@ class Rosh
 
     def initialize
       @internal_pwd = Dir.new(Dir.pwd)
-      @last_result = nil
+      @last_result = Rosh::CommandResult.new(nil, 0)
     end
 
     # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
@@ -116,7 +116,7 @@ class Rosh
           code.gsub!(/puts/, '$stdout.puts')
           @workspace ||= IRB::WorkSpace.new(binding)
           r = @workspace.evaluate(binding, code)
-          Rosh::CommandResult.new(r, 0)
+          r.is_a?(Rosh::CommandResult) ? r : Rosh::CommandResult.new(r, 0)
         rescue => ex
           Rosh::CommandResult.new(ex, 1)
         end
