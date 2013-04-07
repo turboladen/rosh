@@ -8,6 +8,7 @@ require 'log_switch'
 require 'colorize'
 
 require_relative '../rosh'
+require_relative 'command_result'
 
 
 class Rosh
@@ -71,19 +72,18 @@ class Rosh
 
     def execute(argv)
       new_argv = argv.dup.shellsplit
-      command = new_argv.shift
+      command = new_argv.shift.to_sym
       args = new_argv
 
       log "command: #{command}"
       log "new argv: #{new_argv}"
 
       result = begin
-        #if @current_host.shell.builtin_commands.include? command
-        if @current_host.shell.public_methods(false).include? command.to_sym
+        if @current_host.shell.public_methods(false).include? command
           if !args.empty?
-            @current_host.shell.send(command.to_sym, *args)
+            @current_host.shell.send(command, *args)
           else
-            @current_host.shell.send(command.to_sym)
+            @current_host.shell.send(command)
           end
         #elsif @current_host.shell.path_commands.include? command
         #  @current_host.shell.exec(argv)
