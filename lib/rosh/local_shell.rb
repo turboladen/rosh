@@ -1,3 +1,4 @@
+require 'irb'
 require 'open-uri'
 require 'sys/proctable'
 require_relative 'command_result'
@@ -110,7 +111,8 @@ class Rosh
 
       result = begin
         code.gsub!(/puts/, '$stdout.puts')
-        get_binding.eval(code)
+        @workspace ||= IRB::WorkSpace.new(binding)
+        @workspace.binding.eval(code)
       rescue => ex
         status = 1
         ex
@@ -126,14 +128,6 @@ class Rosh
       path.strip!
 
       File.expand_path(path)
-    end
-
-    # @return [Binding] Binding to use for executing Ruby code in.
-    def get_binding
-      @binding ||= eval('private; binding',
-        TOPLEVEL_BINDING,
-        __FILE__,
-        __LINE__ - 3)
     end
   end
 end
