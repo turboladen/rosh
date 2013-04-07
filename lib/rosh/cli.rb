@@ -98,9 +98,9 @@ class Rosh
 
     def new_prompt
       user_and_host = '['.blue
-      #user_and_host << "#{@current_host.shell.env[:user]}".red
-      #user_and_host << "@#{@current_host.shell.env[:hostname]}".red
-      #user_and_host << ":#{@current_host.shell.env[:pwd].split('/').last}".red
+      user_and_host << "#{@current_host.user}".red
+      user_and_host << "@#{@current_host.hostname}".red
+      user_and_host << ":#{@current_host.shell.env.ruby_object[:pwd].split('/').last}".red
       user_and_host << ']'.blue
 
       _, width = Readline.get_screen_size
@@ -109,7 +109,7 @@ class Rosh
       prompt = user_and_host
 
       unless git.empty?
-        prompt << ("%#{width + 42 - user_and_host.size}s".yellow % "[git(#{git.strip})]")
+        prompt << ("%#{width + 70 - user_and_host.size}s".yellow % "[git(#{git.strip})]")
       end
 
       prompt << '$ '.red
