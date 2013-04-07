@@ -61,6 +61,25 @@ class Rosh
       end
     end
 
+    # The shell's environment.  Note this doesn't trump the Ruby process's ENV
+    # settings (which are still accessible).
+    #
+    # @return [Rosh::CommandResult] #ruby_object is a Hash containing the
+    #   environment info.
+    def env
+      process do
+        @path ||= ENV['PATH'].split(':')
+
+        env = {
+          path: @path,
+          shell: File.expand_path(File.basename($0), File.dirname($0)),
+          pwd: @internal_pwd.to_path
+        }
+
+        return Rosh::CommandResult.new(env, 0)
+      end
+    end
+
     # @param [String] command The system command to execute.
     # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
     #   is the output of the command as a String.  On fail, #exit_status is 1,
