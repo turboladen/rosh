@@ -70,6 +70,8 @@ class Rosh
       end
     end
 
+    # @param [String] argv The command given at the prompt.
+    # @return [Ros::CommandResult]
     def execute(argv)
       new_argv = argv.dup.shellsplit
       command = new_argv.shift.to_sym
@@ -78,26 +80,20 @@ class Rosh
       log "command: #{command}"
       log "new argv: #{new_argv}"
 
-      result = begin
-        if @current_host.shell.public_methods(false).include? command
-          if !args.empty?
-            @current_host.shell.send(command, *args)
-          else
-            @current_host.shell.send(command)
-          end
-        #elsif @current_host.shell.path_commands.include? command
-        #  @current_host.shell.exec(argv)
-        #elsif @current_host.shell.path_commands.include? command.split('/').last
-        #  @current_host.shell.exec(argv)
+      if @current_host.shell.public_methods(false).include? command
+        if !args.empty?
+          @current_host.shell.send(command, *args)
         else
-          $stdout.puts "Running Ruby: #{argv}"
-          @current_host.shell.ruby(argv)
+          @current_host.shell.send(command)
         end
-      rescue StandardError => ex
-        Rosh::CommandResult.new(ex, 1)
+      elsif @current_host.shell.system_commands.include? command.to_s
+        @current_host.shell.exec(argv)
+      elsif @current_host.shell.system_commands.include? command.to_s.split('/').last
+        @current_host.shell.exec(argv)
+      else
+        $stdout.puts "Running Ruby: #{argv}"
+        @current_host.shell.ruby(argv)
       end
-
-      result
     end
 
     def new_prompt
@@ -123,6 +119,7 @@ class Rosh
 
     def print_result(result)
       log "Result is a '#{result.class}'"
+      log "Resulting Ruby object is: '#{result}'"
       log "Resulting Ruby object is a '#{result.ruby_object.class}'"
 
       if [Array, Hash, Struct].any? { |klass| result.ruby_object.kind_of? klass }

@@ -142,6 +142,12 @@ class Rosh
       end
     end
 
+    def system_commands
+      env.ruby_object[:path].map do |dir|
+        Dir["#{dir}/*"].map { |f| ::File.basename(f) }
+      end.flatten
+    end
+
     # @return [Rosh::CommandResult] The result of the last command executed.  If
     #   no command has been executed, #ruby_object is nil; #exit_status is 0.
     def _?

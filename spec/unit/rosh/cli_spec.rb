@@ -49,4 +49,71 @@ describe Rosh::CLI do
       end
     end
   end
+
+  describe '#execute' do
+    let(:shell) do
+      double 'Shell'
+    end
+
+    let(:host) do
+      h = double 'Rosh::Host'
+      h.stub(:shell).and_return shell
+
+      h
+    end
+
+    before do
+      subject.instance_variable_set(:@current_host, host)
+      shell.should_receive(:public_methods).and_return %i[cat ls]
+    end
+
+    context 'first arg is a shell public method' do
+      context 'with arguments' do
+        it 'sends the command and args to the shell to run' do
+          shell.should_receive(:cat).with('some_file')
+          subject.execute('cat some_file')
+        end
+      end
+
+      context 'without arguments' do
+        it 'sends the command to the shell to run' do
+          shell.should_receive(:ls).with(no_args)
+          subject.execute('ls')
+        end
+      end
+    end
+
+    context 'first arg is a system command in the path' do
+      before do
+        shell.should_receive(:system_commands).and_return %w[git]
+      end
+
+      it 'sends the command and args to the shell to run using #exec' do
+        shell.should_receive(:exec).with('git status')
+        subject.execute('git status')
+      end
+    end
+
+    context 'first arg is the absolute path to a system command' do
+      before do
+        shell.should_receive(:system_commands).and_return %w[/usr/local/bin/git]
+      end
+
+      it 'sends the command and args to the shell to run using #exec' do
+        shell.should_receive(:exec).with('/usr/local/bin/git status')
+        subject.execute('/usr/local/bin/git status')
+      end
+    end
+
+    context 'command is not a method or system command' do
+      before do
+        shell.should_receive(:system_commands).twice.and_return []
+      end
+
+      it 'runs the command as ruby code' do
+        shell.should_receive(:ruby).with 'puts "hi"'
+        subject.execute 'puts "hi"'
+      end
+    end
+  end
 end
