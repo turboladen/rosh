@@ -56,8 +56,6 @@ class Rosh
         next if argv.empty?
         log "Read input: #{argv}"
 
-        #next if checking_exit_status(argv)
-        #next if checking_last_result(argv)
         #next if changing_host(argv)
 
         if multiline_ruby?(argv)
@@ -68,8 +66,6 @@ class Rosh
         result = execute(argv)
         @last_result = result
         print_result(result)
-
-        result
       end
     end
 
@@ -126,11 +122,14 @@ class Rosh
     end
 
     def print_result(result)
-      if [Array, Hash, Struct, Exception].any? { |klass| result.ruby_object.kind_of? klass }
-        log 'Printing a pretty object'
+      log "Result is a '#{result.class}'"
+      log "Resulting Ruby object is a '#{result.ruby_object.class}'"
+
+      if [Array, Hash, Struct].any? { |klass| result.ruby_object.kind_of? klass }
         ap result.ruby_object
       elsif result.ruby_object.kind_of? Exception
-        p result.ruby_object.backtrace
+        puts result.ruby_object.message.red
+        result.ruby_object.backtrace.each { |b| puts b.red }
       else
         if result.exit_status && !result.exit_status.zero?
           $stderr.puts "  #{result.ruby_object}".light_red
@@ -160,33 +159,10 @@ class Rosh
       code
     end
 
+    #---------------------------------------------------------------------------
+    # Privates!
+    #---------------------------------------------------------------------------
     private
-
-    def checking_exit_status(argv)
-      if argv == '_?'
-        $stdout.puts @last_result.exit_status
-
-        return @last_result.exit_status
-      end
-
-      false
-    end
-
-    def checking_last_result(argv)
-      if argv == '_!'
-        result = if @last_result && @last_result.ruby_object.kind_of?(Exception)
-          @last_result.ruby_object
-        else
-          nil
-        end
-
-        $stdout.puts result
-
-        return result || true
-      end
-
-      false
-    end
 
     def changing_host(argv)
       if argv.match /^\s*ch\s/
@@ -215,4 +191,4 @@ class Rosh
 end
 
 Rosh::CLI.log_class_name = true
-Rosh::CLI.log = false
+Rosh::CLI.log = true
