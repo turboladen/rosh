@@ -99,14 +99,19 @@ class Rosh
     #   1, #ruby_object is a Errno::ENOENT.
     def ls(path=nil)
       process(path) do |full_path|
-        begin
-          fso_array = Dir.entries(full_path).map do |entry|
-            Rosh::LocalFileSystemObject.create("#{full_path}/#{entry}")
-          end
+        if File.file? full_path
+          fso = Rosh::LocalFileSystemObject.create(full_path)
+          Rosh::CommandResult.new(fso, 0)
+        else
+          begin
+            fso_array = Dir.entries(full_path).map do |entry|
+              Rosh::LocalFileSystemObject.create("#{full_path}/#{entry}")
+            end
 
-          Rosh::CommandResult.new(fso_array, 0)
-        rescue Errno::ENOENT, Errno::ENOTDIR => ex
-          Rosh::CommandResult.new(ex, 1)
+            Rosh::CommandResult.new(fso_array, 0)
+          rescue Errno::ENOENT, Errno::ENOTDIR => ex
+            Rosh::CommandResult.new(ex, 1)
+          end
         end
       end
     end
@@ -170,6 +175,11 @@ class Rosh
     def preprocess_path(path)
       path = '' unless path
       path.strip!
+
+      path = unless File.exists? path
+        instance_eval(path)
+      end || ''
+      puts "path: #{path}"
 
       File.expand_path(path)
     end
