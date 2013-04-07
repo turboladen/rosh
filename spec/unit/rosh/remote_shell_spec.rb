@@ -200,6 +200,10 @@ describe Rosh::RemoteShell do
         it 'returns a CommandResult with ruby object a String' do
           @r.ruby_object.should eq 'file contents'
         end
+
+        it 'sets @last_result to its return value' do
+          subject.last_result.should == @r
+        end
       end
 
       context 'path is absolute' do
@@ -215,6 +219,10 @@ describe Rosh::RemoteShell do
 
         it 'returns a CommandResult with ruby object a String' do
           @r.ruby_object.should eq 'file contents'
+        end
+
+        it 'sets @last_result to its return value' do
+          subject.last_result.should == @r
         end
       end
     end
@@ -243,6 +251,10 @@ describe Rosh::RemoteShell do
         it 'returns a CommandResult with ruby object a Rosh::ErrorENOENT' do
           @r.ruby_object.should be_a Rosh::ErrorENOENT
         end
+
+        it 'sets @last_result to its return value' do
+          subject.last_result.should == @r
+        end
       end
 
       context 'path is absolute' do
@@ -259,6 +271,10 @@ describe Rosh::RemoteShell do
 
         it 'returns a CommandResult with ruby object a Rosh::ErrorENOENT' do
           @r.ruby_object.should be_a Rosh::ErrorENOENT
+        end
+
+        it 'sets @last_result to its return value' do
+          subject.last_result.should == @r
         end
       end
     end
@@ -291,6 +307,10 @@ describe Rosh::RemoteShell do
         it 'returns a CommandResult with ruby object a Rosh::RemoteDir' do
           @r.ruby_object.should be_a Rosh::RemoteDir
         end
+
+        it 'sets @last_result to its return value' do
+          subject.last_result.should == @r
+        end
       end
 
       context 'path is absolute' do
@@ -307,6 +327,10 @@ describe Rosh::RemoteShell do
 
         it 'returns a CommandResult with ruby object a Rosh::RemoteDir' do
           @r.ruby_object.should be_a Rosh::RemoteDir
+        end
+
+        it 'sets @last_result to its return value' do
+          subject.last_result.should == @r
         end
       end
     end
@@ -333,6 +357,10 @@ describe Rosh::RemoteShell do
 
         it 'returns a CommandResult with ruby object a Rosh::ErrorENOENT' do
           @r.ruby_object.should be_a Rosh::ErrorENOENT
+        end
+
+        it 'sets @last_result to its return value' do
+          subject.last_result.should == @r
         end
       end
 
@@ -374,6 +402,10 @@ describe Rosh::RemoteShell do
       it 'returns a CommandResult with ruby object Rosh::ErrorENOENT' do
         @r.ruby_object.should be_a Rosh::ErrorENOENT
       end
+
+      it 'sets @last_result to its return value' do
+        subject.last_result.should == @r
+      end
     end
 
     context 'source is a directory' do
@@ -399,6 +431,10 @@ describe Rosh::RemoteShell do
       it 'returns a CommandResult with ruby object Rosh::ErrorEISDIR' do
         @r.ruby_object.should be_a Rosh::ErrorEISDIR
       end
+
+      it 'sets @last_result to its return value' do
+        subject.last_result.should == @r
+      end
     end
 
     context 'destination exists' do
@@ -423,6 +459,10 @@ describe Rosh::RemoteShell do
 
       it 'returns a CommandResult with ruby object the CommandResult' do
         @r.ruby_object.should == true
+      end
+
+      it 'sets @last_result to its return value' do
+        subject.last_result.should == @r
       end
     end
   end
@@ -455,6 +495,10 @@ describe Rosh::RemoteShell do
       it 'returns a CommandResult with ruby object the output of the failed command' do
         @r.ruby_object.should == 'command not found'
       end
+
+      it 'sets @last_result to its return value' do
+        subject.last_result.should == @r
+      end
     end
 
     context 'valid command' do
@@ -482,6 +526,10 @@ describe Rosh::RemoteShell do
 
       it 'returns a CommandResult with ruby object the output of the command' do
         @r.ruby_object.should == 'some output'
+      end
+
+      it 'sets @last_result to its return value' do
+        subject.last_result.should == @r
       end
     end
   end
@@ -522,6 +570,10 @@ describe Rosh::RemoteShell do
         it 'returns a CommandResult with ruby object an Array of RemoteFileSystemObjects' do
           @r.ruby_object.should == [file_system_object]
         end
+
+        it 'sets @last_result to its return value' do
+          subject.last_result.should == @r
+        end
       end
 
       context 'path is absolute' do
@@ -538,6 +590,10 @@ describe Rosh::RemoteShell do
 
         it 'returns a CommandResult with ruby object an Array of RemoteFileSystemObjects' do
           @r.ruby_object.should == [file_system_object]
+        end
+
+        it 'sets @last_result to its return value' do
+          subject.last_result.should == @r
         end
       end
     end
@@ -564,6 +620,10 @@ describe Rosh::RemoteShell do
 
         it 'returns a CommandResult with ruby object a Rosh::ErrorENOENT' do
           @r.ruby_object.should be_a Rosh::ErrorENOENT
+        end
+
+        it 'sets @last_result to its return value' do
+          subject.last_result.should == @r
         end
       end
 
@@ -618,6 +678,10 @@ root         1  0.0  0.2   2036   716 ?        Ss   18:45   0:01 init [2]
       @r.ruby_object.first.time.should == '0:01'
       @r.ruby_object.first.command.should == 'init [2]'
     end
+
+    it 'sets @last_result to its return value' do
+      subject.last_result.should == @r
+    end
   end
 
   describe '#pwd' do
@@ -640,6 +704,7 @@ root         1  0.0  0.2   2036   716 ?        Ss   18:45   0:01 init [2]
         result.should be_a Rosh::CommandResult
         result.ruby_object.should be_a Rosh::RemoteDir
         result.exit_status.should == 0
+        subject.last_result.should == result
       end
     end
 
@@ -651,6 +716,7 @@ root         1  0.0  0.2   2036   716 ?        Ss   18:45   0:01 init [2]
         result.should be_a Rosh::CommandResult
         result.ruby_object.should == '/home'
         result.exit_status.should == 0
+        subject.last_result.should == result
       end
     end
   end
