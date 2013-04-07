@@ -12,6 +12,7 @@ describe Rosh::LocalShell do
         r.should be_a Rosh::CommandResult
         r.exit_status.should eq 1
         r.ruby_object.should be_a Errno::ENOENT
+        subject.last_result.should == r
       end
     end
 
@@ -27,6 +28,7 @@ describe Rosh::LocalShell do
         r.should be_a Rosh::CommandResult
         r.exit_status.should eq 1
         r.ruby_object.should be_a Errno::EISDIR
+        subject.last_result.should == r
       end
     end
 
@@ -37,6 +39,7 @@ describe Rosh::LocalShell do
         r.should be_a Rosh::CommandResult
         r.ruby_object.should be_a String
         r.exit_status.should eq 0
+        subject.last_result.should == r
       end
     end
   end
@@ -49,6 +52,7 @@ describe Rosh::LocalShell do
         r.should be_a Rosh::CommandResult
         r.exit_status.should eq 1
         r.ruby_object.should be_a Errno::ENOENT
+        subject.last_result.should == r
       end
     end
 
@@ -64,6 +68,7 @@ describe Rosh::LocalShell do
         r.should be_a Rosh::CommandResult
         r.exit_status.should eq 1
         r.ruby_object.should be_a Errno::ENOTDIR
+        subject.last_result.should == r
       end
     end
 
@@ -74,6 +79,7 @@ describe Rosh::LocalShell do
         r.should be_a Rosh::CommandResult
         r.ruby_object.should be_a Dir
         r.exit_status.should eq 0
+        subject.last_result.should == r
       end
     end
   end
@@ -93,6 +99,10 @@ describe Rosh::LocalShell do
       it 'returns a CommandResult with ruby object a Errno::ENOENT' do
         @r.ruby_object.should be_a Errno::ENOENT
       end
+
+      it 'sets @last_result to the return value' do
+        subject.last_result.should == @r
+      end
     end
 
     context 'source is a directory' do
@@ -108,6 +118,10 @@ describe Rosh::LocalShell do
 
       it 'returns a CommandResult with ruby object a Errno::EISDIR' do
         @r.ruby_object.should be_a Errno::EISDIR
+      end
+
+      it 'sets @last_result to the return value' do
+        subject.last_result.should == @r
       end
     end
 
@@ -141,6 +155,10 @@ describe Rosh::LocalShell do
       it 'returns a CommandResult with ruby object nil' do
         @r.ruby_object.should be_nil
       end
+
+      it 'sets @last_result to the return value' do
+        subject.last_result.should == @r
+      end
     end
 
     context 'valid command' do
@@ -155,6 +173,10 @@ describe Rosh::LocalShell do
 
       it 'returns a CommandResult with ruby object nil' do
         @r.ruby_object.should == 'a file'
+      end
+
+      it 'sets @last_result to the return value' do
+        subject.last_result.should == @r
       end
     end
   end
@@ -186,6 +208,10 @@ describe Rosh::LocalShell do
         it 'returns a CommandResult with ruby object an Array of LocalFileSystemObjects' do
           @r.ruby_object.should eq [file_system_object]
         end
+
+        it 'sets @last_result to the return value' do
+          subject.last_result.should == @r
+        end
       end
 
       context 'path is absolute' do
@@ -200,6 +226,10 @@ describe Rosh::LocalShell do
 
         it 'returns a CommandResult with ruby object an Array of LocalFileSystemObjects' do
           @r.ruby_object.should eq [file_system_object]
+        end
+
+        it 'sets @last_result to the return value' do
+          subject.last_result.should == @r
         end
       end
     end
@@ -222,6 +252,10 @@ describe Rosh::LocalShell do
         it 'returns a CommandResult with ruby object an Errno::ENOENT' do
           @r.ruby_object.should be_a Errno::ENOENT
         end
+
+        it 'sets @last_result to the return value' do
+          subject.last_result.should == @r
+        end
       end
 
       context 'path is absolute' do
@@ -236,6 +270,10 @@ describe Rosh::LocalShell do
 
         it 'returns a CommandResult with ruby object an Errno::ENOENT' do
           @r.ruby_object.should be_a Errno::ENOENT
+        end
+
+        it 'sets @last_result to the return value' do
+          subject.last_result.should == @r
         end
       end
     end
@@ -258,6 +296,10 @@ describe Rosh::LocalShell do
         it 'returns a CommandResult with ruby object an Errno::ENOTDIR' do
           @r.ruby_object.should be_a Errno::ENOTDIR
         end
+
+        it 'sets @last_result to the return value' do
+          subject.last_result.should == @r
+        end
       end
 
       context 'path is absolute' do
@@ -273,6 +315,10 @@ describe Rosh::LocalShell do
         it 'returns a CommandResult with ruby object an Errno::ENOTDIR' do
           @r.ruby_object.should be_a Errno::ENOTDIR
         end
+
+        it 'sets @last_result to the return value' do
+          subject.last_result.should == @r
+        end
       end
     end
   end
@@ -287,6 +333,7 @@ describe Rosh::LocalShell do
       r.should be_a Rosh::CommandResult
       r.exit_status.should be_zero
       r.ruby_object.should == 'some dir'
+      subject.last_result.should == r
     end
   end
 
@@ -303,6 +350,10 @@ describe Rosh::LocalShell do
       @r.ruby_object.should be_an Array
       @r.ruby_object.first.should be_a Struct::ProcTableStruct
     end
+
+    it 'sets @last_result to the return value' do
+      subject.last_result.should == @r
+    end
   end
 
   describe '#ruby' do
@@ -317,6 +368,10 @@ describe Rosh::LocalShell do
 
       it 'returns a CommandResult with ruby object the exception that was raised' do
         @r.ruby_object.should be_a RuntimeError
+      end
+
+      it 'sets @last_result to the return value' do
+        subject.last_result.should == @r
       end
     end
 
@@ -335,6 +390,10 @@ describe Rosh::LocalShell do
 
       it 'allows subsequent #ruby calls to access that saved variable' do
         expect { subject.ruby 'var' }.to_not raise_exception
+      end
+
+      it 'sets @last_result to the return value' do
+        subject.last_result.should == @r
       end
     end
   end
