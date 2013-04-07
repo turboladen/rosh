@@ -39,9 +39,9 @@ class Rosh
 
       ENV['SHELL'] = ::File.expand_path($0)
 
-      r = Rosh.new
-      r.add_host 'localhost'
-      @current_host = r.hosts['localhost']
+      @rosh = Rosh.new
+      @rosh.add_host 'localhost'
+      @current_host = @rosh.hosts['localhost']
       @last_result = nil
     end
 
@@ -124,6 +124,10 @@ class Rosh
 
       if [Array, Hash, Struct].any? { |klass| result.ruby_object.kind_of? klass }
         ap result.ruby_object
+      elsif [Rosh::LocalFileSystemObject, Rosh::RemoteFileSystemObject].any? do |klass|
+        result.ruby_object.kind_of? klass
+      end
+        puts result.ruby_object.inspect.light_blue
       elsif result.ruby_object.kind_of? Exception
         puts result.ruby_object.message.red
         result.ruby_object.backtrace.each { |b| puts b.red }
@@ -163,20 +167,16 @@ class Rosh
 
     # @return [Proc] The lambda to use for Readline's #completion_proc.
     def completions
-      cmds = @current_host.shell.public_methods(false)
-      children = child_files
-      all_children = children.map { |c| Dir["#{c}/**/*"] }.flatten
-      #hosts = Rosh::Environment.hosts.keys
+      commands = @current_host.shell.public_methods(false).map(&:to_s) +
+        @current_host.shell.system_commands.map(&:to_s)
 
-      #abbrevs = (cmds + children + all_children + path_commands + hosts)
-      abbrevs = (cmds + children + all_children +
-        @current_host.shell.system_commands)
-
-      lambda { |string| abbrevs.grep ( /^#{Regexp.escape(string)}/ ) }
-    end
-
-    def child_files
-      Dir["#{Dir.pwd}/*"].map { |f| ::File.basename(f) }
+      lambda do |string|
+        if Readline.line_buffer =~ /^ch/
+          @rosh.hosts.keys
+        else
+          (commands + Dir["#{string}*"])
+        end.grep %r[^#{Regexp.escape(string)}]
+      end
     end
 
     def changing_host(argv)
