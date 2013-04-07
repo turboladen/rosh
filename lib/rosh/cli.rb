@@ -51,7 +51,7 @@ class Rosh
       loop do
         log "Current host is: #{@current_host.hostname}"
         prompt = new_prompt
-        #Readline.completion_proc = @current_host.shell.completions
+        Readline.completion_proc = completions
 
         argv = readline(prompt, true)
         next if argv.empty?
@@ -160,6 +160,24 @@ class Rosh
     # Privates!
     #---------------------------------------------------------------------------
     private
+
+    # @return [Proc] The lambda to use for Readline's #completion_proc.
+    def completions
+      cmds = @current_host.shell.public_methods(false)
+      children = child_files
+      all_children = children.map { |c| Dir["#{c}/**/*"] }.flatten
+      #hosts = Rosh::Environment.hosts.keys
+
+      #abbrevs = (cmds + children + all_children + path_commands + hosts)
+      abbrevs = (cmds + children + all_children +
+        @current_host.shell.system_commands)
+
+      lambda { |string| abbrevs.grep ( /^#{Regexp.escape(string)}/ ) }
+    end
+
+    def child_files
+      Dir["#{Dir.pwd}/*"].map { |f| ::File.basename(f) }
+    end
 
     def changing_host(argv)
       if argv.match /^\s*ch\s/
