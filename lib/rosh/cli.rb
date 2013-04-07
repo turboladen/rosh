@@ -7,7 +7,7 @@ require 'awesome_print'
 require 'log_switch'
 require 'colorize'
 
-require_relative 'host'
+require_relative '../rosh'
 
 
 class Rosh
@@ -20,8 +20,8 @@ class Rosh
 
     Readline.completion_append_character = ' '
 
+    # Convenience method for calling Rosh::CLI.new.run.
     def self.run
-      #::Rosh::CLI.log = false
       new.run
     end
 
@@ -38,27 +38,27 @@ class Rosh
 
       ENV['SHELL'] = ::File.expand_path($0)
 
-      Rosh::Environment.current_hostname = 'localhost'
-      @host = Rosh::Host.new 'localhost'
-
-      @host.shell.using_cli = true
+      r = Rosh.new
+      r.add_host 'localhost'
+      @current_host = r.hosts['localhost']
       @last_result = nil
     end
 
+    # Starts the Readline loop for accepting input.  Each iteration through the
+    # loop returns the resulting object of the Ruby code that was executed.
     def run
       loop do
-        log "Current host is: #{Rosh::Environment.current_host.hostname}"
-        log "Current shell env is: #{Rosh::Environment.current_host.shell.env}"
+        log "Current host is: #{@current_host.hostname}"
         prompt = new_prompt
-        Readline.completion_proc = @host.shell.completions
+        #Readline.completion_proc = @current_host.shell.completions
 
         argv = readline(prompt, true)
         next if argv.empty?
-        log "Just read input: #{argv}"
+        log "Read input: #{argv}"
 
-        next if checking_exit_status(argv)
-        next if checking_last_result(argv)
-        next if changing_host(argv)
+        #next if checking_exit_status(argv)
+        #next if checking_last_result(argv)
+        #next if changing_host(argv)
 
         if multiline_ruby?(argv)
           argv = ruby_prompt(argv)
@@ -82,22 +82,23 @@ class Rosh
       log "new argv: #{new_argv}"
 
       result = begin
-        if @host.shell.builtin_commands.include? command
+        #if @current_host.shell.builtin_commands.include? command
+        if @current_host.shell.public_methods(false).include? command.to_sym
           if !args.empty?
-            @host.shell.send(command.to_sym, *args)
+            @current_host.shell.send(command.to_sym, *args)
           else
-            @host.shell.send(command.to_sym)
+            @current_host.shell.send(command.to_sym)
           end
-        elsif @host.shell.path_commands.include? command
-          @host.shell.exec(argv)
-        elsif @host.shell.path_commands.include? command.split('/').last
-          @host.shell.exec(argv)
+        #elsif @current_host.shell.path_commands.include? command
+        #  @current_host.shell.exec(argv)
+        #elsif @current_host.shell.path_commands.include? command.split('/').last
+        #  @current_host.shell.exec(argv)
         else
           $stdout.puts "Running Ruby: #{argv}"
-          @host.shell.ruby(argv)
+          @current_host.shell.ruby(argv)
         end
       rescue StandardError => ex
-        ::Rosh::CommandResult.new(ex, 1)
+        Rosh::CommandResult.new(ex, 1)
       end
 
       result
@@ -105,9 +106,9 @@ class Rosh
 
     def new_prompt
       user_and_host = '['.blue
-      user_and_host << "#{Rosh::Environment.current_host.shell.env[:user]}".red
-      user_and_host << "@#{Rosh::Environment.current_host.shell.env[:hostname]}".red
-      user_and_host << ":#{Rosh::Environment.current_host.shell.env[:pwd].split('/').last}".red
+      #user_and_host << "#{@current_host.shell.env[:user]}".red
+      #user_and_host << "@#{@current_host.shell.env[:hostname]}".red
+      #user_and_host << ":#{@current_host.shell.env[:pwd].split('/').last}".red
       user_and_host << ']'.blue
 
       _, width = Readline.get_screen_size
@@ -128,6 +129,8 @@ class Rosh
       if [Array, Hash, Struct, Exception].any? { |klass| result.ruby_object.kind_of? klass }
         log 'Printing a pretty object'
         ap result.ruby_object
+      elsif result.ruby_object.kind_of? Exception
+        p result.ruby_object.backtrace
       else
         if result.exit_status && !result.exit_status.zero?
           $stderr.puts "  #{result.ruby_object}".light_red
@@ -204,12 +207,12 @@ class Rosh
       else
         log "Changed to host '#{hostname}'"
         Rosh::Environment.current_hostname = hostname.strip
-        @host = new_host
+        @current_host = new_host
         Rosh::CommandResult.new(new_host, 0)
       end
     end
-
   end
 end
 
 Rosh::CLI.log_class_name = true
+Rosh::CLI.log = false
