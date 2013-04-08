@@ -287,14 +287,12 @@ class Rosh
     # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
     #   is a Rosh::RemoteDir.
     def pwd
-      process do
-        unless @internal_pwd
-          result = run('pwd')
-          @internal_pwd = Rosh::RemoteDir.new(result.ruby_object, self)
-        end
-
-        Rosh::CommandResult.new(@internal_pwd, 0)
+      unless @internal_pwd
+        result = run('pwd')
+        @internal_pwd = Rosh::RemoteDir.new(result.ruby_object, self)
       end
+
+      Rosh::CommandResult.new(@internal_pwd, 0)
     end
 
     def ruby(code)
@@ -340,6 +338,7 @@ class Rosh
 
     def process(*paths, &block)
       @last_result = if paths.empty?
+        pwd unless @internal_pwd
         block.call
       else
         full_paths = paths.map { |path| preprocess_path(path) }

@@ -130,13 +130,14 @@ class Rosh
     # @param [Rosh::CommandResult] result
     # @todo What if @operating_system isn't set yet?
     def extract_distribution(result)
-      log "STDOUT: #{result.stdout}"
+      stdout = result.ssh_result.stdout
+      log "STDOUT: #{stdout}"
 
       case @operating_system
       when :darwin
-        %r[ProductName:\s+(?<distro>[^\n]+)\s*ProductVersion:\s+(?<version>\S+)]m =~ result.stdout
+        %r[ProductName:\s+(?<distro>[^\n]+)\s*ProductVersion:\s+(?<version>\S+)]m =~ stdout
       when :linux
-        %r[Description:\s+(?<distro>\w+)\s+(?<version>[^\n]+)] =~ result.stdout
+        %r[Description:\s+(?<distro>\w+)\s+(?<version>[^\n]+)] =~ stdout
       end
 
       @distribution = distro.to_safe_down_sym
