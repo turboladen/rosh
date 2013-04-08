@@ -60,8 +60,10 @@ class Rosh
           ]
         end
 
-        argv = readline(prompt, true)
+        argv = readline(prompt, false)
         next if argv.empty?
+
+        Readline::HISTORY.push "#{@current_host.hostname}, #{argv}"
         log "Read input: #{argv}"
 
         if multiline_ruby?(argv)
@@ -85,8 +87,8 @@ class Rosh
       log "command: #{command}"
       log "new argv: #{new_argv}"
 
-      if command == :ch
-        ch(*args)
+      if %i[ch history].include? command
+        self.send(command, *args)
       elsif @current_host.shell.public_methods(false).include? command
         if !args.empty?
           @current_host.shell.send(command, *args)
@@ -172,16 +174,6 @@ class Rosh
     #---------------------------------------------------------------------------
     private
 
-    def changing_host(argv)
-      if argv.match /^\s*ch\s/
-        ch(argv.shellsplit.last)
-
-        return true
-      end
-
-      false
-    end
-
     def ch(hostname)
       new_host = @rosh.hosts[hostname]
 
@@ -193,6 +185,19 @@ class Rosh
         @current_host = new_host
         Rosh::CommandResult.new(new_host, 0)
       end
+    end
+
+    def history
+      lines = {}
+      commands_for_host = Readline::HISTORY.to_a.map { |h| h.split(', ') }.find_all do |host, _|
+        host == @current_host.hostname
+      end
+
+      commands_for_host.map(&:last).each_with_index do |cmd, i|
+        lines[i] = cmd
+      end
+
+      Rosh::CommandResult.new(Hash[lines.sort], 0)
     end
   end
 end

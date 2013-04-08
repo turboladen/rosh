@@ -16,7 +16,7 @@ describe Rosh::CLI do
     end
 
     it "saves commands to Readline's history" do
-      subject.should_receive(:readline).with(prompt, true).and_return ''
+      subject.should_receive(:readline).with(prompt, false).and_return ''
       subject.run
     end
 
@@ -67,13 +67,16 @@ describe Rosh::CLI do
     end
 
     context 'first arg is :ch' do
-      before do
-        shell.stub(:public_methods).and_return %i[cat ls]
-      end
-
       it 'runs the #ch command' do
         subject.should_receive(:ch).with('pants')
         subject.execute('ch pants')
+      end
+    end
+
+    context 'first arg is :history' do
+      it 'runs the #ch command' do
+        subject.should_receive(:history)
+        subject.execute('history')
       end
     end
 
