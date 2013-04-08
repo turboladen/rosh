@@ -47,6 +47,9 @@ class Rosh
     # Starts the Readline loop for accepting input.  Each iteration through the
     # loop returns the resulting object of the Ruby code that was executed.
     def run
+      stty_save = `stty -g`.chomp
+      trap('INT') { system('stty', stty_save); exit }
+
       loop do
         log "Current host is: #{@current_host.hostname}"
         prompt = new_prompt
