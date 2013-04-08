@@ -135,7 +135,7 @@ class Rosh
 
       if [Array, Hash, Struct].any? { |klass| result.ruby_object.kind_of? klass }
         ap result.ruby_object
-      elsif [Rosh::LocalFileSystemObject, Rosh::RemoteFileSystemObject, Dir].any? do |klass|
+      elsif [Rosh::Host::LocalFileSystemObject, Rosh::Host::RemoteFileSystemObject, Dir].any? do |klass|
         result.ruby_object.kind_of? klass
       end
         puts result.ruby_object.inspect.light_blue
