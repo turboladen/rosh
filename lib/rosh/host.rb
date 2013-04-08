@@ -1,7 +1,9 @@
 require 'etc'
 require 'socket'
 require_relative 'local_shell'
+require_relative 'local_file_system'
 require_relative 'remote_shell'
+require_relative 'remote_file_system'
 
 
 class Rosh
@@ -14,7 +16,7 @@ class Rosh
       @hostname = hostname
       @user = ssh_options[:user] || Etc.getlogin
 
-      @shell = if hostname == 'localhost'
+      @shell = if local?
         Rosh::LocalShell.new
       else
         Rosh::RemoteShell.new(@hostname, ssh_options)
@@ -23,6 +25,20 @@ class Rosh
 
     def set(**ssh_options)
       @shell.set(ssh_options)
+    end
+
+    def fs
+      return @fs if @fs
+
+      @fs = if local?
+        Rosh::LocalFileSystem.new
+      else
+        Rosh::RemoteFileSystem.new(@shell)
+      end
+    end
+
+    def local?
+      @hostname == 'localhost'
     end
   end
 end
