@@ -88,10 +88,13 @@ class Rosh
       #   #ruby_object is +nil+.
       def exec(command)
         process do
-          result = system(command)
-          status = result ? 0 : 1
+          output = ''
 
-          Rosh::CommandResult.new(result, status)
+          IO.popen(command) do |io|
+            output << io.read
+          end
+
+          Rosh::CommandResult.new(output, $?.exitstatus)
         end
       end
 
