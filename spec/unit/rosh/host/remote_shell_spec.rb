@@ -1,8 +1,8 @@
 require 'spec_helper'
-require 'rosh/remote_shell'
+require 'rosh/host/remote_shell'
 
 
-describe Rosh::RemoteShell do
+describe Rosh::Host::RemoteShell do
   let(:ssh) do
     double 'Net::SSH::Simple'
   end
@@ -17,12 +17,12 @@ describe Rosh::RemoteShell do
   end
 
   subject do
-    Rosh::RemoteShell.new(hostname)
+    Rosh::Host::RemoteShell.new(hostname)
   end
 
   before do
     Net::SSH::Simple.stub(:new).and_return(ssh)
-    Rosh::RemoteShell.log = false
+    Rosh::Host::RemoteShell.log = false
     subject.instance_variable_set(:@internal_pwd, '/home')
   end
 
@@ -36,17 +36,17 @@ describe Rosh::RemoteShell do
     end
 
     context ':user option passed in' do
-      subject { Rosh::RemoteShell.new('test', user: 'bobo') }
+      subject { Rosh::Host::RemoteShell.new('test', user: 'bobo') }
       its(:options) { should eq(user: 'bobo', timeout: 1800) }
     end
 
     context ':timeout option passed in' do
-      subject { Rosh::RemoteShell.new('test', timeout: 1) }
+      subject { Rosh::Host::RemoteShell.new('test', timeout: 1) }
       its(:options) { should eq(user: Etc.getlogin, timeout: 1) }
     end
 
     context ':meow option passed in' do
-      subject { Rosh::RemoteShell.new('test', meow: 'cat') }
+      subject { Rosh::Host::RemoteShell.new('test', meow: 'cat') }
       its(:options) { should eq(user: Etc.getlogin, timeout: 1800, meow: 'cat') }
     end
   end
@@ -304,8 +304,8 @@ describe Rosh::RemoteShell do
           @r.exit_status.should eq 0
         end
 
-        it 'returns a CommandResult with ruby object a Rosh::RemoteDir' do
-          @r.ruby_object.should be_a Rosh::RemoteDir
+        it 'returns a CommandResult with ruby object a Rosh::Host::RemoteDir' do
+          @r.ruby_object.should be_a Rosh::Host::RemoteDir
         end
 
         it 'sets @last_result to its return value' do
@@ -325,8 +325,8 @@ describe Rosh::RemoteShell do
           @r.exit_status.should eq 0
         end
 
-        it 'returns a CommandResult with ruby object a Rosh::RemoteDir' do
-          @r.ruby_object.should be_a Rosh::RemoteDir
+        it 'returns a CommandResult with ruby object a Rosh::Host::RemoteDir' do
+          @r.ruby_object.should be_a Rosh::Host::RemoteDir
         end
 
         it 'sets @last_result to its return value' do
@@ -548,11 +548,11 @@ describe Rosh::RemoteShell do
       end
 
       let(:file_system_object) do
-        double 'Rosh::RemoteFileSystemObject'
+        double 'Rosh::Host::RemoteFileSystemObject'
       end
 
       before do
-        Rosh::RemoteFileSystemObject.should_receive(:create).
+        Rosh::Host::RemoteFileSystemObject.should_receive(:create).
           and_return file_system_object
       end
 
@@ -665,7 +665,7 @@ root         1  0.0  0.2   2036   716 ?        Ss   18:45   0:01 init [2]
 
     it 'returns a CommandResult with ruby object an Array of Rosh::RemoteProcTable' do
       @r.ruby_object.should be_a Array
-      @r.ruby_object.first.should be_a Rosh::RemoteProcTable
+      @r.ruby_object.first.should be_a Rosh::Host::RemoteProcTable
       @r.ruby_object.first.user.should == 'root'
       @r.ruby_object.first.pid.should == 1
       @r.ruby_object.first.cpu.should == 0.0
@@ -702,7 +702,7 @@ root         1  0.0  0.2   2036   716 ?        Ss   18:45   0:01 init [2]
 
         result = subject.pwd
         result.should be_a Rosh::CommandResult
-        result.ruby_object.should be_a Rosh::RemoteDir
+        result.ruby_object.should be_a Rosh::Host::RemoteDir
         result.exit_status.should == 0
         subject.last_result.should == result
       end

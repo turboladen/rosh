@@ -2,6 +2,9 @@ require_relative 'remote_file_system_object'
 
 
 class Rosh
-  class RemoteDir < RemoteFileSystemObject
+  class Host
+    class RemoteLink < RemoteFileSystemObject
+
+    end
   end
 end

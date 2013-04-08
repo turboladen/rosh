@@ -4,8 +4,8 @@ require 'log_switch'
 require_relative 'host/attributes'
 require_relative 'host/local_shell'
 require_relative 'host/local_file_system'
-require_relative 'remote_shell'
-require_relative 'remote_file_system'
+require_relative 'host/remote_shell'
+require_relative 'host/remote_file_system'
 
 
 class Rosh
@@ -25,7 +25,7 @@ class Rosh
       @shell = if local?
         Rosh::Host::LocalShell.new
       else
-        Rosh::RemoteShell.new(@hostname, ssh_options)
+        Rosh::Host::RemoteShell.new(@hostname, ssh_options)
       end
     end
 
@@ -39,7 +39,7 @@ class Rosh
       @fs = if local?
         Rosh::Host::LocalFileSystem.new
       else
-        Rosh::RemoteFileSystem.new(@shell)
+        Rosh::Host::RemoteFileSystem.new(@shell)
       end
     end
 
