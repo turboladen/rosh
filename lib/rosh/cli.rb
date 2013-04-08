@@ -64,8 +64,6 @@ class Rosh
         next if argv.empty?
         log "Read input: #{argv}"
 
-        #next if changing_host(argv)
-
         if multiline_ruby?(argv)
           argv = ruby_prompt(argv)
           log "Multi-line Ruby; argv is now: #{argv}"
@@ -87,7 +85,9 @@ class Rosh
       log "command: #{command}"
       log "new argv: #{new_argv}"
 
-      if @current_host.shell.public_methods(false).include? command
+      if command == :ch
+        ch(*args)
+      elsif @current_host.shell.public_methods(false).include? command
         if !args.empty?
           @current_host.shell.send(command, *args)
         else
@@ -183,14 +183,13 @@ class Rosh
     end
 
     def ch(hostname)
-      new_host = Rosh::Environment.hosts[hostname.strip]
+      new_host = @rosh.hosts[hostname]
 
       if new_host.nil?
         log "No host defined for '#{hostname}'"
         Rosh::CommandResult.new(new_host, 1)
       else
         log "Changed to host '#{hostname}'"
-        Rosh::Environment.current_hostname = hostname.strip
         @current_host = new_host
         Rosh::CommandResult.new(new_host, 0)
       end

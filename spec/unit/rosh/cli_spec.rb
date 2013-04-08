@@ -64,10 +64,24 @@ describe Rosh::CLI do
 
     before do
       subject.instance_variable_set(:@current_host, host)
-      shell.should_receive(:public_methods).and_return %i[cat ls]
+    end
+
+    context 'first arg is :ch' do
+      before do
+        shell.stub(:public_methods).and_return %i[cat ls]
+      end
+
+      it 'runs the #ch command' do
+        subject.should_receive(:ch).with('pants')
+        subject.execute('ch pants')
+      end
     end
 
     context 'first arg is a shell public method' do
+      before do
+        shell.should_receive(:public_methods).and_return %i[cat ls]
+      end
+
       context 'with arguments' do
         it 'sends the command and args to the shell to run' do
           shell.should_receive(:cat).with('some_file')
@@ -85,6 +99,7 @@ describe Rosh::CLI do
 
     context 'first arg is a system command in the path' do
       before do
+        shell.should_receive(:public_methods).and_return %i[cat ls]
         shell.should_receive(:system_commands).and_return %w[git]
       end
 
@@ -96,6 +111,7 @@ describe Rosh::CLI do
 
     context 'first arg is the absolute path to a system command' do
       before do
+        shell.should_receive(:public_methods).and_return %i[cat ls]
         shell.should_receive(:system_commands).and_return %w[/usr/local/bin/git]
       end
 
@@ -107,6 +123,7 @@ describe Rosh::CLI do
 
     context 'command is not a method or system command' do
       before do
+        shell.should_receive(:public_methods).and_return %i[cat ls]
         shell.should_receive(:system_commands).twice.and_return []
       end
 
