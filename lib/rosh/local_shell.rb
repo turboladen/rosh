@@ -8,6 +8,7 @@ require_relative 'local_file_system_object'
 class Rosh
   class LocalShell
     attr_reader :last_result
+    attr_reader :workspace
 
     def initialize
       @internal_pwd = Dir.new(Dir.pwd)

@@ -9,6 +9,7 @@ require 'colorize'
 
 require_relative '../rosh'
 require_relative 'command_result'
+require_relative 'completion'
 
 
 class Rosh
@@ -18,8 +19,6 @@ class Rosh
     include Shellwords
     include Readline
     include LogSwitch::Mixin
-
-    Readline.completion_append_character = ' '
 
     # Convenience method for calling Rosh::CLI.new.run.
     def self.run
@@ -51,7 +50,15 @@ class Rosh
       loop do
         log "Current host is: #{@current_host.hostname}"
         prompt = new_prompt
-        Readline.completion_proc = completions
+
+        Readline.completion_proc = Rosh::Completion.build do
+          [
+            @current_host.shell.public_methods(false).map(&:to_s) |
+            @current_host.shell.system_commands.map(&:to_s),
+            @rosh.hosts.keys,
+            @current_host.shell.workspace.send(:binding)
+          ]
+        end
 
         argv = readline(prompt, true)
         next if argv.empty?
@@ -164,20 +171,6 @@ class Rosh
     # Privates!
     #---------------------------------------------------------------------------
     private
-
-    # @return [Proc] The lambda to use for Readline's #completion_proc.
-    def completions
-      commands = @current_host.shell.public_methods(false).map(&:to_s) +
-        @current_host.shell.system_commands.map(&:to_s)
-
-      lambda do |string|
-        if Readline.line_buffer =~ /^ch/
-          @rosh.hosts.keys
-        else
-          (commands + Dir["#{string}*"])
-        end.grep %r[^#{Regexp.escape(string)}]
-      end
-    end
 
     def changing_host(argv)
       if argv.match /^\s*ch\s/
