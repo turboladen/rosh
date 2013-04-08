@@ -60,10 +60,9 @@ class Rosh
           ]
         end
 
-        argv = readline(prompt, false)
+        argv = readline(prompt, true)
         next if argv.empty?
 
-        Readline::HISTORY.push "#{@current_host.hostname}, #{argv}"
         log "Read input: #{argv}"
 
         if multiline_ruby?(argv)
@@ -189,11 +188,8 @@ class Rosh
 
     def history
       lines = {}
-      commands_for_host = Readline::HISTORY.to_a.map { |h| h.split(', ') }.find_all do |host, _|
-        host == @current_host.hostname
-      end
 
-      commands_for_host.map(&:last).each_with_index do |cmd, i|
+      Readline::HISTORY.to_a.each_with_index do |cmd, i|
         lines[i] = cmd
       end
 
