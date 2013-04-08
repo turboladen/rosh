@@ -1,14 +1,14 @@
 require 'spec_helper'
-require 'rosh/local_dir'
+require 'rosh/host/local_dir'
 require 'tmpdir'
 
 
-describe Rosh::LocalDir do
+describe Rosh::Host::LocalDir do
   let(:dir) do
      Dir.mktmpdir 'rosh_test'
   end
 
-  subject { Rosh::LocalDir.new(dir) }
+  subject { Rosh::Host::LocalDir.new(dir) }
 
   describe '#absolute_path' do
     specify { subject.absolute_path.should == dir }
@@ -255,8 +255,8 @@ describe Rosh::LocalDir do
   describe '#entries' do
     it 'returns an Array of LocalFileSystemObjects' do
       subject.entries.should be_an Array
-      subject.entries[0].should be_a Rosh::LocalDir
-      subject.entries[1].should be_a Rosh::LocalDir
+      subject.entries[0].should be_a Rosh::Host::LocalDir
+      subject.entries[1].should be_a Rosh::Host::LocalDir
     end
   end
 
@@ -264,7 +264,7 @@ describe Rosh::LocalDir do
     context 'block given' do
       it 'yields each entry' do
         subject.each do |entry|
-          entry.should be_a Rosh::LocalDir
+          entry.should be_a Rosh::Host::LocalDir
         end
       end
     end

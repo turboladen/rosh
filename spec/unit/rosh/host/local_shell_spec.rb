@@ -1,9 +1,9 @@
 require 'spec_helper'
-require 'rosh/local_shell'
+require 'rosh/host/local_shell'
 require 'tempfile'
 
 
-describe Rosh::LocalShell do
+describe Rosh::Host::LocalShell do
   describe '#cat' do
     context 'file does not exist' do
       it 'returns a CommandResult with ruby_object a Errno::ENOENT' do
@@ -191,7 +191,7 @@ describe Rosh::LocalShell do
 
       before do
         Dir.should_receive(:entries).with(path).and_return [path]
-        Rosh::LocalFileSystemObject.should_receive(:create).
+        Rosh::Host::LocalFileSystemObject.should_receive(:create).
           and_return file_system_object
       end
 
