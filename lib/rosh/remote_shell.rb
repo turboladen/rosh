@@ -292,7 +292,7 @@ class Rosh
         @internal_pwd = Rosh::RemoteDir.new(result.ruby_object, self)
       end
 
-      Rosh::CommandResult.new(@internal_pwd, 0)
+      @last_result = Rosh::CommandResult.new(@internal_pwd, 0)
     end
 
     def ruby(code)
