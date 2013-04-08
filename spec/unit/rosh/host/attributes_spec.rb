@@ -34,7 +34,7 @@ describe Rosh::Host::Attributes do
     context 'darwin' do
       before do
         msg = 'Darwin computer.local 12.3.0 Darwin Kernel Version 12.3.0: Sun Jan  6 22:37:10 PST 2013; root:xnu-2050.22.13~1/RELEASE_X86_64 x86_64'
-        result.stub_chain(:ssh_result, :stdout).and_return(msg)
+        result.stub(:ruby_object).and_return(msg)
       end
 
       it 'sets @operating_system, @kernel_version, and @architecture' do
@@ -48,7 +48,7 @@ describe Rosh::Host::Attributes do
     context 'linux' do
       before do
         msg = 'Linux debian 2.6.24-1-686 #1 SMP Thu May 8 02:16:39 UTC 2008 i686 '
-        result.stub_chain(:ssh_result, :stdout).and_return(msg)
+        result.stub(:ruby_object).and_return(msg)
       end
 
       it 'sets @operating_system, @kernel_version, and @architecture' do
@@ -69,7 +69,7 @@ ProductVersion:	10.8.3
 BuildVersion:	12D78
         MSG
 
-        result.stub_chain(:ssh_result, :stdout).and_return(msg)
+        result.stub(:ruby_object).and_return(msg)
         subject.instance_variable_set(:@operating_system, :darwin)
       end
 
@@ -84,7 +84,7 @@ BuildVersion:	12D78
       before do
         msg ='Description:	Ubuntu 12.04.2 LTS'
 
-        result.stub_chain(:ssh_result, :stdout).and_return(msg)
+        result.stub(:ruby_object).and_return(msg)
         subject.instance_variable_set(:@operating_system, :linux)
       end
 

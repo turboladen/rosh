@@ -143,17 +143,24 @@ describe Rosh::Host::LocalShell do
 
   describe '#exec' do
     context 'invalid command' do
+      let(:io) do
+        i = double 'IO'
+        i.stub(:read).and_return 'bad command'
+
+        i
+      end
+
       before do
-        subject.should_receive(:system).and_return nil
+        IO.should_receive(:popen).and_yield io
         @r = subject.exec('bskldfjlsk')
       end
 
-      it 'returns a CommandResult with exit status 1' do
-        @r.exit_status.should == 1
+      it 'returns a CommandResult with exit status == $?.exitstatus' do
+        @r.exit_status.should == $?.exitstatus
       end
 
-      it 'returns a CommandResult with ruby object nil' do
-        @r.ruby_object.should be_nil
+      it 'returns a CommandResult with ruby object the output of the cmmand' do
+        @r.ruby_object.should == 'bad command'
       end
 
       it 'sets @last_result to the return value' do
@@ -162,17 +169,24 @@ describe Rosh::Host::LocalShell do
     end
 
     context 'valid command' do
+      let(:io) do
+        i = double 'IO'
+        i.stub(:read).and_return 'command output'
+
+        i
+      end
+
       before do
-        subject.should_receive(:system).and_return 'a file'
+        IO.should_receive(:popen).and_yield io
         @r = subject.exec('ls')
       end
 
-      it 'returns a CommandResult with exit status 0' do
-        @r.exit_status.should == 0
+      it 'returns a CommandResult with exit status == $?.exitstatus' do
+        @r.exit_status.should == $?.exitstatus
       end
 
       it 'returns a CommandResult with ruby object nil' do
-        @r.ruby_object.should == 'a file'
+        @r.ruby_object.should == 'command output'
       end
 
       it 'sets @last_result to the return value' do

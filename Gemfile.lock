@@ -7,6 +7,7 @@ PATH
       highline
       log_switch
       net-ssh-simple
+      plist
       sys-proctable
 
 GEM
@@ -48,6 +49,7 @@ GEM
       hashie (>= 1.1.0)
       net-scp (~> 1.1.0)
       net-ssh (~> 2.6.3)
+    plist (3.1.0)
     rake (10.0.4)
     rspec (2.13.0)
       rspec-core (~> 2.13.0)

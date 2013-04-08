@@ -6,6 +6,7 @@ require_relative 'host/local_shell'
 require_relative 'host/local_file_system'
 require_relative 'host/remote_shell'
 require_relative 'host/remote_file_system'
+require_relative 'host/service_manager'
 
 
 class Rosh
@@ -41,6 +42,10 @@ class Rosh
       else
         Rosh::Host::RemoteFileSystem.new(@shell)
       end
+    end
+
+    def services
+      @service_manager ||= Rosh::Host::ServiceManager.new(self)
     end
 
     def local?

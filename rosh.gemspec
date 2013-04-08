@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'highline'
   s.add_dependency 'log_switch'
   s.add_dependency 'net-ssh-simple'
+  s.add_dependency 'plist'
   s.add_dependency 'sys-proctable'
 
   s.add_development_dependency 'aruba'
