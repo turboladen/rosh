@@ -178,9 +178,11 @@ class Rosh
       path.strip!
 
       path = unless File.exists? path
-        instance_eval(path)
-      end || ''
-      puts "path: #{path}"
+        begin
+          instance_eval(path)
+        rescue NameError
+        end
+      end || path
 
       File.expand_path(path)
     end
