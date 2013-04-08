@@ -21,7 +21,7 @@ class Rosh
     # subsequent #run or #upload commands.
     #
     # Example use:
-    #   ssh = Rosh::SSH.new '10.0.0.1', keys: [Dir.home + '/.ssh/keyfile'], port: 2222
+    #   ssh = Rosh::Host::RemoteShell.new '10.0.0.1', keys: [Dir.home + '/.ssh/keyfile'], port: 2222
     #   ssh.options     # => { :keys=>["/Users/me/.ssh/keyfile"], :port=>2222, :user=>"me", :timeout=>1800 }
     #   ssh.upload 'pretty_picture.jpg', '/var/www/pretty_things/current/images/'
     #   ssh.set user: 'deploy'
