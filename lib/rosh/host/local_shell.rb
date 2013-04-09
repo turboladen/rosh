@@ -127,11 +127,22 @@ class Rosh
         process { Rosh::CommandResult.new(@internal_pwd, 0) }
       end
 
+      # @param [String] name The name of a command to filter on.
       # @return [Rosh::CommandResult] #exit_status is 0, #ruby_object is an Array
       #   of Struct::ProcTableStructs.  See https://github.com/djberg96/sys-proctable
       #   for more info.
-      def ps
-        process { Rosh::CommandResult.new(Sys::ProcTable.ps, 0) }
+      def ps(name=nil)
+        process do
+          ps = Sys::ProcTable.ps
+
+          if name
+            p = ps.find_all { |i| i.cmdline =~ /\b#{name}\b/ }
+
+            Rosh::CommandResult.new(p, 0)
+          else
+            Rosh::CommandResult.new(ps, 0)
+          end
+        end
       end
 
       # @param [String] code The Ruby code to execute.

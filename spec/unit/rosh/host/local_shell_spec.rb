@@ -352,21 +352,72 @@ describe Rosh::Host::LocalShell do
   end
 
   describe '#ps' do
+    let(:processes) do
+      [
+        double('Struct::ProcTableStruct', cmdline: '/usr/stuff'),
+        double('Struct::ProcTableStruct', cmdline: '/usr/bin/things')
+      ]
+    end
+
     before do
-      @r = subject.ps
+      Sys::ProcTable.should_receive(:ps).and_return processes
     end
 
-    it 'returns a CommandResult with exit status 0' do
-      @r.exit_status.should be_zero
+    context 'no name given' do
+      before do
+        @r = subject.ps
+      end
+
+      it 'returns a CommandResult with exit status 0' do
+        @r.exit_status.should be_zero
+      end
+
+      it 'returns a CommandResult with ruby object an Array of Struct::ProcTableStructs' do
+        @r.ruby_object.should == processes
+      end
+
+      it 'sets @last_result to the return value' do
+        subject.last_result.should == @r
+      end
     end
 
-    it 'returns a CommandResult with ruby object an Array of Struct::ProcTableStructs' do
-      @r.ruby_object.should be_an Array
-      @r.ruby_object.first.should be_a Struct::ProcTableStruct
+    context 'valid name given' do
+      before do
+        @r = subject.ps('stuff')
+      end
+
+      it 'returns a CommandResult with exit status 0' do
+        @r.exit_status.should be_zero
+      end
+
+      it 'returns a CommandResult with ruby object an Array of Struct::ProcTableStructs' do
+        @r.ruby_object.should be_an Array
+        @r.ruby_object.size.should == 1
+        @r.ruby_object.first.should == processes.first
+      end
+
+      it 'sets @last_result to the return value' do
+        subject.last_result.should == @r
+      end
     end
 
-    it 'sets @last_result to the return value' do
-      subject.last_result.should == @r
+    context 'non-existant process name given' do
+      before do
+        @r = subject.ps('lksdjflksdjfl')
+      end
+
+      it 'returns a CommandResult with exit status 0' do
+        @r.exit_status.should be_zero
+      end
+
+      it 'returns a CommandResult with ruby object an empty Array' do
+        @r.ruby_object.should be_an Array
+        @r.ruby_object.size.should == 0
+      end
+
+      it 'sets @last_result to the return value' do
+        subject.last_result.should == @r
+      end
     end
   end
 

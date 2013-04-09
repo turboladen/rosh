@@ -256,7 +256,7 @@ class Rosh
       #
       # @return [Rosh::CommandResult] #exit_status is 0, #ruby_object is an Array
       #   of Rosh::RemoteProcTable objects.
-      def ps
+      def ps(name=nil)
         process do
           result = run('ps auxe')
           list = []
@@ -280,7 +280,9 @@ class Rosh
             )
           end
 
-          Rosh::CommandResult.new(list, 0)
+          if name
+            p = list.find_all { |i| i.command =~ /\b#{name}\b/ }
+
         end
       end
 

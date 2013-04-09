@@ -472,7 +472,7 @@ describe Rosh::Host::RemoteShell do
       let(:result) do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 1
-        r.stub(:ssh_result).and_return 'ssh output'
+        r.stub_chain(:ssh_result, :stdout).and_return ''
         r.stub_chain(:ssh_result, :stderr).and_return 'command not found'
 
         r
@@ -644,6 +644,7 @@ describe Rosh::Host::RemoteShell do
       <<-PS
 USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
 root         1  0.0  0.2   2036   716 ?        Ss   18:45   0:01 init [2]
+bobo         2  0.1  1.2    712    16 ?        S    18:46   0:01 /bin/bash
       PS
     end
 
@@ -656,31 +657,83 @@ root         1  0.0  0.2   2036   716 ?        Ss   18:45   0:01 init [2]
 
     before do
       subject.should_receive(:run).with('ps auxe').and_return result
-      @r = subject.ps
     end
 
-    it 'returns a CommandResult with exit status 0' do
-      @r.exit_status.should be_zero
+    context 'no name given' do
+      before { @r = subject.ps }
+
+      it 'returns a CommandResult with exit status 0' do
+        @r.exit_status.should be_zero
+      end
+
+      it 'returns a CommandResult with ruby object an Array of Rosh::RemoteProcTable' do
+        @r.ruby_object.should be_a Array
+        @r.ruby_object.size.should == 2
+
+        @r.ruby_object.first.should be_a Rosh::Host::RemoteProcTable
+        @r.ruby_object.first.user.should == 'root'
+        @r.ruby_object.first.pid.should == 1
+        @r.ruby_object.first.cpu.should == 0.0
+        @r.ruby_object.first.mem.should == 0.2
+        @r.ruby_object.first.vsz.should == 2036
+        @r.ruby_object.first.rss.should == 716
+        @r.ruby_object.first.tty.should == '?'
+        @r.ruby_object.first.stat.should == 'Ss'
+        @r.ruby_object.first.start.should == Time.parse('18:45')
+        @r.ruby_object.first.time.should == '0:01'
+        @r.ruby_object.first.command.should == 'init [2]'
+      end
+
+      it 'sets @last_result to its return value' do
+        subject.last_result.should == @r
+      end
     end
 
-    it 'returns a CommandResult with ruby object an Array of Rosh::RemoteProcTable' do
-      @r.ruby_object.should be_a Array
-      @r.ruby_object.first.should be_a Rosh::Host::RemoteProcTable
-      @r.ruby_object.first.user.should == 'root'
-      @r.ruby_object.first.pid.should == 1
-      @r.ruby_object.first.cpu.should == 0.0
-      @r.ruby_object.first.mem.should == 0.2
-      @r.ruby_object.first.vsz.should == 2036
-      @r.ruby_object.first.rss.should == 716
-      @r.ruby_object.first.tty.should == '?'
-      @r.ruby_object.first.stat.should == 'Ss'
-      @r.ruby_object.first.start.should == Time.parse('18:45')
-      @r.ruby_object.first.time.should == '0:01'
-      @r.ruby_object.first.command.should == 'init [2]'
+    context 'valid name given' do
+      before { @r = subject.ps('init') }
+
+      it 'returns a CommandResult with exit status 0' do
+        @r.exit_status.should be_zero
+      end
+
+      it 'returns a CommandResult with ruby object an Array of Rosh::RemoteProcTable' do
+        @r.ruby_object.should be_a Array
+        @r.ruby_object.size.should == 1
+
+        @r.ruby_object.first.should be_a Rosh::Host::RemoteProcTable
+        @r.ruby_object.first.user.should == 'root'
+        @r.ruby_object.first.pid.should == 1
+        @r.ruby_object.first.cpu.should == 0.0
+        @r.ruby_object.first.mem.should == 0.2
+        @r.ruby_object.first.vsz.should == 2036
+        @r.ruby_object.first.rss.should == 716
+        @r.ruby_object.first.tty.should == '?'
+        @r.ruby_object.first.stat.should == 'Ss'
+        @r.ruby_object.first.start.should == Time.parse('18:45')
+        @r.ruby_object.first.time.should == '0:01'
+        @r.ruby_object.first.command.should == 'init [2]'
+      end
+
+      it 'sets @last_result to its return value' do
+        subject.last_result.should == @r
+      end
     end
 
-    it 'sets @last_result to its return value' do
-      subject.last_result.should == @r
+    context 'non-existant process name given' do
+      before { @r = subject.ps('sdfsdfdsfs') }
+
+      it 'returns a CommandResult with exit status 0' do
+        @r.exit_status.should be_zero
+      end
+
+      it 'returns a CommandResult with ruby object an empty Array' do
+        @r.ruby_object.should be_a Array
+        @r.ruby_object.size.should == 0
+      end
+
+      it 'sets @last_result to its return value' do
+        subject.last_result.should == @r
+      end
     end
   end
 
