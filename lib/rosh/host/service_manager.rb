@@ -1,4 +1,5 @@
 require_relative 'service'
+Dir[File.dirname(__FILE__) + '/service_types/*.rb'].each(&method(:require))
 
 
 class Rosh
@@ -9,7 +10,12 @@ class Rosh
       end
 
       def [](service_name)
-        Rosh::Host::Service.new(service_name, @host)
+        case @host.operating_system
+        when :darwin
+          Rosh::Host::ServiceTypes::LaunchCTL.new(service_name, @host)
+        when :linux
+          Rosh::Host::ServiceTypes::Init.new(service_name, @host)
+        end
       end
     end
   end
