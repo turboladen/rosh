@@ -222,7 +222,18 @@ class Rosh
           if result.exit_status.zero?
             result
           else
-            Rosh::CommandResult.new(result.ssh_result.stderr, result.exit_status,
+            ssh = result.ssh_result
+            output = if ssh.stdout.empty? && ssh.stderr.empty?
+              ''
+            elsif ssh.stderr.empty?
+              ssh.stdout.strip
+            elsif ssh.stdout.empty?
+              ssh.stderr.strip
+            else
+              ssh.stdout.strip + "\n" + ssh.stderr.strip
+            end
+
+            Rosh::CommandResult.new(output, result.exit_status,
               result.ssh_result)
           end
         end
@@ -254,6 +265,7 @@ class Rosh
       # Runs `ps auxe` on the remote host and converts each line of process info
       # to a Rosh::RemoteProcTable.
       #
+      # @param [String] name The name of a command to filter on.
       # @return [Rosh::CommandResult] #exit_status is 0, #ruby_object is an Array
       #   of Rosh::RemoteProcTable objects.
       def ps(name=nil)
@@ -283,6 +295,10 @@ class Rosh
           if name
             p = list.find_all { |i| i.command =~ /\b#{name}\b/ }
 
+            Rosh::CommandResult.new(p, 0)
+          else
+            Rosh::CommandResult.new(list, 0)
+          end
         end
       end
 

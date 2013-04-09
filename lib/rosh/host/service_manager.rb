@@ -9,7 +9,7 @@ class Rosh
       end
 
       def [](service_name)
-        Rosh::Host::Service.new(service_name, @host.shell, @host.operating_system)
+        Rosh::Host::Service.new(service_name, @host)
       end
     end
   end

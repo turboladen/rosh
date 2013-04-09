@@ -9,8 +9,15 @@ describe Rosh::Host::Service do
     double 'Rosh::Host::Shell'
   end
 
+  let(:host) do
+    h = double 'Rosh::Host'
+    h.stub(:shell).and_return shell
+
+    h
+  end
+
   subject do
-    Rosh::Host::Service.new(name, shell, :blah)
+    Rosh::Host::Service.new(name, host)
   end
 
   describe '#status' do
@@ -27,12 +34,14 @@ describe Rosh::Host::Service do
       let(:result) do
         r = double 'Rosh::CommandResult'
         r.stub(:ruby_object).and_return plist
+        r.stub(:exit_status).and_return 0
+        r.stub(:ssh_result).and_return 'output'
 
         r
       end
 
       before do
-        subject.instance_variable_set(:@operating_system, :darwin)
+        host.stub(:operating_system).and_return :darwin
         shell.should_receive(:exec).with('launchctl list -x com.thing').
           and_return result
       end
