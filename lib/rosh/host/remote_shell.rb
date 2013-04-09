@@ -268,7 +268,7 @@ class Rosh
       # @param [String] name The name of a command to filter on.
       # @return [Rosh::CommandResult] #exit_status is 0, #ruby_object is an Array
       #   of Rosh::RemoteProcTable objects.
-      def ps(name=nil)
+      def ps(name: nil, pid: nil)
         process do
           result = run('ps auxe')
           list = []
@@ -294,7 +294,9 @@ class Rosh
 
           if name
             p = list.find_all { |i| i.command =~ /\b#{name}\b/ }
-
+            Rosh::CommandResult.new(p, 0)
+          elsif pid
+            p = list.find_all { |i| i.pid == pid }
             Rosh::CommandResult.new(p, 0)
           else
             Rosh::CommandResult.new(list, 0)

@@ -131,13 +131,15 @@ class Rosh
       # @return [Rosh::CommandResult] #exit_status is 0, #ruby_object is an Array
       #   of Struct::ProcTableStructs.  See https://github.com/djberg96/sys-proctable
       #   for more info.
-      def ps(name=nil)
+      def ps(name: nil, pid: nil)
         process do
           ps = Sys::ProcTable.ps
 
           if name
             p = ps.find_all { |i| i.cmdline =~ /\b#{name}\b/ }
-
+            Rosh::CommandResult.new(p, 0)
+          elsif pid
+            p = ps.find_all { |i| i.pid == pid }
             Rosh::CommandResult.new(p, 0)
           else
             Rosh::CommandResult.new(ps, 0)
