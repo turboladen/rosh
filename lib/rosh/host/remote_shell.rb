@@ -245,15 +245,15 @@ class Rosh
       #   the status given by the remote host's failed 'ls' command, #ruby_object
       #   is a Rosh::ErrorENOENT.
       def ls(path=nil)
-        process(path) do |full_path|
-          result = run "ls #{full_path}"
+        process(path) do |base|
+          result = run "ls #{base}"
 
           if result.ssh_result.stderr.match %r[No such file or directory]
             error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
             Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
           else
             listing = result.ruby_object.split.map do |entry|
-              full_path = "#{full_path}/#{entry}"
+              full_path = "#{base}/#{entry}"
               Rosh::Host::RemoteFileSystemObject.create(full_path, self)
             end
 
