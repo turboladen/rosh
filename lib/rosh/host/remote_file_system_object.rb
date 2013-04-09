@@ -6,11 +6,11 @@ class Rosh
         fso = new(path, remote_shell)
 
         if fso.directory?
-          Rosh::RemoteDir.new(path, remote_shell)
+          Rosh::Host::RemoteDir.new(path, remote_shell)
         elsif fso.file?
-          Rosh::RemoteFile.new(path, remote_shell)
+          Rosh::Host::RemoteFile.new(path, remote_shell)
         elsif fso.link?
-          Rosh::RemoteLink.new(path, remote_shell)
+          Rosh::Host::RemoteLink.new(path, remote_shell)
         end
       end
 
