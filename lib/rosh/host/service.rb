@@ -13,15 +13,7 @@ class Rosh
       def status
         case @host.operating_system
         when :darwin
-          result = @host.shell.exec("launchctl list -x #{@name}")
-
-          if result.exit_status.zero?
-            Rosh::CommandResult.new(Plist.parse_xml(result.ruby_object), 0,
-              result.ssh_result)
-          else
-            Rosh::CommandResult.new(Rosh::UnrecognizedService.new(result.ruby_object),
-              result.exit_status, result.ssh_result)
-          end
+          process_darwin
         when :linux
           result = @host.shell.exec("service #{@name} status")
 
@@ -34,6 +26,18 @@ class Rosh
       end
 
       private
+
+      def process_darwin
+        result = @host.shell.exec("launchctl list -x #{@name}")
+
+        if result.exit_status.zero?
+          Rosh::CommandResult.new(Plist.parse_xml(result.ruby_object), 0,
+            result.ssh_result)
+        else
+          Rosh::CommandResult.new(Rosh::UnrecognizedService.new(result.ruby_object),
+            result.exit_status, result.ssh_result)
+        end
+      end
 
       def process_linux_service(result)
         if result.exit_status.zero?
