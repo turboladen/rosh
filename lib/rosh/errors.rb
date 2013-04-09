@@ -10,4 +10,7 @@ class Rosh
 
   class InaccessiblePIDFile < StandardError
   end
+
+  class PermissionDenied < StandardError
+  end
 end
