@@ -383,7 +383,7 @@ describe Rosh::Host::LocalShell do
 
     context 'valid name given' do
       before do
-        @r = subject.ps('stuff')
+        @r = subject.ps(name: 'stuff')
       end
 
       it 'returns a CommandResult with exit status 0' do
@@ -403,7 +403,7 @@ describe Rosh::Host::LocalShell do
 
     context 'non-existant process name given' do
       before do
-        @r = subject.ps('lksdjflksdjfl')
+        @r = subject.ps(name: 'lksdjflksdjfl')
       end
 
       it 'returns a CommandResult with exit status 0' do

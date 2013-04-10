@@ -690,7 +690,7 @@ bobo         2  0.1  1.2    712    16 ?        S    18:46   0:01 /bin/bash
     end
 
     context 'valid name given' do
-      before { @r = subject.ps('init') }
+      before { @r = subject.ps(name: 'init') }
 
       it 'returns a CommandResult with exit status 0' do
         @r.exit_status.should be_zero
@@ -720,7 +720,7 @@ bobo         2  0.1  1.2    712    16 ?        S    18:46   0:01 /bin/bash
     end
 
     context 'non-existant process name given' do
-      before { @r = subject.ps('sdfsdfdsfs') }
+      before { @r = subject.ps(name: 'sdfsdfdsfs') }
 
       it 'returns a CommandResult with exit status 0' do
         @r.exit_status.should be_zero
