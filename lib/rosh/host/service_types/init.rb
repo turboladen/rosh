@@ -4,6 +4,13 @@ class Rosh
       class Init < Rosh::Host::Service
         def initialize(name, host, pid=nil)
           super(name, host, pid)
+
+          @script_dir = case @host.operating_system
+          when :linux
+            '/etc/init.d'
+          when :freebsd
+            '/etc/rc.d'
+          end
         end
 
         def info
@@ -26,8 +33,17 @@ class Rosh
 
         private
 
+        def status_command
+          case @host.operating_system
+          when :linux
+            'status'
+          when :freebsd
+            'onestatus'
+          end
+        end
+
         def fetch_status
-          result = @host.shell.exec("/etc/init.d/#{@name} status")
+          result = @host.shell.exec("#{@script_dir}/#{@name} #{status_command}")
 
           if result.exit_status.zero?
             pid, state = fetch_pid
