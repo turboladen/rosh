@@ -8,6 +8,7 @@ require_relative 'host/remote_shell'
 require_relative 'host/remote_file_system'
 require_relative 'host/service_manager'
 require_relative 'host/group_manager'
+require_relative 'host/package_manager'
 
 
 class Rosh
@@ -55,6 +56,10 @@ class Rosh
 
     def groups
       @group_manager ||= Rosh::Host::GroupManager.new(self)
+    end
+
+    def packages
+      @package_manager ||= Rosh::Host::PackageManager.new(self)
     end
 
     def local?
