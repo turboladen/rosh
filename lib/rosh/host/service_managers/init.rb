@@ -17,6 +17,10 @@ class Rosh
           end
         end
 
+        def [](name)
+          create(name)
+        end
+
         private
 
         def create(name)
