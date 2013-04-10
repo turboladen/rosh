@@ -10,6 +10,8 @@ class Rosh
           super(name, shell, pid)
         end
 
+        # @return [Rosh::CommandResult] #ruby_object is a Hash containing +:name+
+        #   +:status+, +:processes+, and +:plist+; #exit_code is 0.
         def info
           state, exit_code, result, pid = fetch_status
           info = build_info(state, pid: pid)
@@ -18,17 +20,23 @@ class Rosh
           Rosh::CommandResult.new(info, exit_code, result.ssh_result)
         end
 
-        # :running, :stopped, :unknown, or Rosh::UnrecognizedService.
+        # @return [Rosh::CommandResult] #ruby_object is a Symbol: +:running+,
+        #   +:stopped+, +:unknown+, or is a Rosh::UnrecognizedService.
         def status
           state, exit_code, result, = fetch_status
 
           Rosh::CommandResult.new(state, exit_code, result.ssh_result)
         end
 
+        # Runs `launchctl load` on the current service.
+        #
+        # @return [Rosh::CommandResult] If the output of the command includes
+        #   'nothing found to load', a Rosh::UnrecognizedService error is
+        #   returned.
         def start
           result = @shell.exec("launchctl load #{@name}")
 
-          if result.ruby_object =~ /noting found to load/m
+          if result.ruby_object =~ /nothing found to load/m
             return Rosh::CommandResult.new(Rosh::UnrecognizedService.new(result.ruby_object),
               result.exit_status, result.ssh_result)
           end
