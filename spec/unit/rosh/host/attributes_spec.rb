@@ -31,10 +31,13 @@ describe Rosh::Host::Attributes do
   end
 
   describe '#extract_os' do
+    before do
+      result.stub(:ruby_object).and_return(msg)
+    end
+
     context 'darwin' do
-      before do
-        msg = 'Darwin computer.local 12.3.0 Darwin Kernel Version 12.3.0: Sun Jan  6 22:37:10 PST 2013; root:xnu-2050.22.13~1/RELEASE_X86_64 x86_64'
-        result.stub(:ruby_object).and_return(msg)
+      let(:msg) do
+        'Darwin computer.local 12.3.0 Darwin Kernel Version 12.3.0: Sun Jan  6 22:37:10 PST 2013; root:xnu-2050.22.13~1/RELEASE_X86_64 x86_64'
       end
 
       it 'sets @operating_system, @kernel_version, and @architecture' do
@@ -46,9 +49,8 @@ describe Rosh::Host::Attributes do
     end
 
     context 'linux' do
-      before do
-        msg = 'Linux debian 2.6.24-1-686 #1 SMP Thu May 8 02:16:39 UTC 2008 i686 '
-        result.stub(:ruby_object).and_return(msg)
+      let(:msg) do
+        'Linux debian 2.6.24-1-686 #1 SMP Thu May 8 02:16:39 UTC 2008 i686 '
       end
 
       it 'sets @operating_system, @kernel_version, and @architecture' do
@@ -56,6 +58,19 @@ describe Rosh::Host::Attributes do
         subject.instance_variable_get(:@operating_system).should == :linux
         subject.instance_variable_get(:@kernel_version).should == '2.6.24-1-686'
         subject.instance_variable_get(:@architecture).should == :i686
+      end
+    end
+
+    context 'freebsd' do
+      let(:msg) do
+        'FreeBSD sloveless-fbsd 9.1-RELEASE FreeBSD 9.1-RELEASE #0 r243825: Tue Dec  4 09:23:10 UTC 2012     root@farrell.cse.buffalo.edu:/usr/obj/usr/src/sys/GENERIC  amd64'
+      end
+
+      it 'sets @operating_system, @kernel_version, and @architecture' do
+        subject.send(:extract_os, result)
+        subject.instance_variable_get(:@operating_system).should == :freebsd
+        subject.instance_variable_get(:@kernel_version).should == '9.1-RELEASE'
+        subject.instance_variable_get(:@architecture).should == :amd64
       end
     end
   end

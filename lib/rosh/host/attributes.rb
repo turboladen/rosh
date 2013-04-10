@@ -78,6 +78,8 @@ class Rosh
           %r[Kernel Version (?<version>\d\d\.\d\d?\.\d\d?).*RELEASE_(?<arch>\S+)] =~ uname
         when :linux
           %r[\S+\s+(?<version>\S+).*\s(?<arch>\S+)\s*$] =~ uname
+        when :freebsd
+          %r[\S+\s+(?<version>\S+).*\s(?<arch>\S+)\s*$] =~ uname
         end
 
         @kernel_version = version
