@@ -7,7 +7,7 @@ require_relative 'host/local_file_system'
 require_relative 'host/remote_shell'
 require_relative 'host/remote_file_system'
 require_relative 'host/service_manager'
-require_relative 'host/user_manager'
+require_relative 'host/group_manager'
 
 
 class Rosh
@@ -51,6 +51,10 @@ class Rosh
 
     def users
       @user_manager ||= Rosh::Host::UserManager.new(self)
+    end
+
+    def groups
+      @group_manager ||= Rosh::Host::GroupManager.new(self)
     end
 
     def local?
