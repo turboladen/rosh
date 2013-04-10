@@ -34,9 +34,11 @@ class Rosh
 
       private
 
-      def build_info(status, pid=nil)
+      def build_info(status, pid: nil, process_info: nil)
         process_info = if pid
           @host.shell.ps(pid: pid).ruby_object
+        elsif process_info
+          process_info
         else
           @host.shell.ps(name: @name).ruby_object
         end
