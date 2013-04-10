@@ -15,15 +15,21 @@ if arg == '--irb'
 
   r.add_host('192.168.33.100', :centos5, user: 'vagrant',
     keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
+
   r.add_host('192.168.33.102', :deb, user: 'vagrant',
     keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
-  r.add_host('192.168.33.104', :freebsd, user: 'vagrant',
-    keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
+
+  r.add_host('192.168.33.104', :freebsd, user: 'sloveless')
+
   r.add_host('192.168.33.105', :gentoo, user: 'vagrant',
     keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
+
   r.add_host('192.168.33.110', :ubuntu, user: 'vagrant',
     keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
+
   r.add_host('localhost', :local)
+
+  r.add_host('sloveless-lin.pelco.org', :lin, user: 'sloveless')
 
   IRB.start
 else
