@@ -72,6 +72,10 @@ class Rosh
 
         result.ssh_result.stdout.strip
       end
+
+      def basename
+        File.basename(@path)
+      end
     end
   end
 end
