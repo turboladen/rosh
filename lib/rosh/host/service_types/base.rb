@@ -46,7 +46,7 @@ class Rosh
             @shell.ps(name: @name).ruby_object
           end
 
-          if pid && process_info
+          if pid && !process_info.empty?
             status = :running
           end
 
