@@ -6,7 +6,7 @@ require_relative 'host/local_shell'
 require_relative 'host/local_file_system'
 require_relative 'host/remote_shell'
 require_relative 'host/remote_file_system'
-require_relative 'host/service_manager'
+Dir[File.dirname(__FILE__) + '/host/service_managers/*.rb'].each(&method(:require))
 require_relative 'host/group_manager'
 require_relative 'host/package_manager'
 
@@ -47,7 +47,16 @@ class Rosh
     end
 
     def services
-      @service_manager ||= Rosh::Host::ServiceManager.new(self)
+      return @service_manager if @service_manager
+
+      @service_manager = case operating_system
+      when :darwin
+        Rosh::Host::ServiceManagers::LaunchCTL.new(@shell)
+      when :linux
+        Rosh::Host::ServiceManagers::Init.new(@shell, :linux)
+      when :freebsd
+        Rosh::Host::ServiceManagers::Init.new(@shell, :freebsd)
+      end
     end
 
     def users

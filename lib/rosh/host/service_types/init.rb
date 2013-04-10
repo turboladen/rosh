@@ -1,11 +1,17 @@
+require_relative 'base'
+
+
 class Rosh
   class Host
     module ServiceTypes
-      class Init < Rosh::Host::Service
-        def initialize(name, host, pid=nil)
-          super(name, host, pid)
+      class Init < Base
+        def initialize(name, shell, os_type, pid=nil)
+          super(name, shell, pid)
 
-          @script_dir = case @host.operating_system
+          @shell = shell
+          @os_type = os_type
+
+          @script_dir = case @os_type
           when :linux
             '/etc/init.d'
           when :freebsd
@@ -34,7 +40,7 @@ class Rosh
         private
 
         def status_command
-          case @host.operating_system
+          case @os_type
           when :linux
             'status'
           when :freebsd
@@ -43,7 +49,7 @@ class Rosh
         end
 
         def fetch_status
-          result = @host.shell.exec("#{@script_dir}/#{@name} #{status_command}")
+          result = @shell.exec("#{@script_dir}/#{@name} #{status_command}")
 
           if result.exit_status.zero?
             pid, state = fetch_pid
@@ -70,7 +76,7 @@ class Rosh
             pid = pid.to_i
             :running
           else
-            process_list = @host.shell.ps(name: @name).ruby_object
+            process_list = @shell.ps(name: @name).ruby_object
 
             if process_list.empty?
               :stopped
