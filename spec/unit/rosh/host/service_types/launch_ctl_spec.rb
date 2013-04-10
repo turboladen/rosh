@@ -41,17 +41,15 @@ describe Rosh::Host::ServiceTypes::LaunchCTL do
 
       subject.should_receive(:build_info).with('test state', pid: nil).
         and_return info
-    end
-
-    it 'uses Plist to parse `launchctl list` output to a Hash' do
       Plist.should_receive(:parse_xml).with(plist).
         and_return 'plist'
 
-      r = subject.info
-      r.ruby_object.should == { plist: 'plist' }
-      r.exit_status.should == 0
-      r.ssh_result.should == 'output'
+      @r = subject.info
     end
+
+    specify { @r.ruby_object.should == { plist: 'plist' } }
+    specify { @r.exit_status.should == 0 }
+    specify { @r.ssh_result.should == 'output' }
   end
 
   describe '#status' do
