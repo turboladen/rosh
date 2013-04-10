@@ -1,10 +1,12 @@
 require_relative '../errors'
 
 
-
 class Rosh
   class Host
     class Service
+      attr_reader :name
+      attr_reader :pid
+
       def initialize(name, host, pid=nil)
         @name = name
         @host = host
