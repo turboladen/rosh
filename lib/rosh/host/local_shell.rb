@@ -1,6 +1,7 @@
 require 'irb'
 require 'open-uri'
 require 'sys/proctable'
+require 'fileutils'
 require_relative '../command_result'
 require_relative 'local_file_system_object'
 
@@ -8,57 +9,58 @@ require_relative 'local_file_system_object'
 class Rosh
   class Host
     class LocalShell
-      attr_reader :last_result
+      attr_accessor :last_result
+      attr_accessor :last_exit_status
       attr_reader :workspace
 
       def initialize
         @internal_pwd = Dir.new(Dir.pwd)
-        @last_result = Rosh::CommandResult.new(nil, 0)
+        @last_result = nil
+        @last_exit_status = 0
       end
 
-      # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
-      #   is the contents of the file as a String.  On fail, #exit_status is 1,
-      #   #ruby_object is the Exception that was raised.
+      # @param [String] file Path to the file to cat.
+      # @return [String] On success, is the contents of the file as a String.
+      #   On fail, #last_exit_status is set to 1 and returns the Exception that
+      #   was raised.
       def cat(file)
         process(file) do |full_file|
           begin
             contents = open(full_file).read
-            Rosh::CommandResult.new(contents, 0)
+            [contents, 0]
           rescue Errno::ENOENT, Errno::EISDIR => ex
-            Rosh::CommandResult.new(ex, 1)
+            [ex, 1]
           end
         end
       end
 
       # @param [String] path The absolute or relative path to make the new working
       #   directory.
-      # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
-      #   is the new directory as a Dir.  On fail, #exit_status is 1,
-      #   #ruby_object is the Exception that was raised.
+      # @return [Dir] On success, returns the new directory.  On fail,
+      #   #last_exit_status is set to 1 and returns the Exception that was raised.
       def cd(path)
         process(path) do |full_path|
           begin
             Dir.chdir(full_path)
             @internal_pwd = Dir.new(Dir.pwd)
-            Rosh::CommandResult.new(@internal_pwd, 0)
+            [@internal_pwd, 0]
           rescue Errno::ENOENT, Errno::ENOTDIR => ex
-            Rosh::CommandResult.new(ex, 1)
+            [ex, 1]
           end
         end
       end
 
       # @param [String] source The path to the file to copy.
       # @param [String] destination The destination to copy the file to.
-      # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
-      #   is +true+.  On fail, #exit_status is 1, #ruby_object is the Exception
-      #   that was raised.
+      # @return [TrueClass] On success, returns +true+.  On fail, #last_exit_status
+      #   is set to 1 and returns the Exception that was raised.
       def cp(source, destination)
         process(source, destination) do |full_source, full_destination|
           begin
-            FileUtils.cp(full_source, full_destination)
-            Rosh::CommandResult.new(true, 0)
+            ::FileUtils.cp(full_source, full_destination)
+            [true, 0]
           rescue Errno::ENOENT, Errno::EISDIR => ex
-            Rosh::CommandResult.new(ex, 1)
+            [ex, 1]
           end
         end
       end
@@ -66,8 +68,7 @@ class Rosh
       # The shell's environment.  Note this doesn't trump the Ruby process's ENV
       # settings (which are still accessible).
       #
-      # @return [Rosh::CommandResult] #ruby_object is a Hash containing the
-      #   environment info.
+      # @return [Hash] A Hash containing the environment info.
       def env
         process do
           @path ||= ENV['PATH'].split(':')
@@ -78,58 +79,64 @@ class Rosh
             pwd: @internal_pwd.to_path
           }
 
-          return Rosh::CommandResult.new(env, 0)
+          [env, 0]
         end
       end
 
       # @param [String] command The system command to execute.
-      # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
-      #   is the output of the command as a String.  On fail, #exit_status is 1,
-      #   #ruby_object is +nil+.
+      # @return [String] On success, returns the output of the command.  On
+      #   fail, #last_exit_status is whatever was set by the command and returns
+      #   the exception that was raised.
       def exec(command)
         process do
           output = ''
 
-          IO.popen(command) do |io|
-            output << io.read
-          end
+          begin
+            IO.popen(command) do |io|
+              output << io.read
+            end
 
-          Rosh::CommandResult.new(output, $?.exitstatus)
+            [output, $?.exitstatus]
+          rescue => ex
+            [ex, 1]
+          end
         end
       end
 
-      # @param [String] path Path to the directory to list its contents.
-      # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
-      #   is an Array of Rosh::LocalFileSystemObjects.  On fail, #exit_status is
-      #   1, #ruby_object is a Errno::ENOENT.
+      # @param [String] path Path to the directory to list its contents.  If no
+      #   path given, lists the current working directory.
+      # @return [Array<Rosh::LocalFileSystemObject>] On success, returns an
+      #   Array of Rosh::LocalFileSystemObjects.  On fail, #last_exit_status is
+      #   1 and returns a Errno::ENOENT or Errno::ENOTDIR.
       def ls(path=nil)
         process(path) do |full_path|
           if File.file? full_path
             fso = Rosh::Host::LocalFileSystemObject.create(full_path)
-            Rosh::CommandResult.new(fso, 0)
+            [fso, 0]
           else
             begin
               fso_array = Dir.entries(full_path).map do |entry|
                 Rosh::Host::LocalFileSystemObject.create("#{full_path}/#{entry}")
               end
 
-              Rosh::CommandResult.new(fso_array, 0)
+              [fso_array, 0]
             rescue Errno::ENOENT, Errno::ENOTDIR => ex
-              Rosh::CommandResult.new(ex, 1)
+              [ex, 1]
             end
           end
         end
       end
 
-      # @return [Rosh::CommandResult] #exit_status is 0, #ruby_object is the
-      #   current working directory as a Dir.
+      # @return [Dir] The current working directory as a Dir.
       def pwd
-        process { Rosh::CommandResult.new(@internal_pwd, 0) }
+        process { [@internal_pwd, 0] }
       end
 
       # @param [String] name The name of a command to filter on.
-      # @return [Rosh::CommandResult] #exit_status is 0, #ruby_object is an Array
-      #   of Struct::ProcTableStructs.  See https://github.com/djberg96/sys-proctable
+      # @return [Array<Struct::ProcTableStruct>, Struct::ProcTableStruct] When
+      #   no options are given, all processes returned.  When +:name+ is given,
+      #   an Array of processes that match COMMAND are given.  When +:pid+ is
+      #   given, a single process is returned.  See https://github.com/djberg96/sys-proctable
       #   for more info.
       def ps(name: nil, pid: nil)
         process do
@@ -137,59 +144,74 @@ class Rosh
 
           if name
             p = ps.find_all { |i| i.cmdline =~ /\b#{name}\b/ }
-            Rosh::CommandResult.new(p, 0)
+            [p, 0]
           elsif pid
-            p = ps.find_all { |i| i.pid == pid }
-            Rosh::CommandResult.new(p, 0)
+            p = ps.find { |i| i.pid == pid }
+            [p, 0]
           else
-            Rosh::CommandResult.new(ps, 0)
+            [ps, 0]
           end
         end
       end
 
+      # Executes Ruby code in the context of an IRB::WorkSpace.  Thus, variables
+      # are maintained across calls to this.
+      #
       # @param [String] code The Ruby code to execute.
-      # @return [Rosh::CommandResult] If the Ruby code raises an exception,
-      #   #exit_status will be 1 and #ruby_object will be the exception that was
-      #   raised.  If no exception was raised, #exit_status will be 0 and
-      #   #ruby_object will be the object returned from the code that was executed.
+      # @return [] If the Ruby code raises an exception,
+      #   #last_exit_status will be 1 and will return the exception that was
+      #   raised.  If no exception was raised, this will return the returned
+      #   object from the code that was executed.
       def ruby(code)
         process do
           begin
             code.gsub!(/puts/, '$stdout.puts')
             @workspace ||= IRB::WorkSpace.new(binding)
             r = @workspace.evaluate(binding, code)
-            r.is_a?(Rosh::CommandResult) ? r : Rosh::CommandResult.new(r, 0)
+            [r, 0]
           rescue => ex
-            Rosh::CommandResult.new(ex, 1)
+            [ex, 1]
           end
         end
       end
 
+      # @return [Array<String>] List of commands given in the PATH.
       def system_commands
-        env.ruby_object[:path].map do |dir|
+        env[:path].map do |dir|
           Dir["#{dir}/*"].map { |f| ::File.basename(f) }
         end.flatten
       end
 
-      # @return [Rosh::CommandResult] The result of the last command executed.  If
-      #   no command has been executed, #ruby_object is nil; #exit_status is 0.
+      # @return [Integer] Shortcut to the result of the last command executed.
       def _?
-        return @last_result if @last_result
-
-        Rosh::CommandResult(nil, 0)
+        @last_exit_status
       end
 
       private
 
+      # Saves the result of the block given to #last_result and exit code to
+      # #last_exit_status.
+      #
+      # @param [Array<String>, String] paths File paths to expand within the
+      #   context of the shell.
+      # @return The result of the block that was given
       def process(*paths, &block)
-        @last_result = if paths.empty?
+        @last_result, @last_exit_status = if paths.empty?
           block.call
         else
           full_paths = paths.map { |path| preprocess_path(path) }
           block.call(*full_paths)
         end
+
+        @last_result
       end
 
+      # Expands paths based on the context of the shell.  Allows for using Ruby
+      # to pass in a path (via eval).
+      #
+      # @param [] path A String or some Ruby code that will eval to represent a
+      #   path.
+      # @return [String] Fully expanded path of the given path.
       def preprocess_path(path)
         path = '' unless path
         path.strip!
@@ -197,7 +219,7 @@ class Rosh
         path = unless File.exists? path
           begin
             instance_eval(path)
-          rescue NameError
+          rescue NameError, SyntaxError
           end
         end || path
 

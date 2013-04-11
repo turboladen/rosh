@@ -6,81 +6,62 @@ require 'tempfile'
 describe Rosh::Host::LocalShell do
   describe '#cat' do
     context 'file does not exist' do
-      it 'returns a CommandResult with ruby_object a Errno::ENOENT' do
-        r = subject.cat('blah')
+      before { @r = subject.cat('blah') }
 
-        r.should be_a Rosh::CommandResult
-        r.exit_status.should eq 1
-        r.ruby_object.should be_a Errno::ENOENT
-        subject.last_result.should == r
-      end
+      specify { @r.should be_a Errno::ENOENT }
+      specify { subject.last_exit_status.should eq 1 }
+      specify { subject.last_result.should eq @r }
     end
 
     context 'file is a directory' do
       before do
         subject.should_receive(:open).with(File.expand_path('blah')).
           and_raise Errno::EISDIR
+        @r = subject.cat('blah')
       end
 
-      it 'returns a CommandResult with ruby_object a Errno::EISDIR' do
-        r = subject.cat('blah')
-
-        r.should be_a Rosh::CommandResult
-        r.exit_status.should eq 1
-        r.ruby_object.should be_a Errno::EISDIR
-        subject.last_result.should == r
-      end
+      specify { @r.should be_a Errno::EISDIR }
+      specify { subject.last_exit_status.should eq 1 }
+      specify { subject.last_result.should eq @r }
     end
 
     context 'file exists' do
-      it 'returns a CommandResult with ruby_object the contents of the file' do
-        r = subject.cat(__FILE__)
+      before { @r = subject.cat(__FILE__) }
 
-        r.should be_a Rosh::CommandResult
-        r.ruby_object.should be_a String
-        r.exit_status.should eq 0
-        subject.last_result.should == r
-      end
+      specify { @r.should be_a String }
+      specify { subject.last_exit_status.should eq 0 }
+      specify { subject.last_result.should eq @r }
     end
   end
 
   describe '#cd' do
     context 'directory does not exist' do
-      it 'returns a CommandResult with ruby_object a Errno::ENOENT' do
-        r = subject.cd('blah')
+      before { @r = subject.cd('blah') }
 
-        r.should be_a Rosh::CommandResult
-        r.exit_status.should eq 1
-        r.ruby_object.should be_a Errno::ENOENT
-        subject.last_result.should == r
-      end
+      specify { @r.should be_a Errno::ENOENT }
+      specify { subject.last_exit_status.should eq 1 }
+      specify { subject.last_result.should eq @r }
     end
 
     context 'directory is a file' do
       before do
         Dir.should_receive(:chdir).with(File.expand_path('blah')).
           and_raise Errno::ENOTDIR
+
+        @r = subject.cd('blah')
       end
 
-      it 'returns a CommandResult with ruby_object a Errno::EISDIR' do
-        r = subject.cd('blah')
-
-        r.should be_a Rosh::CommandResult
-        r.exit_status.should eq 1
-        r.ruby_object.should be_a Errno::ENOTDIR
-        subject.last_result.should == r
-      end
+      specify { @r.should be_a Errno::ENOTDIR }
+      specify { subject.last_exit_status.should eq 1 }
+      specify { subject.last_result.should eq @r }
     end
 
     context 'directory exists' do
-      it 'returns a CommandResult with ruby_object the new Dir' do
-        r = subject.cd('/')
+      before { @r = subject.cd('/') }
 
-        r.should be_a Rosh::CommandResult
-        r.ruby_object.should be_a Dir
-        r.exit_status.should eq 0
-        subject.last_result.should == r
-      end
+      specify { @r.should be_a Dir }
+      specify { subject.last_exit_status.should eq 0 }
+      specify { subject.last_result.should eq @r }
     end
   end
 
@@ -91,18 +72,9 @@ describe Rosh::Host::LocalShell do
         @r = subject.cp('source', 'destination')
       end
 
-
-      it 'returns a CommandResult with exit status 1' do
-        @r.exit_status.should eq 1
-      end
-
-      it 'returns a CommandResult with ruby object a Errno::ENOENT' do
-        @r.ruby_object.should be_a Errno::ENOENT
-      end
-
-      it 'sets @last_result to the return value' do
-        subject.last_result.should == @r
-      end
+      specify { @r.should be_a Errno::ENOENT }
+      specify { subject.last_exit_status.should eq 1 }
+      specify { subject.last_result.should eq @r }
     end
 
     context 'source is a directory' do
@@ -111,18 +83,9 @@ describe Rosh::Host::LocalShell do
         @r = subject.cp('source', 'destination')
       end
 
-
-      it 'returns a CommandResult with exit status 1' do
-        @r.exit_status.should eq 1
-      end
-
-      it 'returns a CommandResult with ruby object a Errno::EISDIR' do
-        @r.ruby_object.should be_a Errno::EISDIR
-      end
-
-      it 'sets @last_result to the return value' do
-        subject.last_result.should == @r
-      end
+      specify { @r.should be_a Errno::EISDIR }
+      specify { subject.last_exit_status.should eq 1 }
+      specify { subject.last_result.should eq @r }
     end
 
     context 'destination exists' do
@@ -134,38 +97,28 @@ describe Rosh::Host::LocalShell do
         dest.unlink
       end
 
+      before { @r = subject.cp(__FILE__, dest.path) }
+
       it 'overwrites the destination' do
-        subject.cp(__FILE__, dest.path)
         File.size(__FILE__).should == File.size(dest.path)
       end
+
+      specify { @r.should be_true }
+      specify { subject.last_exit_status.should eq 0 }
+      specify { subject.last_result.should eq @r }
     end
   end
 
   describe '#exec' do
     context 'invalid command' do
-      let(:io) do
-        i = double 'IO'
-        i.stub(:read).and_return 'bad command'
-
-        i
-      end
-
       before do
-        IO.should_receive(:popen).and_yield io
+        IO.should_receive(:popen).and_raise
         @r = subject.exec('bskldfjlsk')
       end
 
-      it 'returns a CommandResult with exit status == $?.exitstatus' do
-        @r.exit_status.should == $?.exitstatus
-      end
-
-      it 'returns a CommandResult with ruby object the output of the cmmand' do
-        @r.ruby_object.should == 'bad command'
-      end
-
-      it 'sets @last_result to the return value' do
-        subject.last_result.should == @r
-      end
+      specify { @r.should be_kind_of Exception }
+      specify { subject.last_exit_status.should eq $?.exitstatus }
+      specify { subject.last_result.should eq @r }
     end
 
     context 'valid command' do
@@ -181,17 +134,9 @@ describe Rosh::Host::LocalShell do
         @r = subject.exec('ls')
       end
 
-      it 'returns a CommandResult with exit status == $?.exitstatus' do
-        @r.exit_status.should == $?.exitstatus
-      end
-
-      it 'returns a CommandResult with ruby object nil' do
-        @r.ruby_object.should == 'command output'
-      end
-
-      it 'sets @last_result to the return value' do
-        subject.last_result.should == @r
-      end
+      specify { @r.should eq 'command output' }
+      specify { subject.last_exit_status.should eq $?.exitstatus }
+      specify { subject.last_result.should eq @r }
     end
   end
 
@@ -215,17 +160,9 @@ describe Rosh::Host::LocalShell do
           @r = subject.ls('path')
         end
 
-        it 'returns a CommandResult with exit status 0' do
-          @r.exit_status.should eq 0
-        end
-
-        it 'returns a CommandResult with ruby object an Array of LocalFileSystemObjects' do
-          @r.ruby_object.should eq [file_system_object]
-        end
-
-        it 'sets @last_result to the return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should eq [file_system_object] }
+        specify { subject.last_exit_status.should eq 0 }
+        specify { subject.last_result.should eq @r }
       end
 
       context 'path is absolute' do
@@ -234,17 +171,9 @@ describe Rosh::Host::LocalShell do
           @r = subject.ls('/home/path')
         end
 
-        it 'returns a CommandResult with exit status 0' do
-          @r.exit_status.should eq 0
-        end
-
-        it 'returns a CommandResult with ruby object an Array of LocalFileSystemObjects' do
-          @r.ruby_object.should eq [file_system_object]
-        end
-
-        it 'sets @last_result to the return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should eq [file_system_object] }
+        specify { subject.last_exit_status.should eq 0 }
+        specify { subject.last_result.should eq @r }
       end
     end
 
@@ -259,17 +188,9 @@ describe Rosh::Host::LocalShell do
           @r = subject.ls('path')
         end
 
-        it 'returns a CommandResult with exit status 1' do
-          @r.exit_status.should eq 1
-        end
-
-        it 'returns a CommandResult with ruby object an Errno::ENOENT' do
-          @r.ruby_object.should be_a Errno::ENOENT
-        end
-
-        it 'sets @last_result to the return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should be_a Errno::ENOENT }
+        specify { subject.last_exit_status.should eq 1 }
+        specify { subject.last_result.should eq @r }
       end
 
       context 'path is absolute' do
@@ -278,17 +199,9 @@ describe Rosh::Host::LocalShell do
           @r = subject.ls('/home/path')
         end
 
-        it 'returns a CommandResult with exit status 1' do
-          @r.exit_status.should eq 1
-        end
-
-        it 'returns a CommandResult with ruby object an Errno::ENOENT' do
-          @r.ruby_object.should be_a Errno::ENOENT
-        end
-
-        it 'sets @last_result to the return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should be_a Errno::ENOENT }
+        specify { subject.last_exit_status.should eq 1 }
+        specify { subject.last_result.should eq @r }
       end
     end
 
@@ -303,17 +216,9 @@ describe Rosh::Host::LocalShell do
           @r = subject.ls('path')
         end
 
-        it 'returns a CommandResult with exit status 1' do
-          @r.exit_status.should eq 1
-        end
-
-        it 'returns a CommandResult with ruby object an Errno::ENOTDIR' do
-          @r.ruby_object.should be_a Errno::ENOTDIR
-        end
-
-        it 'sets @last_result to the return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should be_a Errno::ENOTDIR }
+        specify { subject.last_exit_status.should eq 1 }
+        specify { subject.last_result.should eq @r }
       end
 
       context 'path is absolute' do
@@ -322,17 +227,9 @@ describe Rosh::Host::LocalShell do
           @r = subject.ls('/home/path')
         end
 
-        it 'returns a CommandResult with exit status 1' do
-          @r.exit_status.should eq 1
-        end
-
-        it 'returns a CommandResult with ruby object an Errno::ENOTDIR' do
-          @r.ruby_object.should be_a Errno::ENOTDIR
-        end
-
-        it 'sets @last_result to the return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should be_a Errno::ENOTDIR }
+        specify { subject.last_exit_status.should eq 1 }
+        specify { subject.last_result.should eq @r }
       end
     end
   end
@@ -340,15 +237,12 @@ describe Rosh::Host::LocalShell do
   describe '#pwd' do
     before do
       subject.instance_variable_set(:@internal_pwd, 'some dir')
+      @r = subject.pwd
     end
 
-    it 'returns a CommandResult with ruby_object @internal_pwd' do
-      r = subject.pwd
-      r.should be_a Rosh::CommandResult
-      r.exit_status.should be_zero
-      r.ruby_object.should == 'some dir'
-      subject.last_result.should == r
-    end
+    specify { @r.should eq 'some dir' }
+    specify { subject.last_exit_status.should eq 0 }
+    specify { subject.last_result.should eq @r }
   end
 
   describe '#ps' do
@@ -364,101 +258,48 @@ describe Rosh::Host::LocalShell do
     end
 
     context 'no name given' do
-      before do
-        @r = subject.ps
-      end
+      before { @r = subject.ps }
 
-      it 'returns a CommandResult with exit status 0' do
-        @r.exit_status.should be_zero
-      end
-
-      it 'returns a CommandResult with ruby object an Array of Struct::ProcTableStructs' do
-        @r.ruby_object.should == processes
-      end
-
-      it 'sets @last_result to the return value' do
-        subject.last_result.should == @r
-      end
+      specify { @r.should eq processes }
+      specify { subject.last_exit_status.should eq 0 }
+      specify { subject.last_result.should eq @r }
     end
 
     context 'valid name given' do
-      before do
-        @r = subject.ps(name: 'stuff')
-      end
+      before { @r = subject.ps(name: 'stuff') }
 
-      it 'returns a CommandResult with exit status 0' do
-        @r.exit_status.should be_zero
-      end
-
-      it 'returns a CommandResult with ruby object an Array of Struct::ProcTableStructs' do
-        @r.ruby_object.should be_an Array
-        @r.ruby_object.size.should == 1
-        @r.ruby_object.first.should == processes.first
-      end
-
-      it 'sets @last_result to the return value' do
-        subject.last_result.should == @r
-      end
+      specify { @r.should eq [processes.first] }
+      specify { subject.last_exit_status.should eq 0 }
+      specify { subject.last_result.should eq @r }
     end
 
     context 'non-existant process name given' do
-      before do
-        @r = subject.ps(name: 'lksdjflksdjfl')
-      end
+      before { @r = subject.ps(name: 'lksdjflksdjfl') }
 
-      it 'returns a CommandResult with exit status 0' do
-        @r.exit_status.should be_zero
-      end
-
-      it 'returns a CommandResult with ruby object an empty Array' do
-        @r.ruby_object.should be_an Array
-        @r.ruby_object.size.should == 0
-      end
-
-      it 'sets @last_result to the return value' do
-        subject.last_result.should == @r
-      end
+      specify { @r.should eq [] }
+      specify { subject.last_exit_status.should eq 0 }
+      specify { subject.last_result.should eq @r }
     end
   end
 
   describe '#ruby' do
     context 'the executed code raises an exception' do
-      before do
-        @r = subject.ruby 'raise'
-      end
+      before { @r = subject.ruby 'raise' }
 
-      it 'returns a CommandResult with exit status 1' do
-        @r.exit_status.should == 1
-      end
-
-      it 'returns a CommandResult with ruby object the exception that was raised' do
-        @r.ruby_object.should be_a RuntimeError
-      end
-
-      it 'sets @last_result to the return value' do
-        subject.last_result.should == @r
-      end
+      specify { @r.should be_a RuntimeError }
+      specify { subject.last_exit_status.should eq 1 }
+      specify { subject.last_result.should eq @r }
     end
 
     context 'the executed code saves a value to a variable' do
-      before do
-        @r = subject.ruby 'var = [1, 2, 3]'
-      end
+      before { @r = subject.ruby 'var = [1, 2, 3]' }
 
-      it 'returns a CommandResult with exit status 0' do
-        @r.exit_status.should == 0
-      end
-
-      it 'returns a CommandResult with ruby object the value that was saved' do
-        @r.ruby_object.should == [1, 2, 3]
-      end
+      specify { @r.should eq [1, 2, 3] }
+      specify { subject.last_exit_status.should eq 0 }
+      specify { subject.last_result.should eq @r }
 
       it 'allows subsequent #ruby calls to access that saved variable' do
         expect { subject.ruby 'var' }.to_not raise_exception
-      end
-
-      it 'sets @last_result to the return value' do
-        subject.last_result.should == @r
       end
     end
   end
