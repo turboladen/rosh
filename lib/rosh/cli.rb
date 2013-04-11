@@ -111,7 +111,7 @@ class Rosh
       user_and_host = '['.blue
       user_and_host << "#{@current_host.user}".red
       user_and_host << "@#{@current_host.hostname}".red
-      user_and_host << ":#{@current_host.shell.env.ruby_object[:pwd].split('/').last}".red
+      user_and_host << ":#{@current_host.shell.env[:pwd].split('/').last}".red
       user_and_host << ']'.blue
 
       _, width = Readline.get_screen_size
@@ -131,22 +131,22 @@ class Rosh
     def print_result(result)
       log "Result is a '#{result.class}'"
       log "Resulting Ruby object is: '#{result}'"
-      log "Resulting Ruby object is a '#{result.ruby_object.class}'"
+      log "Resulting Ruby object is a '#{result.class}'"
 
-      if [Array, Hash, Struct].any? { |klass| result.ruby_object.kind_of? klass }
-        ap result.ruby_object
+      if [Array, Hash, Struct].any? { |klass| result.kind_of? klass }
+        ap result
       elsif [Rosh::Host::LocalFileSystemObject, Rosh::Host::RemoteFileSystemObject, Dir].any? do |klass|
-        result.ruby_object.kind_of? klass
+        result.kind_of? klass
       end
-        puts result.ruby_object.inspect.light_blue
-      elsif result.ruby_object.kind_of? Exception
-        puts result.ruby_object.message.red
-        result.ruby_object.backtrace.each { |b| puts b.red }
+        puts result.inspect.light_blue
+      elsif result.kind_of? Exception
+        puts result.message.red
+        result.backtrace.each { |b| puts b.red }
       else
-        if result.exit_status && !result.exit_status.zero?
-          $stderr.puts "  #{result.ruby_object}".light_red
+        if !@current_host.shell.last_exit_status.zero?
+          $stderr.puts "  #{result}".light_red
         else
-          $stdout.puts "  #{result.ruby_object}".light_blue
+          $stdout.puts "  #{result}".light_blue
         end
       end
     end
