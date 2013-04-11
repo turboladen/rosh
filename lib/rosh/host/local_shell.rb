@@ -186,12 +186,18 @@ class Rosh
       #   object from the code that was executed.
       def ruby(code)
         process do
+          code.gsub!(/puts/, '$stdout.puts')
+          path_info = code.scan(/\s(?<fs_path>\/[^\n]*\/?)$/).flatten
+
+          if $~
+            code.gsub!(/#{$~[:fs_path]}/, %["#{path_info.first}"])
+          end
+
           begin
-            code.gsub!(/puts/, '$stdout.puts')
             @workspace ||= IRB::WorkSpace.new(binding)
             r = @workspace.evaluate(binding, code)
             [r, 0]
-          rescue => ex
+          rescue Exception => ex
             [ex, 1]
           end
         end
