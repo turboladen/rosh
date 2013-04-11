@@ -1,3 +1,4 @@
+require_relative '../../command_result'
 require_relative 'base'
 
 
@@ -37,7 +38,37 @@ class Rosh
           Rosh::CommandResult.new(state, exit_code, result.ssh_result)
         end
 
+        def start
+          result = @shell.exec("#{@script_dir}/#{@name} start")
+
+          if result.exit_status.zero?
+            if permission_denied? result.ruby_object
+              Rosh::CommandResult.new(Rosh::PermissionDenied.new(result.ruby_object),
+                result.exit_status, result.ssh_result)
+            else
+              result
+            end
+          elsif result.exit_status == 127
+            Rosh::CommandResult.new(Rosh::UnrecognizedService.new(result.ruby_object),
+              result.exit_status, result.ssh_result)
+          elsif permission_denied? result.ruby_object
+            Rosh::CommandResult.new(Rosh::PermissionDenied.new(result.ruby_object),
+              result.exit_status, result.ssh_result)
+          else
+            result
+          end
+        end
+
         private
+
+        def permission_denied?(output)
+          if output.match(/superuser access required/) ||
+            output.match(/permission denied/i)
+            true
+          else
+            false
+          end
+        end
 
         def status_command
           case @os_type
@@ -52,7 +83,8 @@ class Rosh
           result = @shell.exec("#{@script_dir}/#{@name} #{status_command}")
 
           if result.exit_status.zero?
-            pid, state = fetch_pid
+            pid = fetch_pid
+            state = pid.empty? ? :stopped : :running
 
             [state, 0, result, pid]
           elsif result.exit_status == 127
@@ -68,25 +100,13 @@ class Rosh
         end
 
         # @todo fix sudo prompt!
+        # @return [Array<Integer>] An Array of pids that match the name of the
+        #   service.
         def fetch_pid
-          #pid = @host.shell.exec("sudo cat /var/run/#{@name}.pid").ruby_object
-          pid = nil
+          process_list = @shell.ps(name: @name).ruby_object
+          pids = process_list.map { |process| process.pid }
 
-          state = if pid
-            pid = pid.to_i
-            :running
-          else
-            process_list = @shell.ps(name: @name).ruby_object
-
-            if process_list.empty?
-              :stopped
-            else
-              pid = process_list
-              :running
-            end
-          end
-
-          [pid, state]
+          pids
         end
       end
     end
