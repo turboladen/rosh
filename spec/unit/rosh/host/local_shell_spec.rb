@@ -93,8 +93,8 @@ describe Rosh::Host::LocalShell do
         Tempfile.new('rosh_test')
       end
 
-      after do
-        dest.unlink
+      before do
+        at_exit { dest.unlink }
       end
 
       before { @r = subject.cp(__FILE__, dest.path) }

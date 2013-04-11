@@ -8,6 +8,8 @@ describe Rosh::Host::LocalDir do
      Dir.mktmpdir 'rosh_test'
   end
 
+  before { at_exit { Dir.delete(dir.to_path) } }
+
   subject { Rosh::Host::LocalDir.new(dir) }
 
   describe '#absolute_path' do
@@ -205,8 +207,8 @@ describe Rosh::Host::LocalDir do
       Dir.tmpdir + '/test_link'
     end
 
-    after do
-      FileUtils.rm_f link
+    before do
+      at_exit { FileUtils.rm_f link }
     end
 
     specify do

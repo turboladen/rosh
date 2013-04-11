@@ -137,8 +137,8 @@ describe Rosh::Host::LocalFile do
       Dir.tmpdir + '/test_link'
     end
 
-    after do
-      FileUtils.rm_f link
+    before do
+      at_exit { FileUtils.rm_f link }
     end
 
     specify do
@@ -229,8 +229,8 @@ describe Rosh::Host::LocalFile do
       Dir.tmpdir + '/test_link'
     end
 
-    after do
-      FileUtils.rm_f link
+    before do
+      at_exit { FileUtils.rm_f link }
     end
 
     specify do
