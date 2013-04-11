@@ -52,7 +52,7 @@ class Rosh
 
       loop do
         log "Current host is: #{@current_host.hostname}"
-        prompt = new_prompt
+        prompt = ENV['PROMPT'] || new_prompt
 
         Readline.completion_proc = Rosh::Completion.build do
           [
