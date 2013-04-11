@@ -1,7 +1,10 @@
+require 'pty'
 require 'irb'
 require 'open-uri'
 require 'sys/proctable'
 require 'fileutils'
+require 'log_switch'
+require 'highline/import'
 require_relative '../command_result'
 require_relative 'local_file_system_object'
 
@@ -9,6 +12,9 @@ require_relative 'local_file_system_object'
 class Rosh
   class Host
     class LocalShell
+      extend LogSwitch
+      include LogSwitch::Mixin
+
       attr_accessor :last_result
       attr_accessor :last_exit_status
       attr_reader :workspace
@@ -92,8 +98,24 @@ class Rosh
           output = ''
 
           begin
-            IO.popen(command) do |io|
-              output << io.read
+            PTY.spawn(command) do |reader, writer, pid|
+              log "Spawned pid: #{pid}"
+
+              begin
+                while buf = reader.readpartial(1024)
+                  output << buf
+                  $stdout.print buf
+
+                  if output.match /Password:$/
+                    password = ask('') { |q| q.echo = false }
+                    writer.puts password
+                  end
+                end
+              rescue EOFError
+                log "Done reading for pid #{pid}"
+              end
+
+              Process.wait(pid)
             end
 
             [output, $?.exitstatus]

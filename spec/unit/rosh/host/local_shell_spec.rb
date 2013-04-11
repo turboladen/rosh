@@ -112,7 +112,7 @@ describe Rosh::Host::LocalShell do
   describe '#exec' do
     context 'invalid command' do
       before do
-        IO.should_receive(:popen).and_raise
+        PTY.should_receive(:spawn).and_raise
         @r = subject.exec('bskldfjlsk')
       end
 
@@ -122,15 +122,15 @@ describe Rosh::Host::LocalShell do
     end
 
     context 'valid command' do
-      let(:io) do
-        i = double 'IO'
-        i.stub(:read).and_return 'command output'
+      let(:reader) do
+        r = double 'PTY reader'
+        r.stub(:gets).and_return 'command output'
 
-        i
+        r
       end
 
       before do
-        IO.should_receive(:popen).and_yield io
+        PTY.should_receive(:spawn).and_yield reader, nil, 123
         @r = subject.exec('ls')
       end
 
