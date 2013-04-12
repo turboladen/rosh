@@ -21,7 +21,6 @@ class Rosh
       attr_reader :workspace
 
       def initialize
-        @internal_pwd = Dir.new(Dir.pwd)
         @last_result = nil
         @last_exit_status = 0
         @last_exception = nil
@@ -46,14 +45,14 @@ class Rosh
       # @param [String] path The absolute or relative path to make the new working
       #   directory.
       #
-      # @return [Dir] On success, returns the new directory.  On fail,
+      # @return [TrueClass] On success, returns true.  On fail,
       #   #last_exit_status is set to 1 and returns the Exception that was raised.
       def cd(path)
         process(path) do |full_path|
           begin
             Dir.chdir(full_path)
-            @internal_pwd = Dir.new(Dir.pwd)
-            [@internal_pwd, 0]
+            ENV['PWD'] = Dir.pwd
+            [true, 0]
           rescue Errno::ENOENT, Errno::ENOTDIR => ex
             [ex, 1]
           end
@@ -87,7 +86,7 @@ class Rosh
           env = {
             path: @path,
             shell: File.expand_path(File.basename($0), File.dirname($0)),
-            pwd: @internal_pwd.to_path
+            pwd: pwd.to_path
           }
 
           [env, 0]
@@ -187,7 +186,7 @@ class Rosh
 
       # @return [Dir] The current working directory as a Dir.
       def pwd
-        process { [@internal_pwd, 0] }
+        process { [Dir.new(ENV['PWD']), 0] }
       end
 
       # Executes Ruby code in the context of an IRB::WorkSpace.  Thus, variables

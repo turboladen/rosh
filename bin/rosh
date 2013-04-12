@@ -35,9 +35,7 @@ if arg == '--irb'
 else
   require_relative '../lib/rosh/cli'
 
-  begin
-    Rosh::CLI.run
-  end
+  Rosh::CLI.run
 end
 
 

@@ -26,16 +26,6 @@ class Rosh
     end
 
     def initialize
-      @original = {
-        pwd: ENV['PWD'],
-        shell: ENV['SHELL']
-      }
-
-      at_exit do
-        ENV['PWD'] = @original[:pwd]
-        ENV['SHELL'] = @original[:shell]
-      end
-
       ENV['SHELL'] = ::File.expand_path($0)
 
       @rosh = Rosh.new

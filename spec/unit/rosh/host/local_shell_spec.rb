@@ -59,7 +59,7 @@ describe Rosh::Host::LocalShell do
     context 'directory exists' do
       before { @r = subject.cd('/') }
 
-      specify { @r.should be_a Dir }
+      specify { @r.should be_true }
       specify { subject.last_exit_status.should eq 0 }
       specify { subject.last_result.should eq @r }
     end
@@ -238,7 +238,8 @@ describe Rosh::Host::LocalShell do
 
   describe '#pwd' do
     before do
-      subject.instance_variable_set(:@internal_pwd, 'some dir')
+      ENV.should_receive(:[]).with('PWD').and_return 'some dir'
+      Dir.should_receive(:new).and_return 'some dir'
       @r = subject.pwd
     end
 
