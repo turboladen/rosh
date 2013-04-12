@@ -34,6 +34,8 @@ class Rosh
       #   On fail, #last_exit_status is set to 1 and returns the Exception that
       #   was raised.
       def cat(file)
+        log "cat called with arg '#{file}'"
+
         process(file) do |full_file|
           begin
             contents = open(full_file).read
@@ -50,6 +52,8 @@ class Rosh
       # @return [TrueClass] On success, returns true.  On fail,
       #   #last_exit_status is set to 1 and returns the Exception that was raised.
       def cd(path)
+        log "cd called with arg '#{path}'"
+
         process(path) do |full_path|
           begin
             Dir.chdir(full_path)
@@ -67,6 +71,8 @@ class Rosh
       # @return [TrueClass] On success, returns +true+.  On fail, #last_exit_status
       #   is set to 1 and returns the Exception that was raised.
       def cp(source, destination)
+        log "cp called with args '#{source}', '#{destination}'"
+
         process(source, destination) do |full_source, full_destination|
           begin
             ::FileUtils.cp(full_source, full_destination)
@@ -82,6 +88,8 @@ class Rosh
       #
       # @return [Hash] A Hash containing the environment info.
       def env
+        log 'env called'
+
         process do
           @path ||= ENV['PATH'].split(':')
 
@@ -101,6 +109,7 @@ class Rosh
       #   fail, #last_exit_status is whatever was set by the command and returns
       #   the exception that was raised.
       def exec(command)
+        log "exec called with command '#{command}'"
         cmd, *args = Shellwords.shellsplit(command)
 
         process do
@@ -153,6 +162,8 @@ class Rosh
       #   Array of Rosh::LocalFileSystemObjects.  On fail, #last_exit_status is
       #   1 and returns a Errno::ENOENT or Errno::ENOTDIR.
       def ls(path=nil)
+        log "ls called with arg '#{path}'"
+
         process(path) do |full_path|
           if File.file? full_path
             fso = Rosh::Host::LocalFileSystemObject.create(full_path)
@@ -180,6 +191,8 @@ class Rosh
       #   given, a single process is returned.  See https://github.com/djberg96/sys-proctable
       #   for more info.
       def ps(name: nil, pid: nil)
+        log "ps called with args 'name: #{name}', 'pid: #{pid}'"
+
         process do
           ps = Sys::ProcTable.ps
 
@@ -197,6 +210,7 @@ class Rosh
 
       # @return [Dir] The current working directory as a Dir.
       def pwd
+        log 'pwd called'
         process { [Dir.new(ENV['PWD']), 0] }
       end
 
@@ -210,6 +224,8 @@ class Rosh
       #   raised.  If no exception was raised, this will return the returned
       #   object from the code that was executed.
       def ruby(code)
+        log "ruby called with code: #{code}"
+
         process do
           code.gsub!(/puts/, '$stdout.puts')
           path_info = code.scan(/\s(?<fs_path>\/[^\n]*\/?)$/).flatten
