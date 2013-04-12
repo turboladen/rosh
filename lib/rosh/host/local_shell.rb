@@ -218,10 +218,26 @@ class Rosh
             code.gsub!(/#{$~[:fs_path]}/, %["#{path_info.first}"])
           end
 
+          retried = false
+
           begin
             @workspace ||= IRB::WorkSpace.new(binding)
+            log 'Running Ruby code:'
+            log code
             r = @workspace.evaluate(binding, code)
+
             [r, 0]
+          rescue NoMethodError => ex
+            %r[undefined method `(?<meth>[^']+)] =~ ex.message
+            log "NoMethodError for: #{meth}"
+
+            if retried
+              raise ex
+            else
+              code = fix_no_method(meth, code)
+              retried = true
+              retry
+            end
           rescue Exception => ex
             [ex, 1]
           end
@@ -287,6 +303,25 @@ class Rosh
 
         File.expand_path(path)
       end
+
+      def fix_no_method(meth, code, arg=nil)
+        exec_matcher = %r[#{meth} (?<args>.*)]
+        code =~ exec_matcher
+        args = $~[:args]
+
+        output = if args.nil? || args.empty?
+          if arg
+            exec("#{meth} #{arg}")
+          else
+            exec("#{meth}")
+          end
+        else
+          exec("#{meth} #{args}")
+        end
+
+        code.sub(exec_matcher, %["#{output}"])
+      end
+
     end
   end
 end
