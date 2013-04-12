@@ -1,8 +1,10 @@
-require 'pty'
 require 'irb'
 require 'open-uri'
 require 'sys/proctable'
 require 'fileutils'
+require 'shellwords'
+require 'pty'
+
 require 'log_switch'
 require 'highline/import'
 require_relative '../command_result'
@@ -99,12 +101,21 @@ class Rosh
       #   fail, #last_exit_status is whatever was set by the command and returns
       #   the exception that was raised.
       def exec(command)
-        process do
-          output = ''
+        cmd, *args = Shellwords.shellsplit(command)
 
+        process do
           begin
-            PTY.spawn(command) do |reader, writer, pid|
+            output = ''
+
+            PTY.spawn(cmd, *args) do |reader, writer, pid|
               log "Spawned pid: #{pid}"
+
+              trap(:INT) do
+                Process.kill(:INT, pid)
+              end
+
+              $stdout.sync
+              STDIN.sync
 
               begin
                 while buf = reader.readpartial(1024)
