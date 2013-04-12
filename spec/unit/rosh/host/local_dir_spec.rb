@@ -8,7 +8,11 @@ describe Rosh::Host::LocalDir do
      Dir.mktmpdir 'rosh_test'
   end
 
-  before { at_exit { Dir.delete(dir.to_path) } }
+  before { at_exit { Dir.delete(dir) } }
+
+  after do
+    Dir.delete(dir)
+  end
 
   subject { Rosh::Host::LocalDir.new(dir) }
 
