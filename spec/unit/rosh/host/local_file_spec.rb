@@ -133,18 +133,11 @@ describe Rosh::Host::LocalFile do
   end
 
   describe '#link' do
-    let(:link) do
-      Dir.tmpdir + '/test_link'
-    end
-
-    before do
-      at_exit { FileUtils.rm_f link }
-    end
-
     specify do
       expect {
-        subject.link(link).should be_zero
+        subject.link('test').should be_zero
       }.to_not raise_exception
+      FileUtils.rm_rf 'test'
     end
   end
 
@@ -225,19 +218,12 @@ describe Rosh::Host::LocalFile do
   end
 
   describe '#symlink' do
-    let(:link) do
-      Dir.tmpdir + '/test_link'
-    end
-
-    before do
-      at_exit { FileUtils.rm_f link }
-    end
-
     specify do
       expect {
-        subject.symlink(link).should be_zero
+        subject.symlink('test').should be_zero
       }.to_not raise_exception
     end
+    FileUtils.rm_rf 'test'
   end
 
   describe '#symlink?' do
