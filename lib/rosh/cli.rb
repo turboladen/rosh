@@ -192,4 +192,4 @@ class Rosh
 end
 
 Rosh::CLI.log_class_name = true
-Rosh::CLI.log = true
+Rosh::CLI.log = false

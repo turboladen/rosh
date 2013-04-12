@@ -35,6 +35,12 @@ if arg == '--irb'
 else
   require_relative '../lib/rosh/cli'
 
+  if ARGV.include? '--log'
+    Rosh::CLI.log = true
+    Rosh::Host::LocalShell.log = true
+    Rosh::Host::RemoteShell.log = true
+  end
+
   Rosh::CLI.run
 end
 
