@@ -337,7 +337,6 @@ class Rosh
 
         code.sub(exec_matcher, %["#{output}"])
       end
-
     end
   end
 end
