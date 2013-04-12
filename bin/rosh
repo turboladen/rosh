@@ -39,6 +39,10 @@ else
     Rosh::CLI.log = true
     Rosh::Host::LocalShell.log = true
     Rosh::Host::RemoteShell.log = true
+  else
+    Rosh::CLI.log = false
+    Rosh::Host::LocalShell.log = false
+    Rosh::Host::RemoteShell.log = false
   end
 
   Rosh::CLI.run
