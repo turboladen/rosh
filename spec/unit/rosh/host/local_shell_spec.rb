@@ -124,13 +124,15 @@ describe Rosh::Host::LocalShell do
     context 'valid command' do
       let(:reader) do
         r = double 'PTY reader'
-        r.stub(:gets).and_return 'command output'
+        r.should_receive(:readpartial).and_return 'command output'
+        r.should_receive(:readpartial).and_raise EOFError
 
         r
       end
 
       before do
         PTY.should_receive(:spawn).and_yield reader, nil, 123
+        Process.should_receive(:wait).with(123)
         @r = subject.exec('ls')
       end
 
