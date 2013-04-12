@@ -40,8 +40,9 @@ class Rosh
       attr_reader :options
 
       attr_reader :hostname
-
       attr_reader :last_result
+      attr_reader :last_exit_status
+      attr_reader :last_exception
 
       # @param [String] hostname Name or IP of the host to SSH in to.
       # @param [Hash] options Net::SSH::Simple options.
@@ -55,6 +56,10 @@ class Rosh
 
         @internal_pwd = nil
         @last_result = Rosh::CommandResult.new(nil, 0)
+        @last_exit_status = 0
+        @last_exception = nil
+        @last_ssh_output = nil
+
         log "Initialized for '#{@hostname}'"
       end
 
@@ -83,8 +88,8 @@ class Rosh
       # @param [Hash] ssh_options Net::SSH::Simple options.  These will get merged
       #   with options set in #initialize and via #set.  Can be used to override
       #   those settings as well.
+      #
       # @return [Rosh::CommandResult]
-      # @todo Attempt to coerce the output of the SSH command into a Ruby object.
       def run(command, **ssh_options)
         new_options = @options.merge(ssh_options)
         retried = false
@@ -129,6 +134,7 @@ class Rosh
       # @param [Hash] ssh_options Net::SSH::Simple options.  These will get merged
       #   with options set in #initialize and via #set.  Can be used to override
       #   those settings as well.
+      #
       # @return [Rosh::CommandResult]
       def upload(source, destination, **ssh_options)
         new_options = @options.merge(ssh_options)
@@ -153,74 +159,82 @@ class Rosh
       end
 
       # @param [String] file The path of the file to cat.
-      # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
-      #   is a String with the file contents.  On fail, #exit_status is 1,
-      #   #ruby_object is a Rosh::ErrorNOENT error.
+      #
+      # @return [String, ROSH::ErrorNOENT] On success, returns the contents of
+      #   the file as a String.  On fail, #last_exit_status is set to the exit
+      #   status from the remote command, and a Rosh::ErrorNOENT error is
+      #   returned.
       def cat(file)
         process(file) do |full_file|
           result = run "cat #{full_file}"
 
           if result.ssh_result.stderr.match %r[No such file or directory]
             error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
-            Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
+            [error, result.exit_status, result.ssh_result]
           else
-            result
+            [result.ruby_object, 0, result.ssh_result]
           end
         end
       end
 
-      # @param [String] path The path of the directory to change to.
-      # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
-      #   is a Rosh::RemoteDir.  On fail, #exit_status is 1, #ruby_object is a
-      #   Rosh::ErrorNOENT error.
+      # @param [String] path The absolute or relative path to make the new
+      #   working directory.
+      #
+      # @return [Rosh::RemoteDir] On success, returns a Rosh::RemoteDir.  On
+      #   fail, #last_exit_status is set to the exit status from the remote
+      #   command, Rosh::ErrorNOENT error.
       def cd(path)
         process(path) do |full_path|
           result = run "cd #{full_path} && pwd"
 
           if result.exit_status.zero?
             @internal_pwd = Rosh::Host::RemoteDir.new(result.ruby_object, self)
-            Rosh::CommandResult.new(@internal_pwd, 0, result.ssh_result)
+            [@internal_pwd, 0, result.ssh_result]
           elsif result.ssh_result.stderr.match %r[No such file or directory]
             error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
-            Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
+            [error, result.exit_status, result.ssh_result]
           else
-            result
+            [result.ruby_object, 0, result.ssh_result]
           end
         end
       end
 
       # @param [String] source The path to the file to copy.
       # @param [String] destination The destination to copy the file to.
-      # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
-      #   is +true+.  On fail, #exit_status is 1, #ruby_object is the Exception
-      #   that was raised.
+      #
+      # @return [TrueClass,Rosh::ErrorENOENT,Rosh::ErrorEISDIR] On success,
+      #   returns +true+.  On fail, #last_exit_status is set to the exit status
+      #   from the remote command, returns the exception that was raised.
       def cp(source, destination)
         process(source, destination) do |full_source, full_destination|
           result = run "cp #{full_source} #{full_destination}"
 
           if result.ssh_result.stderr.match %r[No such file or directory]
             error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
-            Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
+            [error, result.exit_status, result.ssh_result]
           elsif result.ssh_result.stderr.match %r[omitting directory]
             error = Rosh::ErrorEISDIR.new(result.ssh_result.stderr)
-            Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
+            [error, result.exit_status, result.ssh_result]
           else
-            Rosh::CommandResult.new(true, result.exit_status, result.ssh_result)
+            [true, result.exit_status, result.ssh_result]
           end
         end
       end
 
       # @param [String] command The system command to execute.
-      # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
-      #   is the output of the command as a String.  On fail, #exit_status is 1,
-      #   #ruby_object is the output of the failed command as a String.
+      #
+      # @return [String] On success, returns the output of the command.  On
+      #   fail, #last_exit_status is set to the exit status of the remote command,
+      #   returns the output of the failed command as a String.  If STDOUT and
+      #   STDERR were both written to during a non-0 resulting command, those
+      #   strings will be concatenated and separated by 2 \n's.
       def exec(command)
         process do
           command = "cd #{@internal_pwd.to_path} && #{command}"
           result = run(command)
 
           if result.exit_status.zero?
-            result
+            [result.ruby_object, 0, result.ssh_result]
           else
             ssh = result.ssh_result
             output = if ssh.stdout.empty? && ssh.stderr.empty?
@@ -230,34 +244,40 @@ class Rosh
             elsif ssh.stdout.empty?
               ssh.stderr.strip
             else
-              ssh.stdout.strip + "\n" + ssh.stderr.strip
+              ssh.stdout.strip + "\n\n" + ssh.stderr.strip
             end
 
-            Rosh::CommandResult.new(output, result.exit_status,
-              result.ssh_result)
+            [output, result.exit_status, result.ssh_result]
           end
         end
       end
 
-      # @param [String] path Path to the directory to list its contents.
-      # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
-      #   is an Array of Rosh::RemoteFileSystemObjects.  On fail, #exit_status is
-      #   the status given by the remote host's failed 'ls' command, #ruby_object
-      #   is a Rosh::ErrorENOENT.
+      # @param [Integer] status Exit status code.
+      def exit(status=0)
+        Kernel.exit(status)
+      end
+
+      # @param [String] path Path to the directory to list its contents.  If no
+      #   path given, lists the current working directory.
+      #
+      # @return [Array<Rosh::RemoteFileSystemObject>, Rosh::ErrorENOENT] On
+      #   success, returns an Array of Rosh::RemoteFileSystemObjects.  On fail,
+      #   #last_exit_status is set to the status given by the remote host's
+      #   failed 'ls' command, returns a Rosh::ErrorENOENT.
       def ls(path=nil)
         process(path) do |base|
           result = run "ls #{base}"
 
           if result.ssh_result.stderr.match %r[No such file or directory]
             error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
-            Rosh::CommandResult.new(error, result.exit_status, result.ssh_result)
+            [error, result.exit_status, result.ssh_result]
           else
             listing = result.ruby_object.split.map do |entry|
               full_path = "#{base}/#{entry}"
               Rosh::Host::RemoteFileSystemObject.create(full_path, self)
             end
 
-            Rosh::CommandResult.new(listing, 0, result.ssh_result)
+            [listing, 0, result.ssh_result]
           end
         end
       end
@@ -266,8 +286,11 @@ class Rosh
       # to a Rosh::RemoteProcTable.
       #
       # @param [String] name The name of a command to filter on.
-      # @return [Rosh::CommandResult] #exit_status is 0, #ruby_object is an Array
-      #   of Rosh::RemoteProcTable objects.
+      # @param [Integer] pid The pid of a command to find.
+      #
+      # @return [Array<Rosh::Host::RemoteProcTable>, Rosh::Host::RemoteProcTable] When :name
+      #   or no options are given, returns an Array of Rosh::RemoteProcTable
+      #   objects; when :pid is given, a single Rosh::RemoteProcTable is returned.
       def ps(name: nil, pid: nil)
         process do
           result = run('ps auxe')
@@ -294,37 +317,41 @@ class Rosh
 
           if name
             p = list.find_all { |i| i.command =~ /\b#{name}\b/ }
-            Rosh::CommandResult.new(p, 0)
+            [p, 0, result.ssh_result]
           elsif pid
             p = list.find_all { |i| i.pid == pid }
-            Rosh::CommandResult.new(p, 0)
+            [p, 0, result.ssh_result]
           else
-            Rosh::CommandResult.new(list, 0)
+            [list, 0, result.ssh_result]
           end
         end
       end
 
-      # @return [Rosh::CommandResult] On success, #exit_status is 0, #ruby_object
-      #   is a Rosh::RemoteDir.
+      # @return [Rosh::RemoteDir] The current working directory.
       def pwd
-        unless @internal_pwd
+        if @internal_pwd
+          process { [@internal_pwd, 0, nil] }
+        else
           result = run('pwd')
           @internal_pwd = Rosh::Host::RemoteDir.new(result.ruby_object, self)
-        end
 
-        @last_result = Rosh::CommandResult.new(@internal_pwd, 0)
+          process { [@internal_pwd, 0, result.ssh_result] }
+        end
       end
 
       def ruby(code)
-        Rosh::CommandResult.new('Not implemented', 1)
+        process { ['Not implemented!', 1, nil] }
       end
 
       # @return [Rosh::CommandResult] The result of the last command executed.  If
       #   no command has been executed, #ruby_object is nil; #exit_status is 0.
       def _?
-        return @last_result if @last_result
+        @last_exit_status
+      end
 
-        Rosh::CommandResult(nil, 0)
+      # @return The last exception that was raised.
+      def _!
+        @last_exception
       end
 
       private
@@ -357,13 +384,17 @@ class Rosh
       end
 
       def process(*paths, &block)
-        @last_result = if paths.empty?
+        @last_result, @last_exit_status, @last_ssh_output = if paths.empty?
           pwd unless @internal_pwd
           block.call
         else
           full_paths = paths.map { |path| preprocess_path(path) }
           block.call(*full_paths)
         end
+
+        @last_exception = @last_result unless @last_exit_status.zero?
+
+        @last_result
       end
 
       def preprocess_path(path)

@@ -17,16 +17,19 @@ class Rosh
 
       attr_accessor :last_result
       attr_accessor :last_exit_status
+      attr_reader :last_exception
       attr_reader :workspace
 
       def initialize
         @internal_pwd = Dir.new(Dir.pwd)
         @last_result = nil
         @last_exit_status = 0
+        @last_exception = nil
       end
 
       # @param [String] file Path to the file to cat.
-      # @return [String] On success, is the contents of the file as a String.
+      #
+      # @return [String] On success, returns the contents of the file as a String.
       #   On fail, #last_exit_status is set to 1 and returns the Exception that
       #   was raised.
       def cat(file)
@@ -42,6 +45,7 @@ class Rosh
 
       # @param [String] path The absolute or relative path to make the new working
       #   directory.
+      #
       # @return [Dir] On success, returns the new directory.  On fail,
       #   #last_exit_status is set to 1 and returns the Exception that was raised.
       def cd(path)
@@ -58,6 +62,7 @@ class Rosh
 
       # @param [String] source The path to the file to copy.
       # @param [String] destination The destination to copy the file to.
+      #
       # @return [TrueClass] On success, returns +true+.  On fail, #last_exit_status
       #   is set to 1 and returns the Exception that was raised.
       def cp(source, destination)
@@ -90,6 +95,7 @@ class Rosh
       end
 
       # @param [String] command The system command to execute.
+      #
       # @return [String] On success, returns the output of the command.  On
       #   fail, #last_exit_status is whatever was set by the command and returns
       #   the exception that was raised.
@@ -125,8 +131,14 @@ class Rosh
         end
       end
 
+      # @param [Integer] status Exit status code.
+      def exit(status=0)
+        Kernel.exit(status)
+      end
+
       # @param [String] path Path to the directory to list its contents.  If no
       #   path given, lists the current working directory.
+      #
       # @return [Array<Rosh::LocalFileSystemObject>] On success, returns an
       #   Array of Rosh::LocalFileSystemObjects.  On fail, #last_exit_status is
       #   1 and returns a Errno::ENOENT or Errno::ENOTDIR.
@@ -149,12 +161,9 @@ class Rosh
         end
       end
 
-      # @return [Dir] The current working directory as a Dir.
-      def pwd
-        process { [@internal_pwd, 0] }
-      end
-
       # @param [String] name The name of a command to filter on.
+      # @param [Integer] pid The pid of a command to find.
+      #
       # @return [Array<Struct::ProcTableStruct>, Struct::ProcTableStruct] When
       #   no options are given, all processes returned.  When +:name+ is given,
       #   an Array of processes that match COMMAND are given.  When +:pid+ is
@@ -176,10 +185,16 @@ class Rosh
         end
       end
 
+      # @return [Dir] The current working directory as a Dir.
+      def pwd
+        process { [@internal_pwd, 0] }
+      end
+
       # Executes Ruby code in the context of an IRB::WorkSpace.  Thus, variables
       # are maintained across calls to this.
       #
       # @param [String] code The Ruby code to execute.
+      #
       # @return [] If the Ruby code raises an exception,
       #   #last_exit_status will be 1 and will return the exception that was
       #   raised.  If no exception was raised, this will return the returned
@@ -215,6 +230,11 @@ class Rosh
         @last_exit_status
       end
 
+      # @return The last exception that was raised.
+      def _!
+        @last_exception
+      end
+
       private
 
       # Saves the result of the block given to #last_result and exit code to
@@ -222,6 +242,7 @@ class Rosh
       #
       # @param [Array<String>, String] paths File paths to expand within the
       #   context of the shell.
+      #
       # @return The result of the block that was given
       def process(*paths, &block)
         @last_result, @last_exit_status = if paths.empty?
@@ -231,6 +252,8 @@ class Rosh
           block.call(*full_paths)
         end
 
+        @last_exception = @last_result unless @last_exit_status.zero?
+
         @last_result
       end
 
@@ -239,6 +262,7 @@ class Rosh
       #
       # @param [] path A String or some Ruby code that will eval to represent a
       #   path.
+      #
       # @return [String] Fully expanded path of the given path.
       def preprocess_path(path)
         path = '' unless path

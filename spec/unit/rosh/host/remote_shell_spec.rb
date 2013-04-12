@@ -20,10 +20,17 @@ describe Rosh::Host::RemoteShell do
     Rosh::Host::RemoteShell.new(hostname)
   end
 
+  let(:internal_pwd) do
+    i = double 'Rosh::Host::RemoteDir'
+    i.stub(:to_path).and_return '/home'
+
+    i
+  end
+
   before do
     Net::SSH::Simple.stub(:new).and_return(ssh)
     Rosh::Host::RemoteShell.log = false
-    subject.instance_variable_set(:@internal_pwd, '/home')
+    subject.instance_variable_set(:@internal_pwd, internal_pwd)
   end
 
   after do
@@ -193,17 +200,10 @@ describe Rosh::Host::RemoteShell do
           @r = subject.cat('hosts')
         end
 
-        it 'returns a CommandResult with exit status 0' do
-          @r.exit_status.should eq 0
-        end
-
-        it 'returns a CommandResult with ruby object a String' do
-          @r.ruby_object.should eq 'file contents'
-        end
-
-        it 'sets @last_result to its return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should eq 'file contents' }
+        specify { subject.last_exit_status.should eq 0 }
+        specify { subject.last_result.should eq @r }
+        specify { subject.last_exception.should be_nil }
       end
 
       context 'path is absolute' do
@@ -213,17 +213,10 @@ describe Rosh::Host::RemoteShell do
           @r = subject.cat('/etc/hosts')
         end
 
-        it 'returns a CommandResult with exit status 0' do
-          @r.exit_status.should eq 0
-        end
-
-        it 'returns a CommandResult with ruby object a String' do
-          @r.ruby_object.should eq 'file contents'
-        end
-
-        it 'sets @last_result to its return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should eq 'file contents' }
+        specify { subject.last_exit_status.should eq 0 }
+        specify { subject.last_result.should eq @r }
+        specify { subject.last_exception.should be_nil }
       end
     end
 
@@ -244,17 +237,10 @@ describe Rosh::Host::RemoteShell do
           @r = subject.cat('hosts')
         end
 
-        it 'returns a CommandResult with exit status 1' do
-          @r.exit_status.should eq 1
-        end
-
-        it 'returns a CommandResult with ruby object a Rosh::ErrorENOENT' do
-          @r.ruby_object.should be_a Rosh::ErrorENOENT
-        end
-
-        it 'sets @last_result to its return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should be_a Rosh::ErrorENOENT }
+        specify { subject.last_exit_status.should eq 1 }
+        specify { subject.last_result.should eq @r }
+        specify { subject.last_exception.should eq @r }
       end
 
       context 'path is absolute' do
@@ -265,17 +251,10 @@ describe Rosh::Host::RemoteShell do
           @r = subject.cat('/etc/hosts')
         end
 
-        it 'returns a CommandResult with exit status 1' do
-          @r.exit_status.should eq 1
-        end
-
-        it 'returns a CommandResult with ruby object a Rosh::ErrorENOENT' do
-          @r.ruby_object.should be_a Rosh::ErrorENOENT
-        end
-
-        it 'sets @last_result to its return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should be_a Rosh::ErrorENOENT }
+        specify { subject.last_exit_status.should eq 1 }
+        specify { subject.last_result.should eq @r }
+        specify { subject.last_exception.should eq @r }
       end
     end
   end
@@ -300,17 +279,10 @@ describe Rosh::Host::RemoteShell do
           @r = subject.cd('path')
         end
 
-        it 'returns a CommandResult with exit status 0' do
-          @r.exit_status.should eq 0
-        end
-
-        it 'returns a CommandResult with ruby object a Rosh::Host::RemoteDir' do
-          @r.ruby_object.should be_a Rosh::Host::RemoteDir
-        end
-
-        it 'sets @last_result to its return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should be_a Rosh::Host::RemoteDir }
+        specify { subject.last_exit_status.should eq 0 }
+        specify { subject.last_result.should eq @r }
+        specify { subject.last_exception.should be_nil }
       end
 
       context 'path is absolute' do
@@ -321,17 +293,10 @@ describe Rosh::Host::RemoteShell do
           @r = subject.cd('/home/path')
         end
 
-        it 'returns a CommandResult with exit status 0' do
-          @r.exit_status.should eq 0
-        end
-
-        it 'returns a CommandResult with ruby object a Rosh::Host::RemoteDir' do
-          @r.ruby_object.should be_a Rosh::Host::RemoteDir
-        end
-
-        it 'sets @last_result to its return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should be_a Rosh::Host::RemoteDir }
+        specify { subject.last_exit_status.should eq 0 }
+        specify { subject.last_result.should eq @r }
+        specify { subject.last_exception.should be_nil }
       end
     end
 
@@ -351,27 +316,24 @@ describe Rosh::Host::RemoteShell do
           @r = subject.cd('path')
         end
 
-        it 'returns a CommandResult with exit status 1' do
-          @r.exit_status.should eq 1
-        end
-
-        it 'returns a CommandResult with ruby object a Rosh::ErrorENOENT' do
-          @r.ruby_object.should be_a Rosh::ErrorENOENT
-        end
-
-        it 'sets @last_result to its return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should be_a Rosh::ErrorENOENT }
+        specify { subject.last_exit_status.should eq 1 }
+        specify { subject.last_result.should eq @r }
+        specify { subject.last_exception.should eq @r }
       end
 
       context 'path is absolute' do
-        it 'returns a CommandResult with exit status 1' do
+        before do
           subject.should_receive(:preprocess_path).with(path).and_return path
           subject.should_receive(:run).with("cd #{path} && pwd").and_return result
 
-          r = subject.cd('/home/path')
-          r.exit_status.should eq 1
+          @r = subject.cd('/home/path')
         end
+
+        specify { @r.should be_a Rosh::ErrorENOENT }
+        specify { subject.last_exit_status.should eq 1 }
+        specify { subject.last_result.should eq @r }
+        specify { subject.last_exception.should eq @r }
       end
     end
   end
@@ -395,17 +357,10 @@ describe Rosh::Host::RemoteShell do
         @r = subject.cp(source, 'dest')
       end
 
-      it 'returns a CommandResult with exit status 1' do
-        @r.exit_status.should eq 1
-      end
-
-      it 'returns a CommandResult with ruby object Rosh::ErrorENOENT' do
-        @r.ruby_object.should be_a Rosh::ErrorENOENT
-      end
-
-      it 'sets @last_result to its return value' do
-        subject.last_result.should == @r
-      end
+      specify { @r.should be_a Rosh::ErrorENOENT }
+      specify { subject.last_exit_status.should eq 1 }
+      specify { subject.last_result.should eq @r }
+      specify { subject.last_exception.should eq @r }
     end
 
     context 'source is a directory' do
@@ -424,17 +379,10 @@ describe Rosh::Host::RemoteShell do
         @r = subject.cp(source, 'dest')
       end
 
-      it 'returns a CommandResult with exit status 1' do
-        @r.exit_status.should eq 1
-      end
-
-      it 'returns a CommandResult with ruby object Rosh::ErrorEISDIR' do
-        @r.ruby_object.should be_a Rosh::ErrorEISDIR
-      end
-
-      it 'sets @last_result to its return value' do
-        subject.last_result.should == @r
-      end
+      specify { @r.should be_a Rosh::ErrorEISDIR }
+      specify { subject.last_exit_status.should eq 1 }
+      specify { subject.last_result.should eq @r }
+      specify { subject.last_exception.should eq @r }
     end
 
     context 'destination exists' do
@@ -453,17 +401,10 @@ describe Rosh::Host::RemoteShell do
         @r = subject.cp(source, 'dest')
       end
 
-      it 'returns a CommandResult with exit status 0' do
-        @r.exit_status.should eq 0
-      end
-
-      it 'returns a CommandResult with ruby object the CommandResult' do
-        @r.ruby_object.should == true
-      end
-
-      it 'sets @last_result to its return value' do
-        subject.last_result.should == @r
-      end
+      specify { @r.should be_true }
+      specify { subject.last_exit_status.should eq 0 }
+      specify { subject.last_result.should eq @r }
+      specify { subject.last_exception.should be_nil }
     end
   end
 
@@ -478,27 +419,15 @@ describe Rosh::Host::RemoteShell do
         r
       end
 
-      let(:internal_pwd) do
-        double 'Rosh::RemoteDir', to_path: '/home'
-      end
-
       before do
-        subject.instance_variable_set(:@internal_pwd, internal_pwd)
         subject.should_receive(:run).with('cd /home && blah').and_return result
         @r = subject.exec('blah')
       end
 
-      it 'returns a CommandResult with exit status 1' do
-        @r.exit_status.should == 1
-      end
-
-      it 'returns a CommandResult with ruby object the output of the failed command' do
-        @r.ruby_object.should == 'command not found'
-      end
-
-      it 'sets @last_result to its return value' do
-        subject.last_result.should == @r
-      end
+      specify { @r.should eq 'command not found' }
+      specify { subject.last_exit_status.should eq 1 }
+      specify { subject.last_result.should eq @r }
+      specify { subject.last_exception.should eq @r }
     end
 
     context 'valid command' do
@@ -506,6 +435,7 @@ describe Rosh::Host::RemoteShell do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 0
         r.stub(:ruby_object).and_return 'some output'
+        r.stub(:ssh_result).and_return 'some output'
 
         r
       end
@@ -520,17 +450,10 @@ describe Rosh::Host::RemoteShell do
         @r = subject.exec('blah')
       end
 
-      it 'returns a CommandResult with exit status 0' do
-        @r.exit_status.should == 0
-      end
-
-      it 'returns a CommandResult with ruby object the output of the command' do
-        @r.ruby_object.should == 'some output'
-      end
-
-      it 'sets @last_result to its return value' do
-        subject.last_result.should == @r
-      end
+      specify { @r.should eq 'some output' }
+      specify { subject.last_exit_status.should eq 0 }
+      specify { subject.last_result.should eq @r }
+      specify { subject.last_exception.should be_nil }
     end
   end
 
@@ -563,17 +486,10 @@ describe Rosh::Host::RemoteShell do
           @r = subject.ls('path')
         end
 
-        it 'returns a CommandResult with exit status 0' do
-          @r.exit_status.should eq 0
-        end
-
-        it 'returns a CommandResult with ruby object an Array of RemoteFileSystemObjects' do
-          @r.ruby_object.should == [file_system_object]
-        end
-
-        it 'sets @last_result to its return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should eq [file_system_object] }
+        specify { subject.last_exit_status.should eq 0 }
+        specify { subject.last_result.should eq @r }
+        specify { subject.last_exception.should be_nil }
       end
 
       context 'path is absolute' do
@@ -584,17 +500,10 @@ describe Rosh::Host::RemoteShell do
           @r = subject.ls('/home/path')
         end
 
-        it 'returns a CommandResult with exit status 0' do
-          @r.exit_status.should eq 0
-        end
-
-        it 'returns a CommandResult with ruby object an Array of RemoteFileSystemObjects' do
-          @r.ruby_object.should == [file_system_object]
-        end
-
-        it 'sets @last_result to its return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should eq [file_system_object] }
+        specify { subject.last_exit_status.should eq 0 }
+        specify { subject.last_result.should eq @r }
+        specify { subject.last_exception.should be_nil }
       end
     end
 
@@ -614,27 +523,24 @@ describe Rosh::Host::RemoteShell do
           @r = subject.ls('path')
         end
 
-        it 'returns a CommandResult with exit status 1' do
-          @r.exit_status.should eq 1
-        end
-
-        it 'returns a CommandResult with ruby object a Rosh::ErrorENOENT' do
-          @r.ruby_object.should be_a Rosh::ErrorENOENT
-        end
-
-        it 'sets @last_result to its return value' do
-          subject.last_result.should == @r
-        end
+        specify { @r.should be_a Rosh::ErrorENOENT }
+        specify { subject.last_exit_status.should eq 1 }
+        specify { subject.last_result.should eq @r }
+        specify { subject.last_exception.should eq @r }
       end
 
       context 'path is absolute' do
-        it 'returns a CommandResult with exit status 1' do
+        before do
           subject.should_receive(:preprocess_path).with(path).and_return path
           subject.should_receive(:run).with("ls #{path}").and_return result
 
-          r = subject.ls('/home/path')
-          r.exit_status.should eq 1
+          @r = subject.ls('/home/path')
         end
+
+        specify { @r.should be_a Rosh::ErrorENOENT }
+        specify { subject.last_exit_status.should eq 1 }
+        specify { subject.last_result.should eq @r }
+        specify { subject.last_exception.should eq @r }
       end
     end
   end
@@ -662,78 +568,62 @@ bobo         2  0.1  1.2    712    16 ?        S    18:46   0:01 /bin/bash
     context 'no name given' do
       before { @r = subject.ps }
 
-      it 'returns a CommandResult with exit status 0' do
-        @r.exit_status.should be_zero
-      end
-
       it 'returns a CommandResult with ruby object an Array of Rosh::RemoteProcTable' do
-        @r.ruby_object.should be_a Array
-        @r.ruby_object.size.should == 2
+        @r.should be_a Array
+        @r.size.should == 2
 
-        @r.ruby_object.first.should be_a Rosh::Host::RemoteProcTable
-        @r.ruby_object.first.user.should == 'root'
-        @r.ruby_object.first.pid.should == 1
-        @r.ruby_object.first.cpu.should == 0.0
-        @r.ruby_object.first.mem.should == 0.2
-        @r.ruby_object.first.vsz.should == 2036
-        @r.ruby_object.first.rss.should == 716
-        @r.ruby_object.first.tty.should == '?'
-        @r.ruby_object.first.stat.should == 'Ss'
-        @r.ruby_object.first.start.should == Time.parse('18:45')
-        @r.ruby_object.first.time.should == '0:01'
-        @r.ruby_object.first.command.should == 'init [2]'
+        @r.first.should be_a Rosh::Host::RemoteProcTable
+        @r.first.user.should == 'root'
+        @r.first.pid.should == 1
+        @r.first.cpu.should == 0.0
+        @r.first.mem.should == 0.2
+        @r.first.vsz.should == 2036
+        @r.first.rss.should == 716
+        @r.first.tty.should == '?'
+        @r.first.stat.should == 'Ss'
+        @r.first.start.should == Time.parse('18:45')
+        @r.first.time.should == '0:01'
+        @r.first.command.should == 'init [2]'
       end
 
-      it 'sets @last_result to its return value' do
-        subject.last_result.should == @r
-      end
+      specify { subject.last_exit_status.should eq 0 }
+      specify { subject.last_result.should eq @r }
+      specify { subject.last_exception.should be_nil }
     end
 
     context 'valid name given' do
       before { @r = subject.ps(name: 'init') }
 
-      it 'returns a CommandResult with exit status 0' do
-        @r.exit_status.should be_zero
-      end
-
       it 'returns a CommandResult with ruby object an Array of Rosh::RemoteProcTable' do
-        @r.ruby_object.should be_a Array
-        @r.ruby_object.size.should == 1
+        @r.should be_a Array
+        @r.size.should == 1
 
-        @r.ruby_object.first.should be_a Rosh::Host::RemoteProcTable
-        @r.ruby_object.first.user.should == 'root'
-        @r.ruby_object.first.pid.should == 1
-        @r.ruby_object.first.cpu.should == 0.0
-        @r.ruby_object.first.mem.should == 0.2
-        @r.ruby_object.first.vsz.should == 2036
-        @r.ruby_object.first.rss.should == 716
-        @r.ruby_object.first.tty.should == '?'
-        @r.ruby_object.first.stat.should == 'Ss'
-        @r.ruby_object.first.start.should == Time.parse('18:45')
-        @r.ruby_object.first.time.should == '0:01'
-        @r.ruby_object.first.command.should == 'init [2]'
+        @r.first.should be_a Rosh::Host::RemoteProcTable
+        @r.first.user.should == 'root'
+        @r.first.pid.should == 1
+        @r.first.cpu.should == 0.0
+        @r.first.mem.should == 0.2
+        @r.first.vsz.should == 2036
+        @r.first.rss.should == 716
+        @r.first.tty.should == '?'
+        @r.first.stat.should == 'Ss'
+        @r.first.start.should == Time.parse('18:45')
+        @r.first.time.should == '0:01'
+        @r.first.command.should == 'init [2]'
       end
 
-      it 'sets @last_result to its return value' do
-        subject.last_result.should == @r
-      end
+      specify { subject.last_exit_status.should eq 0 }
+      specify { subject.last_result.should eq @r }
+      specify { subject.last_exception.should be_nil }
     end
 
     context 'non-existant process name given' do
       before { @r = subject.ps(name: 'sdfsdfdsfs') }
 
-      it 'returns a CommandResult with exit status 0' do
-        @r.exit_status.should be_zero
-      end
-
-      it 'returns a CommandResult with ruby object an empty Array' do
-        @r.ruby_object.should be_a Array
-        @r.ruby_object.size.should == 0
-      end
-
-      it 'sets @last_result to its return value' do
-        subject.last_result.should == @r
-      end
+      specify { @r.should eq [] }
+      specify { subject.last_exit_status.should eq 0 }
+      specify { subject.last_result.should eq @r }
+      specify { subject.last_exception.should be_nil }
     end
   end
 
@@ -747,30 +637,30 @@ bobo         2  0.1  1.2    712    16 ?        S    18:46   0:01 /bin/bash
 
     context '@internal_pwd is not set' do
       before do
+        result.stub(:ssh_result)
         subject.instance_variable_set(:@internal_pwd, nil)
-      end
-
-      it 'runs "pwd" over ssh' do
         subject.should_receive(:run).with('pwd').and_return result
 
-        result = subject.pwd
-        result.should be_a Rosh::CommandResult
-        result.ruby_object.should be_a Rosh::Host::RemoteDir
-        result.exit_status.should == 0
-        subject.last_result.should == result
+        @r = subject.pwd
       end
+
+      specify { @r.should be_a Rosh::Host::RemoteDir }
+      specify { subject.last_exit_status.should eq 0 }
+      specify { subject.last_result.should eq @r }
+      specify { subject.last_exception.should be_nil }
     end
 
     context '@internal_pwd is set' do
-      it 'does not run "pwd" over ssh, but returns @internal_pwd' do
+      before do
         subject.should_not_receive(:run).with('pwd')
 
-        result = subject.pwd
-        result.should be_a Rosh::CommandResult
-        result.ruby_object.should == '/home'
-        result.exit_status.should == 0
-        subject.last_result.should == result
+        @r = subject.pwd
       end
+
+      specify { @r.should eq internal_pwd }
+      specify { subject.last_exit_status.should eq 0 }
+      specify { subject.last_result.should eq @r }
+      specify { subject.last_exception.should be_nil }
     end
   end
 end
