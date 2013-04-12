@@ -142,6 +142,12 @@ class Rosh
     end
 
     def multiline_ruby?(argv)
+      found = argv.scan(/(\S*\.\.\S*)/).flatten
+
+      unless found.empty?
+        argv.sub!(found.first, %['#{found.first}'])
+      end
+
       sexp = Ripper.sexp argv
 
       sexp.nil?
