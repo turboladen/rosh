@@ -13,7 +13,7 @@ class Rosh
           result = @shell.exec 'launchctl list'
 
           services = []
-          result.ruby_object.each_line.each do |line|
+          result.each_line.each do |line|
             next if line =~ /^PID/
 
             line.match /(?<pid>\S+)\s+(?<status>\S+)\s+(?<name>[\S]+)/
@@ -27,7 +27,7 @@ class Rosh
             services << create($~[:name], pid)
           end
 
-          Rosh::CommandResult.new(services, 0, result.ssh_result)
+          services
         end
 
         private

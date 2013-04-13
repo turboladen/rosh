@@ -15,11 +15,11 @@ class Rosh
       def list
         result = @host.shell.exec 'brew list'
 
-        pkgs = result.ruby_object.split("\n").map do |pkg|
+        pkgs = result.split("\n").map do |pkg|
           create(pkg)
         end
 
-        Rosh::CommandResult.new(pkgs, 0, result.ssh_result)
+        pkgs
       end
 
       private

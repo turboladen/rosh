@@ -67,10 +67,10 @@ class Rosh
       # @param [Rosh::CommandResult] result The result of the `uname -a`
       #   command.
       def extract_os(result)
-        log "STDOUT: #{result.ruby_object}"
-        return nil if result.ruby_object.empty?
+        log "STDOUT: #{result}"
+        return nil if result.empty?
 
-        %r[^(?<os>[a-zA-Z]+) (?<uname>.*)] =~ result.ruby_object
+        %r[^(?<os>[a-zA-Z]+) (?<uname>.*)] =~ result
         @operating_system = os.to_safe_down_sym
 
         case @operating_system
@@ -91,7 +91,7 @@ class Rosh
       # @param [Rosh::CommandResult] result
       # @todo What if @operating_system isn't set yet?
       def extract_distribution(result)
-        stdout = result.ruby_object
+        stdout = result
         log "STDOUT: #{stdout}"
 
         case @operating_system
