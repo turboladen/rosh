@@ -7,6 +7,7 @@ require 'pty'
 
 require 'log_switch'
 require 'highline/import'
+
 require_relative '../command_result'
 require_relative 'local_file_system_object'
 
@@ -25,6 +26,7 @@ class Rosh
       def initialize(throw_on_fail)
         @history = []
         @throw_on_fail = throw_on_fail
+        @internal_pwd = Dir.pwd
       end
 
       # @param [String] file Path to the file to cat.
@@ -58,7 +60,7 @@ class Rosh
         process(:cd, path: path) do
           begin
             Dir.chdir(full_path)
-            ENV['PWD'] = Dir.pwd
+            @internal_pwd = Dir.pwd
             [true, 0]
           rescue Errno::ENOENT, Errno::ENOTDIR => ex
             [ex, 1]
@@ -216,7 +218,7 @@ class Rosh
       # @return [Dir] The current working directory as a Dir.
       def pwd
         log 'pwd called'
-        process(:pwd) { [Dir.new(ENV['PWD']), 0] }
+        process(:pwd) { [Dir.new(@internal_pwd), 0] }
       end
 
       # Executes Ruby code in the context of an IRB::WorkSpace.  Thus, variables

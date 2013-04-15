@@ -242,8 +242,8 @@ describe Rosh::Host::LocalShell do
 
   describe '#pwd' do
     before do
-      ENV.should_receive(:[]).with('PWD').and_return 'some dir'
-      Dir.should_receive(:new).and_return 'some dir'
+      Dir.should_receive(:new).with(subject.
+        instance_variable_get(:@internal_pwd)).and_return 'some dir'
       @r = subject.pwd
     end
 
