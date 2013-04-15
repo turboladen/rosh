@@ -5,7 +5,6 @@ class Rosh
   class Host
     module Attributes
 
-      #@operating_system = nil
       @kernel_version = nil
       @architecture = nil
 
@@ -18,15 +17,27 @@ class Rosh
 
       DISTRIBUTION_METHODS.each do |meth|
         define_method(meth) do
-          command = case self.operating_system
+          redhat = false
+
+          result = case self.operating_system
           when :linux
-            'lsb_release --description'
+            r = catch(:shell_failure) do
+              @shell.exec 'lsb_release --description'
+            end
+
+            unless r[:exit_status].zero?
+              redhat = true
+              @shell.exec 'cat /etc/redhat-release'
+            end
           when :darwin
-            'sw_vers'
+            @shell.exec 'sw_vers'
           end
 
-          result = @shell.exec(command)
-          extract_distribution(result)
+          if redhat
+            extract_redhat(result)
+          else
+            extract_distribution(result)
+          end
 
           instance_variable_get("@#{meth}".to_sym)
         end
@@ -119,6 +130,13 @@ class Rosh
         when :linux
           %r[Description:\s+(?<distro>\w+)\s+(?<version>[^\n]+)] =~ stdout
         end
+
+        @distribution = distro.to_safe_down_sym
+        @distribution_version = version
+      end
+
+      def extract_redhat(result)
+        %r[(?<distro>\w+)\s+release\s+(?<version>[^\n]+)] =~ result
 
         @distribution = distro.to_safe_down_sym
         @distribution_version = version

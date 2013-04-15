@@ -74,6 +74,8 @@ class Rosh
         case distribution
         when :ubuntu
           Rosh::Host::PackageManager.new(@shell, :apt, :dpkg)
+        when :centos
+          Rosh::Host::PackageManager.new(@shell, :yum)
         end
       end
     end
