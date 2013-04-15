@@ -27,7 +27,7 @@ class Rosh
       @shell = if local?
         Rosh::Host::Shells::Local.new(throw_on_fail)
       else
-        Rosh::Host::Shells::Remote.new(@hostname, ssh_options)
+        Rosh::Host::Shells::Remote.new(throw_on_fail, @hostname, ssh_options)
       end
     end
 

@@ -39,9 +39,12 @@ class Rosh
 
         attr_reader :hostname
 
+        # @param [Boolean] throw_on_fail
         # @param [String] hostname Name or IP of the host to SSH in to.
         # @param [Hash] options Net::SSH::Simple options.
-        def initialize(hostname, **options)
+        def initialize(throw_on_fail, hostname, **options)
+          super(throw_on_fail)
+
           @hostname = hostname
           @options = options
 
