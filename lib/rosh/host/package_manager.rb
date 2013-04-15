@@ -15,11 +15,31 @@ class Rosh
       def list
         result = @host.shell.exec 'brew list'
 
-        pkgs = result.split("\n").map do |pkg|
+        result.split(/\s+/).map do |pkg|
           create(pkg)
         end
+      end
 
-        pkgs
+      def update
+        @host.shell.exec 'brew update'
+
+        @host.shell.history.last[:exit_status].zero?
+      end
+
+      # @param [String,Regexp] text
+      # @return [Array]
+      def search(text=nil)
+        text = "/#{text.source}/" if text.is_a? Regexp
+
+        result = @host.shell.exec("brew search #{text}")
+
+        # For some reason, doing this causes a memory leak and Ruby blows up.
+        #packages = result.split(/\s+/).map do |pkg|
+        #  puts "package #{pkg}"
+        #  create(pkg)
+        #end
+
+        result.split(/\s+/)
       end
 
       private
@@ -28,6 +48,8 @@ class Rosh
         case @host.operating_system
         when :darwin
           Rosh::Host::PackageTypes::Brew.new(@host.shell, name)
+        else
+          raise "Unknown operating system: #{@host.operating_system}"
         end
       end
     end
