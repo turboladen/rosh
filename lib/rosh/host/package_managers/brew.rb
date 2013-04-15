@@ -1,15 +1,10 @@
-require_relative 'base'
 require_relative '../package_types/brew'
 
 
 class Rosh
   class Host
     module PackageManagers
-      class Brew < Base
-        def initialize(shell)
-          super(shell)
-        end
-
+      module Brew
         def list
           result = @shell.exec 'brew list'
 

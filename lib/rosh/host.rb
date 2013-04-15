@@ -6,7 +6,7 @@ require_relative 'host/local_file_system'
 Dir[File.dirname(__FILE__) + '/host/shells/*.rb'].each(&method(:require))
 require_relative 'host/remote_file_system'
 Dir[File.dirname(__FILE__) + '/host/service_managers/*.rb'].each(&method(:require))
-Dir[File.dirname(__FILE__) + '/host/package_managers/*.rb'].each(&method(:require))
+require_relative 'host/package_manager'
 require_relative 'host/group_manager'
 
 
@@ -69,11 +69,11 @@ class Rosh
     def packages
       @package_manager = case operating_system
       when :darwin
-        Rosh::Host::PackageManagers::Brew.new(@shell)
+        Rosh::Host::PackageManager.new(@shell, :brew)
       when :linux
         case distribution
         when :ubuntu
-          Rosh::Host::PackageManagers::Apt.new(@shell)
+          Rosh::Host::PackageManager.new(@shell, :apt, :dpkg)
         end
       end
     end
