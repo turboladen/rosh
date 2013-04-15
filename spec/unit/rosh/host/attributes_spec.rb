@@ -5,7 +5,6 @@ require 'rosh/host/attributes'
 describe Rosh::Host::Attributes do
   let(:hostname) { 'test' }
   let(:shell) { double 'Rosh::Shell' }
-  let(:result) { double 'Rosh::CommandResult' }
 
   before do
     subject.instance_variable_set(:@shell, shell)
@@ -20,6 +19,8 @@ describe Rosh::Host::Attributes do
   end
 
   describe '#remote_shell' do
+    let(:result) { double 'Rosh::CommandResult' }
+
     before do
       result.stub_chain(:ssh_result, :stdout).and_return hostname
     end
@@ -31,17 +32,13 @@ describe Rosh::Host::Attributes do
   end
 
   describe '#extract_os' do
-    before do
-      result.stub(:ruby_object).and_return(msg)
-    end
-
     context 'darwin' do
       let(:msg) do
         'Darwin computer.local 12.3.0 Darwin Kernel Version 12.3.0: Sun Jan  6 22:37:10 PST 2013; root:xnu-2050.22.13~1/RELEASE_X86_64 x86_64'
       end
 
       it 'sets @operating_system, @kernel_version, and @architecture' do
-        subject.send(:extract_os, result)
+        subject.send(:extract_os, msg)
         subject.instance_variable_get(:@operating_system).should == :darwin
         subject.instance_variable_get(:@kernel_version).should == '12.3.0'
         subject.instance_variable_get(:@architecture).should == :x86_64
@@ -54,7 +51,7 @@ describe Rosh::Host::Attributes do
       end
 
       it 'sets @operating_system, @kernel_version, and @architecture' do
-        subject.send(:extract_os, result)
+        subject.send(:extract_os, msg)
         subject.instance_variable_get(:@operating_system).should == :linux
         subject.instance_variable_get(:@kernel_version).should == '2.6.24-1-686'
         subject.instance_variable_get(:@architecture).should == :i686
@@ -67,7 +64,7 @@ describe Rosh::Host::Attributes do
       end
 
       it 'sets @operating_system, @kernel_version, and @architecture' do
-        subject.send(:extract_os, result)
+        subject.send(:extract_os, msg)
         subject.instance_variable_get(:@operating_system).should == :freebsd
         subject.instance_variable_get(:@kernel_version).should == '9.1-RELEASE'
         subject.instance_variable_get(:@architecture).should == :amd64
@@ -77,34 +74,36 @@ describe Rosh::Host::Attributes do
 
   describe '#extract_distribution' do
     context 'darwin' do
-      before do
+      let(:msg) do
         msg = <<-MSG
 ProductName:	Mac OS X
 ProductVersion:	10.8.3
 BuildVersion:	12D78
         MSG
+      end
 
-        result.stub(:ruby_object).and_return(msg)
+      before do
         subject.instance_variable_set(:@operating_system, :darwin)
       end
 
       it 'sets @distribution and @distribution_version' do
-        subject.send(:extract_distribution, result)
+        subject.send(:extract_distribution, msg)
         subject.instance_variable_get(:@distribution).should == :mac_os_x
         subject.instance_variable_get(:@distribution_version).should == '10.8.3'
       end
     end
 
     context 'linux' do
-      before do
-        msg ='Description:	Ubuntu 12.04.2 LTS'
+      let(:msg) do
+        'Description:	Ubuntu 12.04.2 LTS'
+      end
 
-        result.stub(:ruby_object).and_return(msg)
+      before do
         subject.instance_variable_set(:@operating_system, :linux)
       end
 
       it 'sets @distribution and @distribution_version' do
-        subject.send(:extract_distribution, result)
+        subject.send(:extract_distribution, msg)
         subject.instance_variable_get(:@distribution).should == :ubuntu
         subject.instance_variable_get(:@distribution_version).should == '12.04.2 LTS'
       end

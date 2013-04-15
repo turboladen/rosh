@@ -17,15 +17,11 @@ class Rosh
       extend LogSwitch
       include LogSwitch::Mixin
 
-      attr_accessor :last_result
-      attr_accessor :last_exit_status
-      attr_reader :last_exception
+      attr_reader :history
       attr_reader :workspace
 
       def initialize
-        @last_result = nil
-        @last_exit_status = 0
-        @last_exception = nil
+        @history = []
       end
 
       # @param [String] file Path to the file to cat.
@@ -35,8 +31,9 @@ class Rosh
       #   was raised.
       def cat(file)
         log "cat called with arg '#{file}'"
+        full_file = preprocess_path(file)
 
-        process(file) do |full_file|
+        process(:cat, file: file) do
           begin
             contents = open(full_file).read
             [contents, 0]
@@ -53,8 +50,9 @@ class Rosh
       #   #last_exit_status is set to 1 and returns the Exception that was raised.
       def cd(path)
         log "cd called with arg '#{path}'"
+        full_path = preprocess_path(path)
 
-        process(path) do |full_path|
+        process(:cd, path: path) do
           begin
             Dir.chdir(full_path)
             ENV['PWD'] = Dir.pwd
@@ -72,8 +70,10 @@ class Rosh
       #   is set to 1 and returns the Exception that was raised.
       def cp(source, destination)
         log "cp called with args '#{source}', '#{destination}'"
+        full_source = preprocess_path(source)
+        full_destination = preprocess_path(destination)
 
-        process(source, destination) do |full_source, full_destination|
+        process(:cp, source: source, destination: destination) do
           begin
             ::FileUtils.cp(full_source, full_destination)
             [true, 0]
@@ -90,7 +90,7 @@ class Rosh
       def env
         log 'env called'
 
-        process do
+        process(:env) do
           @path ||= ENV['PATH'].split(':')
 
           env = {
@@ -112,7 +112,7 @@ class Rosh
         log "exec called with command '#{command}'"
         cmd, *args = Shellwords.shellsplit(command)
 
-        process do
+        process(:exec, command: command) do
           begin
             output = ''
 
@@ -163,8 +163,9 @@ class Rosh
       #   1 and returns a Errno::ENOENT or Errno::ENOTDIR.
       def ls(path=nil)
         log "ls called with arg '#{path}'"
+        full_path = preprocess_path(path)
 
-        process(path) do |full_path|
+        process(:ls, path: path) do
           if File.file? full_path
             fso = Rosh::Host::LocalFileSystemObject.create(full_path)
             [fso, 0]
@@ -193,7 +194,7 @@ class Rosh
       def ps(name: nil, pid: nil)
         log "ps called with args 'name: #{name}', 'pid: #{pid}'"
 
-        process do
+        process(:ps, name: name, pid: pid) do
           ps = Sys::ProcTable.ps
 
           if name
@@ -211,7 +212,7 @@ class Rosh
       # @return [Dir] The current working directory as a Dir.
       def pwd
         log 'pwd called'
-        process { [Dir.new(ENV['PWD']), 0] }
+        process(:pwd) { [Dir.new(ENV['PWD']), 0] }
       end
 
       # Executes Ruby code in the context of an IRB::WorkSpace.  Thus, variables
@@ -226,7 +227,7 @@ class Rosh
       def ruby(code)
         log "ruby called with code: #{code}"
 
-        process do
+        process(:ruby, code: code) do
           code.gsub!(/puts/, '$stdout.puts')
           path_info = code.scan(/\s(?<fs_path>\/[^\n]*\/?)$/).flatten
 
@@ -267,36 +268,46 @@ class Rosh
         end.flatten
       end
 
-      # @return [Integer] Shortcut to the result of the last command executed.
-      def _?
-        @last_exit_status
+      def last_result
+        @history.last[:output]
       end
+      alias :__ :last_result
+
+      # @return [Integer] Shortcut to the result of the last command executed.
+      def last_exit_status
+        @history.last[:exit_status]
+      end
+      alias :_? :last_exit_status
 
       # @return The last exception that was raised.
-      def _!
-        @last_exception
+      def last_exception
+        @history.reverse.find { |result| result[:output].kind_of? Exception }
       end
+      alias :_! :last_exception
 
       private
 
       # Saves the result of the block given to #last_result and exit code to
       # #last_exit_status.
       #
-      # @param [Array<String>, String] paths File paths to expand within the
-      #   context of the shell.
+      # @param [Array<String>, String] args Arguments given to the method.
       #
-      # @return The result of the block that was given
-      def process(*paths, &block)
-        @last_result, @last_exit_status = if paths.empty?
-          block.call
-        else
-          full_paths = paths.map { |path| preprocess_path(path) }
-          block.call(*full_paths)
+      # @return The result of the block that was given.
+      def process(cmd, **args, &block)
+        last_result, last_exit_status = block.call
+
+        @history << {
+          command: cmd,
+          arguments: args,
+          output: last_result,
+          exit_status: last_exit_status
+        }
+
+        if @throw_on_fail && !last_exit_status.zero?
+          throw(:shell_failure, @history.last)
         end
 
-        @last_exception = @last_result unless @last_exit_status.zero?
-
-        @last_result
+        last_result
       end
 
       # Expands paths based on the context of the shell.  Allows for using Ruby

@@ -4,6 +4,10 @@ require 'tempfile'
 
 
 describe Rosh::Host::LocalShell do
+  subject do
+    Rosh::Host::LocalShell.new(false)
+  end
+
   describe '#cat' do
     context 'file does not exist' do
       before { @r = subject.cat('blah') }

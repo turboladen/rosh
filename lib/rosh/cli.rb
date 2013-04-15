@@ -31,7 +31,6 @@ class Rosh
       @rosh = Rosh.new
       @rosh.add_host 'localhost'
       @current_host = @rosh.hosts['localhost']
-      @last_result = nil
     end
 
     # Starts the Readline loop for accepting input.  Each iteration through the
@@ -64,7 +63,6 @@ class Rosh
         end
 
         result = execute(argv)
-        @last_result = result
         print_result(result)
       end
     end
@@ -79,7 +77,7 @@ class Rosh
       log "command: #{command}"
       log "new argv: #{new_argv}"
 
-      if %i[ch history].include? command
+      if %i[ch].include? command
         self.send(command, *args)
       elsif @current_host.shell.public_methods(false).include? command
         if !args.empty?
@@ -183,16 +181,6 @@ class Rosh
         @current_host = new_host
         Rosh::CommandResult.new(new_host, 0)
       end
-    end
-
-    def history
-      lines = {}
-
-      Readline::HISTORY.to_a.each_with_index do |cmd, i|
-        lines[i] = cmd
-      end
-
-      Rosh::CommandResult.new(Hash[lines.sort], 0)
     end
   end
 end

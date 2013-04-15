@@ -73,13 +73,6 @@ describe Rosh::CLI do
       end
     end
 
-    context 'first arg is :history' do
-      it 'runs the #ch command' do
-        subject.should_receive(:history)
-        subject.execute('history')
-      end
-    end
-
     context 'first arg is a shell public method' do
       before do
         shell.should_receive(:public_methods).and_return %i[cat ls]
