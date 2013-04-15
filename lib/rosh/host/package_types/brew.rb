@@ -16,8 +16,21 @@ class Rosh
         end
 
         # @return [Boolean] +true+ if install was successful; +false+ if not.
-        def install
-          @shell.exec "brew install #{@name}"
+        def install(version: nil)
+          if version
+            version_line = @shell.exec("brew versions #{@name} | grep #{version}").
+              split("\n").last
+            @shell.cd `brew --prefix`
+            %r[git checkout (?<hash>\w+)] =~ version_line
+
+            @shell.exec "git checkout #{hash} Library/Formula/#{@name}.rb"
+            @shell.exec "brew unlink #{@name}"
+            @shell.exec "brew install #{@name}"
+            @shell.exec "brew switch #{@name} #{version}"
+            @shell.exec "git checkout -- Library/Formula/#{@name}.rb"
+          else
+            @shell.exec "brew install #{@name}"
+          end
 
           @shell.history.last[:exit_status].zero?
         end

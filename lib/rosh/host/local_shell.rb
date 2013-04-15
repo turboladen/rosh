@@ -113,13 +113,14 @@ class Rosh
       #   the exception that was raised.
       def exec(command)
         log "exec called with command '#{command}'"
-        cmd, *args = Shellwords.shellsplit(command)
+        #cmd, *args = Shellwords.shellsplit(command)
 
         process(:exec, command: command) do
           begin
             output = ''
 
-            PTY.spawn(cmd, *args) do |reader, writer, pid|
+            #PTY.spawn(cmd, *args) do |reader, writer, pid|
+            PTY.spawn(command) do |reader, writer, pid|
               log "Spawned pid: #{pid}"
 
               trap(:INT) do
