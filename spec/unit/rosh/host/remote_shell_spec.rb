@@ -203,7 +203,6 @@ describe Rosh::Host::RemoteShell do
         specify { @r.should eq 'file contents' }
         specify { subject.last_exit_status.should eq 0 }
         specify { subject.last_result.should eq @r }
-        specify { subject.last_exception.should be_nil }
       end
 
       context 'path is absolute' do
@@ -216,7 +215,6 @@ describe Rosh::Host::RemoteShell do
         specify { @r.should eq 'file contents' }
         specify { subject.last_exit_status.should eq 0 }
         specify { subject.last_result.should eq @r }
-        specify { subject.last_exception.should be_nil }
       end
     end
 
@@ -240,7 +238,6 @@ describe Rosh::Host::RemoteShell do
         specify { @r.should be_a Rosh::ErrorENOENT }
         specify { subject.last_exit_status.should eq 1 }
         specify { subject.last_result.should eq @r }
-        specify { subject.last_exception.should eq @r }
       end
 
       context 'path is absolute' do
@@ -254,7 +251,6 @@ describe Rosh::Host::RemoteShell do
         specify { @r.should be_a Rosh::ErrorENOENT }
         specify { subject.last_exit_status.should eq 1 }
         specify { subject.last_result.should eq @r }
-        specify { subject.last_exception.should eq @r }
       end
     end
   end
@@ -279,10 +275,9 @@ describe Rosh::Host::RemoteShell do
           @r = subject.cd('path')
         end
 
-        specify { @r.should be_a Rosh::Host::RemoteDir }
+        specify { @r.should be_true}
         specify { subject.last_exit_status.should eq 0 }
         specify { subject.last_result.should eq @r }
-        specify { subject.last_exception.should be_nil }
       end
 
       context 'path is absolute' do
@@ -293,10 +288,9 @@ describe Rosh::Host::RemoteShell do
           @r = subject.cd('/home/path')
         end
 
-        specify { @r.should be_a Rosh::Host::RemoteDir }
+        specify { @r.should be_true }
         specify { subject.last_exit_status.should eq 0 }
         specify { subject.last_result.should eq @r }
-        specify { subject.last_exception.should be_nil }
       end
     end
 
@@ -319,7 +313,6 @@ describe Rosh::Host::RemoteShell do
         specify { @r.should be_a Rosh::ErrorENOENT }
         specify { subject.last_exit_status.should eq 1 }
         specify { subject.last_result.should eq @r }
-        specify { subject.last_exception.should eq @r }
       end
 
       context 'path is absolute' do
@@ -333,7 +326,6 @@ describe Rosh::Host::RemoteShell do
         specify { @r.should be_a Rosh::ErrorENOENT }
         specify { subject.last_exit_status.should eq 1 }
         specify { subject.last_result.should eq @r }
-        specify { subject.last_exception.should eq @r }
       end
     end
   end
@@ -360,7 +352,6 @@ describe Rosh::Host::RemoteShell do
       specify { @r.should be_a Rosh::ErrorENOENT }
       specify { subject.last_exit_status.should eq 1 }
       specify { subject.last_result.should eq @r }
-      specify { subject.last_exception.should eq @r }
     end
 
     context 'source is a directory' do
@@ -382,7 +373,6 @@ describe Rosh::Host::RemoteShell do
       specify { @r.should be_a Rosh::ErrorEISDIR }
       specify { subject.last_exit_status.should eq 1 }
       specify { subject.last_result.should eq @r }
-      specify { subject.last_exception.should eq @r }
     end
 
     context 'destination exists' do
@@ -404,7 +394,6 @@ describe Rosh::Host::RemoteShell do
       specify { @r.should be_true }
       specify { subject.last_exit_status.should eq 0 }
       specify { subject.last_result.should eq @r }
-      specify { subject.last_exception.should be_nil }
     end
   end
 
@@ -427,7 +416,6 @@ describe Rosh::Host::RemoteShell do
       specify { @r.should eq 'command not found' }
       specify { subject.last_exit_status.should eq 1 }
       specify { subject.last_result.should eq @r }
-      specify { subject.last_exception.should eq @r }
     end
 
     context 'valid command' do
@@ -453,7 +441,6 @@ describe Rosh::Host::RemoteShell do
       specify { @r.should eq 'some output' }
       specify { subject.last_exit_status.should eq 0 }
       specify { subject.last_result.should eq @r }
-      specify { subject.last_exception.should be_nil }
     end
   end
 
@@ -489,7 +476,6 @@ describe Rosh::Host::RemoteShell do
         specify { @r.should eq [file_system_object] }
         specify { subject.last_exit_status.should eq 0 }
         specify { subject.last_result.should eq @r }
-        specify { subject.last_exception.should be_nil }
       end
 
       context 'path is absolute' do
@@ -503,7 +489,6 @@ describe Rosh::Host::RemoteShell do
         specify { @r.should eq [file_system_object] }
         specify { subject.last_exit_status.should eq 0 }
         specify { subject.last_result.should eq @r }
-        specify { subject.last_exception.should be_nil }
       end
     end
 
@@ -526,7 +511,6 @@ describe Rosh::Host::RemoteShell do
         specify { @r.should be_a Rosh::ErrorENOENT }
         specify { subject.last_exit_status.should eq 1 }
         specify { subject.last_result.should eq @r }
-        specify { subject.last_exception.should eq @r }
       end
 
       context 'path is absolute' do
@@ -540,7 +524,6 @@ describe Rosh::Host::RemoteShell do
         specify { @r.should be_a Rosh::ErrorENOENT }
         specify { subject.last_exit_status.should eq 1 }
         specify { subject.last_result.should eq @r }
-        specify { subject.last_exception.should eq @r }
       end
     end
   end
@@ -588,7 +571,6 @@ bobo         2  0.1  1.2    712    16 ?        S    18:46   0:01 /bin/bash
 
       specify { subject.last_exit_status.should eq 0 }
       specify { subject.last_result.should eq @r }
-      specify { subject.last_exception.should be_nil }
     end
 
     context 'valid name given' do
@@ -614,7 +596,6 @@ bobo         2  0.1  1.2    712    16 ?        S    18:46   0:01 /bin/bash
 
       specify { subject.last_exit_status.should eq 0 }
       specify { subject.last_result.should eq @r }
-      specify { subject.last_exception.should be_nil }
     end
 
     context 'non-existant process name given' do
@@ -623,7 +604,6 @@ bobo         2  0.1  1.2    712    16 ?        S    18:46   0:01 /bin/bash
       specify { @r.should eq [] }
       specify { subject.last_exit_status.should eq 0 }
       specify { subject.last_result.should eq @r }
-      specify { subject.last_exception.should be_nil }
     end
   end
 
@@ -647,7 +627,6 @@ bobo         2  0.1  1.2    712    16 ?        S    18:46   0:01 /bin/bash
       specify { @r.should be_a Rosh::Host::RemoteDir }
       specify { subject.last_exit_status.should eq 0 }
       specify { subject.last_result.should eq @r }
-      specify { subject.last_exception.should be_nil }
     end
 
     context '@internal_pwd is set' do
@@ -660,7 +639,6 @@ bobo         2  0.1  1.2    712    16 ?        S    18:46   0:01 /bin/bash
       specify { @r.should eq internal_pwd }
       specify { subject.last_exit_status.should eq 0 }
       specify { subject.last_result.should eq @r }
-      specify { subject.last_exception.should be_nil }
     end
   end
 end
