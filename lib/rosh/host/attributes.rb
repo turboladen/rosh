@@ -5,7 +5,7 @@ class Rosh
   class Host
     module Attributes
 
-      @operating_system = nil
+      #@operating_system = nil
       @kernel_version = nil
       @architecture = nil
 
@@ -14,18 +14,7 @@ class Rosh
 
       @remote_shell = nil
 
-      UNAME_METHODS = %i[operating_system kernel_version architecture]
       DISTRIBUTION_METHODS = %i[distribution distribution_version]
-
-      UNAME_METHODS.each do |meth|
-        define_method(meth) do
-          command = 'uname -a'
-          result = @shell.exec(command)
-          extract_os(result)
-
-          instance_variable_get("@#{meth}".to_sym)
-        end
-      end
 
       DISTRIBUTION_METHODS.each do |meth|
         define_method(meth) do
@@ -41,6 +30,37 @@ class Rosh
 
           instance_variable_get("@#{meth}".to_sym)
         end
+      end
+
+      # @return [Symbol]
+      def operating_system
+        return @operating_system if @operating_system
+
+        command = 'uname -a'
+        result = @shell.exec(command)
+        extract_os(result)
+
+        @operating_system
+      end
+
+      # @return [String]
+      def kernel_version
+        command = 'uname -a'
+        result = @shell.exec(command)
+        extract_os(result)
+
+        @kernel_version
+      end
+
+      # @return [Symbol]
+      def architecture
+        return @architecture if @architecture
+
+        command = 'uname -a'
+        result = @shell.exec(command)
+        extract_os(result)
+
+        @architecture
       end
 
       # The name of the remote shell for the user on hostname that initiated the
