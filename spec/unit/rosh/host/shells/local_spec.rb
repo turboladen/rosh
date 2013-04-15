@@ -1,11 +1,11 @@
 require 'spec_helper'
-require 'rosh/host/local_shell'
+require 'rosh/host/shells/local'
 require 'tempfile'
 
 
-describe Rosh::Host::LocalShell do
+describe Rosh::Host::Shells::Local do
   subject do
-    Rosh::Host::LocalShell.new(false)
+    Rosh::Host::Shells::Local.new(false)
   end
 
   describe '#cat' do

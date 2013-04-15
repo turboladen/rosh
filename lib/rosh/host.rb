@@ -2,9 +2,8 @@ require 'etc'
 require 'socket'
 require 'log_switch'
 require_relative 'host/attributes'
-require_relative 'host/local_shell'
 require_relative 'host/local_file_system'
-require_relative 'host/remote_shell'
+Dir[File.dirname(__FILE__) + '/host/shells/*.rb'].each(&method(:require))
 require_relative 'host/remote_file_system'
 Dir[File.dirname(__FILE__) + '/host/service_managers/*.rb'].each(&method(:require))
 Dir[File.dirname(__FILE__) + '/host/package_managers/*.rb'].each(&method(:require))
@@ -26,9 +25,9 @@ class Rosh
       @user = ssh_options[:user] || Etc.getlogin
 
       @shell = if local?
-        Rosh::Host::LocalShell.new(throw_on_fail)
+        Rosh::Host::Shells::Local.new(throw_on_fail)
       else
-        Rosh::Host::RemoteShell.new(@hostname, ssh_options)
+        Rosh::Host::Shells::Remote.new(@hostname, ssh_options)
       end
     end
 

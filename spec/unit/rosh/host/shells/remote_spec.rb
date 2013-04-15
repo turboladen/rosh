@@ -1,8 +1,8 @@
 require 'spec_helper'
-require 'rosh/host/remote_shell'
+require 'rosh/host/shells/remote'
 
 
-describe Rosh::Host::RemoteShell do
+describe Rosh::Host::Shells::Remote do
   let(:ssh) do
     double 'Net::SSH::Simple'
   end
@@ -17,7 +17,7 @@ describe Rosh::Host::RemoteShell do
   end
 
   subject do
-    Rosh::Host::RemoteShell.new(hostname)
+    Rosh::Host::Shells::Remote.new(hostname)
   end
 
   let(:internal_pwd) do
@@ -29,7 +29,7 @@ describe Rosh::Host::RemoteShell do
 
   before do
     Net::SSH::Simple.stub(:new).and_return(ssh)
-    Rosh::Host::RemoteShell.log = false
+    Rosh::Host::Shells::Remote.log = false
     subject.instance_variable_set(:@internal_pwd, internal_pwd)
   end
 
@@ -43,17 +43,17 @@ describe Rosh::Host::RemoteShell do
     end
 
     context ':user option passed in' do
-      subject { Rosh::Host::RemoteShell.new('test', user: 'bobo') }
+      subject { Rosh::Host::Shells::Remote.new('test', user: 'bobo') }
       its(:options) { should eq(user: 'bobo', timeout: 1800) }
     end
 
     context ':timeout option passed in' do
-      subject { Rosh::Host::RemoteShell.new('test', timeout: 1) }
+      subject { Rosh::Host::Shells::Remote.new('test', timeout: 1) }
       its(:options) { should eq(user: Etc.getlogin, timeout: 1) }
     end
 
     context ':meow option passed in' do
-      subject { Rosh::Host::RemoteShell.new('test', meow: 'cat') }
+      subject { Rosh::Host::Shells::Remote.new('test', meow: 'cat') }
       its(:options) { should eq(user: Etc.getlogin, timeout: 1800, meow: 'cat') }
     end
   end
