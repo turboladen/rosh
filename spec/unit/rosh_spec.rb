@@ -22,7 +22,7 @@ describe Rosh do
 
     context 'with an alias' do
       it 'lets you refer to the host by its alias' do
-        subject.add_host('test', :thing)
+        subject.add_host('test', host_alias: :thing)
 
         subject.hosts.should == { thing: current_host }
       end

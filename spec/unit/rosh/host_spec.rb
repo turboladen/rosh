@@ -6,7 +6,7 @@ describe Rosh::Host do
   let(:hostname) { 'test' }
 
   subject do
-    Rosh::Host.new(hostname)
+    Rosh::Host.new(hostname, true)
   end
 
   describe '#initialize' do

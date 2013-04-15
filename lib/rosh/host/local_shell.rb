@@ -13,6 +13,8 @@ require_relative 'local_file_system_object'
 
 class Rosh
   class Host
+
+    # Throws :shell_failure if it was initialized with +throw_on_fail+ true.
     class LocalShell
       extend LogSwitch
       include LogSwitch::Mixin
@@ -20,8 +22,9 @@ class Rosh
       attr_reader :history
       attr_reader :workspace
 
-      def initialize
+      def initialize(throw_on_fail)
         @history = []
+        @throw_on_fail = throw_on_fail
       end
 
       # @param [String] file Path to the file to cat.

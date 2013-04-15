@@ -68,7 +68,6 @@ class Rosh
       #   command.
       def extract_os(result)
         log "STDOUT: #{result}"
-        return nil if result.empty?
 
         %r[^(?<os>[a-zA-Z]+) (?<uname>.*)] =~ result
         @operating_system = os.to_safe_down_sym
