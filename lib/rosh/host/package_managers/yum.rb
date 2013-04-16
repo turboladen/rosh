@@ -5,7 +5,7 @@ class Rosh
   class Host
     module PackageManagers
       module Yum
-        def update(sudo: false)
+        def update_cache(sudo: false)
           cmd = 'yum update -y'
           cmd.insert(0, 'sudo ') if sudo
 

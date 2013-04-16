@@ -13,7 +13,7 @@ class Rosh
           end
         end
 
-        def update
+        def update_cache
           @shell.exec '/usr/bin/env brew update'
 
           @shell.history.last[:exit_status].zero?

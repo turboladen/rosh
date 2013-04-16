@@ -5,8 +5,14 @@ class Rosh
   class Host
     module PackageManagers
       module Apt
-        def update
+        def update_cache
           @shell.exec 'apt-get update'
+
+          @shell.history.last[:exit_status].zero?
+        end
+
+        def update_packages
+          @shell.exec 'apt-get upgrade'
 
           @shell.history.last[:exit_status].zero?
         end
