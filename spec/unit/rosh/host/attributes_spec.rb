@@ -72,7 +72,7 @@ describe Rosh::Host::Attributes do
     end
   end
 
-  describe '#extract_distribution' do
+  describe '#extract_darwin_distribution' do
     context 'darwin' do
       let(:msg) do
         msg = <<-MSG
@@ -84,28 +84,73 @@ BuildVersion:	12D78
 
       before do
         subject.instance_variable_set(:@operating_system, :darwin)
+        shell.should_receive(:exec).with('sw_vers').and_return(msg)
       end
 
-      it 'sets @distribution and @distribution_version' do
-        subject.send(:extract_distribution, msg)
-        subject.instance_variable_get(:@distribution).should == :mac_os_x
-        subject.instance_variable_get(:@distribution_version).should == '10.8.3'
+      it 'returns :mac_os_x and the version' do
+        r = subject.send(:extract_darwin_distribution)
+        r.should == [:mac_os_x, '10.8.3']
       end
     end
+  end
 
-    context 'linux' do
+  describe '#extract_linux_distribution' do
+    context 'lsb_release' do
       let(:msg) do
         'Description:	Ubuntu 12.04.2 LTS'
       end
 
       before do
         subject.instance_variable_set(:@operating_system, :linux)
+        shell.should_receive(:exec).with('lsb_release --description').
+          and_return(msg)
       end
 
-      it 'sets @distribution and @distribution_version' do
-        subject.send(:extract_distribution, msg)
-        subject.instance_variable_get(:@distribution).should == :ubuntu
-        subject.instance_variable_get(:@distribution_version).should == '12.04.2 LTS'
+      it 'returns :ubuntu and the version' do
+        r = subject.send(:extract_linux_distribution)
+        r.should == [:ubuntu, '12.04.2 LTS']
+      end
+    end
+
+    context 'centos' do
+      let(:msg) do
+        'CentOS release 5.5 (Final)'
+      end
+
+      before do
+        subject.instance_variable_set(:@operating_system, :linux)
+        shell.should_receive(:exec).with('lsb_release --description').
+          and_throw(:shell_failure)
+        shell.should_receive(:exec).with('cat /etc/redhat-release').
+          and_return(msg)
+      end
+
+      it 'returns :centos and the version' do
+        r = subject.send(:extract_linux_distribution)
+        r.should == [:centos, '5.5 (Final)']
+      end
+    end
+
+    context 'gentoo' do
+      let(:msg) do
+        'Gentoo Base System release 2.1'
+      end
+
+      before do
+        subject.instance_variable_set(:@operating_system, :linux)
+        shell.should_receive(:exec).with('lsb_release --description').
+          and_throw(:shell_failure)
+        shell.should_receive(:exec).with('cat /etc/redhat-release').
+          and_throw(:shell_failure)
+        shell.should_receive(:exec).with('cat /etc/slackware-release').
+          and_throw(:shell_failure)
+        shell.should_receive(:exec).with('cat /etc/gentoo-release').
+          and_return(msg)
+      end
+
+      it 'returns :gentoo and the version' do
+        r = subject.send(:extract_linux_distribution)
+        r.should == [:gentoo, '2.1']
       end
     end
   end

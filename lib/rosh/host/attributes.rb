@@ -17,27 +17,15 @@ class Rosh
 
       DISTRIBUTION_METHODS.each do |meth|
         define_method(meth) do
-          redhat = false
-
-          result = case self.operating_system
+          distro, version = case self.operating_system
           when :linux
-            r = catch(:shell_failure) do
-              @shell.exec 'lsb_release --description'
-            end
-
-            unless r[:exit_status].zero?
-              redhat = true
-              @shell.exec 'cat /etc/redhat-release'
-            end
+            extract_linux_distribution
           when :darwin
-            @shell.exec 'sw_vers'
+            extract_darwin_distribution
           end
 
-          if redhat
-            extract_redhat(result)
-          else
-            extract_distribution(result)
-          end
+          @distribution = distro
+          @distribution_version = version
 
           instance_variable_get("@#{meth}".to_sym)
         end
@@ -117,29 +105,45 @@ class Rosh
       end
 
       # Extracts info about the distribution.
-      #
-      # @param [Rosh::CommandResult] result
-      # @todo What if @operating_system isn't set yet?
-      def extract_distribution(result)
-        stdout = result
-        log "STDOUT: #{stdout}"
+      def extract_linux_distribution
+        distro, version = catch(:distro_info) do
+          catch(:shell_failure) do
+            stdout = @shell.exec('lsb_release --description')
+            %r[Description:\s+(?<distro>\w+)\s+(?<version>[^\n]+)] =~ stdout
 
-        case @operating_system
-        when :darwin
-          %r[ProductName:\s+(?<distro>[^\n]+)\s*ProductVersion:\s+(?<version>\S+)]m =~ stdout
-        when :linux
-          %r[Description:\s+(?<distro>\w+)\s+(?<version>[^\n]+)] =~ stdout
+            throw(:distro_info, [distro, version])
+          end
+
+          catch(:shell_failure) do
+            stdout = @shell.exec('cat /etc/redhat-release')
+            %r[(?<distro>\w+)\s+release\s+(?<version>[^\n]+)] =~ stdout
+
+            throw(:distro_info, [distro, version])
+          end
+
+          catch(:shell_failure) do
+            stdout = @shell.exec('cat /etc/slackware-release')
+            %r[(?<distro>\w+)\s+release\s+(?<version>[^\n]+)] =~ stdout
+
+            throw(:distro_info, [distro, version])
+          end
+
+          catch(:shell_failure) do
+            stdout = @shell.exec('cat /etc/gentoo-release')
+            %r[(?<distro>\S+).+release\s+(?<version>[^\n]+)] =~ stdout
+
+            throw(:distro_info, [distro, version])
+          end
         end
 
-        @distribution = distro.to_safe_down_sym
-        @distribution_version = version
+        [distro.to_safe_down_sym, version]
       end
 
-      def extract_redhat(result)
-        %r[(?<distro>\w+)\s+release\s+(?<version>[^\n]+)] =~ result
+      def extract_darwin_distribution
+        stdout = @shell.exec 'sw_vers'
+        %r[ProductName:\s+(?<distro>[^\n]+)\s*ProductVersion:\s+(?<version>\S+)]m =~ stdout
 
-        @distribution = distro.to_safe_down_sym
-        @distribution_version = version
+        [distro.to_safe_down_sym, version]
       end
     end
   end
