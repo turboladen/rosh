@@ -76,6 +76,8 @@ class Rosh
           Rosh::Host::PackageManager.new(@shell, :apt, :dpkg)
         when :centos
           Rosh::Host::PackageManager.new(@shell, :yum)
+        when :gentoo
+          Rosh::Host::PackageManager.new(@shell, :emerge)
         end
       end
     end
