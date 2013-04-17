@@ -21,6 +21,12 @@ class Rosh
       if @ssh_result.is_a?(Net::SSH::Simple::Result) && @ruby_object.nil?
         @ruby_object = @ssh_result.stdout.strip
       end
+
+      if @ssh_result.is_a?(Net::SSH::Simple::Error) && @ruby_object.nil?
+        @ruby_object = @ssh_result.wrapped
+        @ssh_result.backtrace.each(&method(:puts))
+        @ssh_result = @ssh_result.result
+      end
     end
 
     # @return [Boolean] Tells if the result was an exception.  Exceptions are
