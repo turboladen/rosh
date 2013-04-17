@@ -107,33 +107,21 @@ class Rosh
       # Extracts info about the distribution.
       def extract_linux_distribution
         distro, version = catch(:distro_info) do
-          catch(:shell_failure) do
-            stdout = @shell.exec('lsb_release --description')
-            %r[Description:\s+(?<distro>\w+)\s+(?<version>[^\n]+)] =~ stdout
+          stdout = @shell.exec('lsb_release --description')
+          %r[Description:\s+(?<distro>\w+)\s+(?<version>[^\n]+)] =~ stdout
+          throw(:distro_info, [distro, version]) unless distro && version
 
-            throw(:distro_info, [distro, version])
-          end
+          stdout = @shell.exec('cat /etc/redhat-release')
+          %r[(?<distro>\w+)\s+release\s+(?<version>[^\n]+)] =~ stdout
+          throw(:distro_info, [distro, version]) unless distro && version
 
-          catch(:shell_failure) do
-            stdout = @shell.exec('cat /etc/redhat-release')
-            %r[(?<distro>\w+)\s+release\s+(?<version>[^\n]+)] =~ stdout
+          stdout = @shell.exec('cat /etc/slackware-release')
+          %r[(?<distro>\w+)\s+release\s+(?<version>[^\n]+)] =~ stdout
+          throw(:distro_info, [distro, version]) unless distro && version
 
-            throw(:distro_info, [distro, version])
-          end
-
-          catch(:shell_failure) do
-            stdout = @shell.exec('cat /etc/slackware-release')
-            %r[(?<distro>\w+)\s+release\s+(?<version>[^\n]+)] =~ stdout
-
-            throw(:distro_info, [distro, version])
-          end
-
-          catch(:shell_failure) do
-            stdout = @shell.exec('cat /etc/gentoo-release')
-            %r[(?<distro>\S+).+release\s+(?<version>[^\n]+)] =~ stdout
-
-            throw(:distro_info, [distro, version])
-          end
+          stdout = @shell.exec('cat /etc/gentoo-release')
+          %r[(?<distro>\S+).+release\s+(?<version>[^\n]+)] =~ stdout
+          throw(:distro_info, [distro, version]) unless distro && version
         end
 
         [distro.to_safe_down_sym, version]

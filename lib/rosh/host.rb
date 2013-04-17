@@ -20,14 +20,14 @@ class Rosh
     attr_reader :shell
     attr_reader :user
 
-    def initialize(hostname, throw_on_fail, **ssh_options)
+    def initialize(hostname,  **ssh_options)
       @hostname = hostname
       @user = ssh_options[:user] || Etc.getlogin
 
       @shell = if local?
-        Rosh::Host::Shells::Local.new(throw_on_fail)
+        Rosh::Host::Shells::Local.new
       else
-        Rosh::Host::Shells::Remote.new(throw_on_fail, @hostname, ssh_options)
+        Rosh::Host::Shells::Remote.new(@hostname, ssh_options)
       end
     end
 

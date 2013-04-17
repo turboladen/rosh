@@ -17,7 +17,7 @@ describe Rosh::Host::Shells::Remote do
   end
 
   subject do
-    Rosh::Host::Shells::Remote.new(false, hostname)
+    Rosh::Host::Shells::Remote.new(hostname)
   end
 
   let(:internal_pwd) do
@@ -43,17 +43,17 @@ describe Rosh::Host::Shells::Remote do
     end
 
     context ':user option passed in' do
-      subject { Rosh::Host::Shells::Remote.new(false, 'test', user: 'bobo') }
+      subject { Rosh::Host::Shells::Remote.new('test', user: 'bobo') }
       its(:options) { should eq(user: 'bobo', timeout: 1800) }
     end
 
     context ':timeout option passed in' do
-      subject { Rosh::Host::Shells::Remote.new(false, 'test', timeout: 1) }
+      subject { Rosh::Host::Shells::Remote.new('test', timeout: 1) }
       its(:options) { should eq(user: Etc.getlogin, timeout: 1) }
     end
 
     context ':meow option passed in' do
-      subject { Rosh::Host::Shells::Remote.new(false, 'test', meow: 'cat') }
+      subject { Rosh::Host::Shells::Remote.new('test', meow: 'cat') }
       its(:options) { should eq(user: Etc.getlogin, timeout: 1800, meow: 'cat') }
     end
   end

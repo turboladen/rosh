@@ -11,16 +11,14 @@ class Rosh
   class Host
     module Shells
 
-      # Throws :shell_failure if it was initialized with +throw_on_fail+ true.
       class Base
         extend LogSwitch
         include LogSwitch::Mixin
 
         attr_reader :history
 
-        def initialize(throw_on_fail)
+        def initialize
           @history = []
-          @throw_on_fail = throw_on_fail
         end
 
         # The shell's environment.  Note this doesn't trump the Ruby process's ENV
@@ -85,10 +83,6 @@ class Rosh
             exit_status: exit_status,
             ssh_output: ssh_output
           }
-
-          if @throw_on_fail && !last_exit_status.zero?
-            throw(:shell_failure, @history.last)
-          end
 
           @history.last[:output]
         end

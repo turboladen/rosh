@@ -18,8 +18,7 @@ class Rosh
 
         attr_reader :workspace
 
-        def initialize(throw_on_fail)
-          super(throw_on_fail)
+        def initialize
           @internal_pwd = Dir.pwd
         end
 

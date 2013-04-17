@@ -5,7 +5,7 @@ require 'tempfile'
 
 describe Rosh::Host::Shells::Local do
   subject do
-    Rosh::Host::Shells::Local.new(false)
+    Rosh::Host::Shells::Local.new
   end
 
   describe '#cat' do
