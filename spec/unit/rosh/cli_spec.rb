@@ -13,6 +13,8 @@ describe Rosh::CLI do
     before do
       subject.stub(:loop).and_yield
       subject.stub(:new_prompt).and_return prompt
+      Rosh::Completion.should_receive(:build)
+      Readline.should_receive(:completion_proc=)
     end
 
     it "saves commands to Readline's history" do

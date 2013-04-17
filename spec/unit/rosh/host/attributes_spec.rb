@@ -101,7 +101,6 @@ BuildVersion:	12D78
       end
 
       before do
-        subject.instance_variable_set(:@operating_system, :linux)
         shell.should_receive(:exec).with('lsb_release --description').
           and_return(msg)
       end
@@ -118,9 +117,7 @@ BuildVersion:	12D78
       end
 
       before do
-        subject.instance_variable_set(:@operating_system, :linux)
-        shell.should_receive(:exec).with('lsb_release --description').
-          and_throw(:shell_failure)
+        shell.should_receive(:exec).with('lsb_release --description')
         shell.should_receive(:exec).with('cat /etc/redhat-release').
           and_return(msg)
       end
@@ -137,13 +134,9 @@ BuildVersion:	12D78
       end
 
       before do
-        subject.instance_variable_set(:@operating_system, :linux)
-        shell.should_receive(:exec).with('lsb_release --description').
-          and_throw(:shell_failure)
-        shell.should_receive(:exec).with('cat /etc/redhat-release').
-          and_throw(:shell_failure)
-        shell.should_receive(:exec).with('cat /etc/slackware-release').
-          and_throw(:shell_failure)
+        shell.should_receive(:exec).with('lsb_release --description')
+        shell.should_receive(:exec).with('cat /etc/redhat-release')
+        shell.should_receive(:exec).with('cat /etc/slackware-release')
         shell.should_receive(:exec).with('cat /etc/gentoo-release').
           and_return(msg)
       end

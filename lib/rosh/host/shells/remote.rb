@@ -42,6 +42,7 @@ class Rosh
         # @param [String] hostname Name or IP of the host to SSH in to.
         # @param [Hash] options Net::SSH::Simple options.
         def initialize(hostname, **options)
+          super()
           @hostname = hostname
           @options = options
 
@@ -244,11 +245,6 @@ class Rosh
             if result.exit_status.zero?
               [result.ruby_object, 0, result.ssh_result]
             else
-              log "exit_status: #{result.exit_status}"
-              log "result is a: #{result.class}"
-              log "result ruby object is a: #{result.ruby_object.class}"
-              log "result ssh result is a: #{result.ssh_result.class}"
-
               ssh = result.ssh_result
               output = if ssh.stdout.empty? && ssh.stderr.empty?
                 ''

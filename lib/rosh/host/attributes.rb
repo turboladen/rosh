@@ -109,19 +109,19 @@ class Rosh
         distro, version = catch(:distro_info) do
           stdout = @shell.exec('lsb_release --description')
           %r[Description:\s+(?<distro>\w+)\s+(?<version>[^\n]+)] =~ stdout
-          throw(:distro_info, [distro, version]) unless distro && version
+          throw(:distro_info, [distro, version]) if distro && version
 
           stdout = @shell.exec('cat /etc/redhat-release')
           %r[(?<distro>\w+)\s+release\s+(?<version>[^\n]+)] =~ stdout
-          throw(:distro_info, [distro, version]) unless distro && version
+          throw(:distro_info, [distro, version]) if distro && version
 
           stdout = @shell.exec('cat /etc/slackware-release')
           %r[(?<distro>\w+)\s+release\s+(?<version>[^\n]+)] =~ stdout
-          throw(:distro_info, [distro, version]) unless distro && version
+          throw(:distro_info, [distro, version]) if distro && version
 
           stdout = @shell.exec('cat /etc/gentoo-release')
           %r[(?<distro>\S+).+release\s+(?<version>[^\n]+)] =~ stdout
-          throw(:distro_info, [distro, version]) unless distro && version
+          throw(:distro_info, [distro, version]) if distro && version
         end
 
         [distro.to_safe_down_sym, version]

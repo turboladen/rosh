@@ -19,6 +19,7 @@ class Rosh
         attr_reader :workspace
 
         def initialize
+          super()
           @internal_pwd = Dir.pwd
         end
 
