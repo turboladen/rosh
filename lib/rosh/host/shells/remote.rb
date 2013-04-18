@@ -98,7 +98,7 @@ class Rosh
                 puts 'Authentication failed.'.red
               else
                 retried = true
-                password = ask('Enter your password:  ') { |q| q.echo = false }
+                password = ask('<ROSH> Enter your password:  ') { |q| q.echo = false }
                 new_options.merge! password: password
                 retry
               end
