@@ -1,7 +1,11 @@
+require 'observer'
+
 
 class Rosh
   class Host
     class RemoteFileSystemObject
+      include Observable
+
       def self.create(path, remote_shell)
         fso = new(path, remote_shell)
 
@@ -57,51 +61,104 @@ class Rosh
         @remote_shell.exec(cmd)
       end
 
-      def owner=(new_owner, sudo: false)
+      def owner=(new_owner)
+        old_owner = owner
+        puts "old owner: #{old_owner}"
+        puts "new owner: #{new_owner}"
         cmd = "chown #{new_owner} #{@path}"
-        cmd.insert(0, 'sudo ') if sudo
         @remote_shell.exec(cmd)
 
-        @remote_shell.last_exit_status.zero?
+        success = @remote_shell.last_exit_status.zero?
+
+        if success && old_owner != new_owner
+          changed
+          notify_observers(:owner, new_owner)
+        end
+
+        success
       end
 
       def group
-        #cmd = "ls -l #{@path} | awk '{print $4}'"
-        cmd = "M=`stat -f %g% #{@path}` && cat /etc/group | grep :$M:"
-        output = @remote_shell.exec(cmd)
-        puts "output: #{output}"
+        cmd = "ls -l #{@path} | awk '{print $4}'"
 
-        %r[(?<group_name>)] =~ output
-
-        group_name
+        @remote_shell.exec(cmd)
       end
 
-      def group=(new_group, sudo: false)
+      def group=(new_group)
+        old_group = group
         cmd = "chgrp #{new_group} #{@path}"
-        cmd.insert(0, 'sudo ') if sudo
         @remote_shell.exec(cmd)
 
-        @remote_shell.last_exit_status.zero?
+        success = @remote_shell.last_exit_status.zero?
+
+        if success && old_group != new_group
+          changed
+          notify_observers(:group, new_group)
+        end
+
+        success
       end
 
-      def mode=(new_mode, sudo: false)
-        cmd = "chmod #{new_mode} #{@path}'"
-        cmd.insert(0, 'sudo ') if sudo
+      def mode
+        cmd = "ls -l #{@path} | awk '{print $1}'"
+        letter_mode = @remote_shell.exec(cmd)
+        puts "letter mode: #{letter_mode}"
+        %r[^(?<type>.)(?<user>.{3})(?<group>.{3})(?<others>.{3})] =~ letter_mode
+
+        converter = lambda do |letters|
+          value = 0
+
+          letters.chars do |char|
+            case char
+            when '-' then next
+            when 'x' then value += 1
+            when 'w' then value += 2
+            when 'r' then value += 4
+            end
+          end
+
+          value.to_s
+        end
+
+        number_mode = ''
+        number_mode << converter.call(user)
+        number_mode << converter.call(group)
+        number_mode << converter.call(others)
+
+        number_mode.to_i
+      end
+
+      def mode=(new_mode)
+        old_mode = mode
+        cmd = "chmod #{new_mode} #{@path}"
         @remote_shell.exec(cmd)
 
-        @remote_shell.last_exit_status.zero?
+        success = @remote_shell.last_exit_status.zero?
+
+        if success && old_mode != new_mode.to_i
+          changed
+          notify_observers(:mode, new_mode)
+        end
+
+        success
       end
 
       def basename
         File.basename(@path)
       end
 
-      def remove(sudo: false)
+      def remove
         cmd = "rm -rf #{@path}"
-        cmd.insert(0, 'sudo ') if sudo
         @remote_shell.exec(cmd)
 
-        @remote_shell.last_exit_status.zero?
+        success = @remote_shell.last_exit_status.zero?
+
+        if success
+          changed
+          notify_observers(:remove, nil)
+        end
+
+        success
       end
     end
   end
