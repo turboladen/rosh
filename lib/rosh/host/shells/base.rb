@@ -15,10 +15,12 @@ class Rosh
         extend LogSwitch
         include LogSwitch::Mixin
 
+        attr_accessor :sudo
         attr_reader :history
 
         def initialize
           @history = []
+          @sudo = false
         end
 
         # The shell's environment.  Note this doesn't trump the Ruby process's ENV
@@ -64,6 +66,16 @@ class Rosh
           @history.reverse.find { |result| result[:output].kind_of? Exception }
         end
         alias :_! :last_exception
+
+        def su(&block)
+          log 'sudo enabled'
+          @sudo = true
+          result = block.call
+          @sudo = false
+          log 'sudo disabled'
+
+          result
+        end
 
         private
 

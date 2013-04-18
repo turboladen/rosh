@@ -162,7 +162,9 @@ class Rosh
           full_file = preprocess_path(file)
 
           process(:cat, file: file) do
-            result = run "cat #{full_file}"
+            cmd = "cat #{full_file}"
+            cmd.insert(0, 'sudo ') if @sudo
+            result = run(cmd)
 
             if result.ssh_result.stderr.match %r[No such file or directory]
               error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
@@ -184,7 +186,9 @@ class Rosh
           full_path = preprocess_path(path)
 
           process(:cat, path: path) do
-            result = run "cd #{full_path} && pwd"
+            cmd = "cd #{full_path} && pwd"
+            cmd.insert(0, 'sudo ') if @sudo
+            result = run(cmd)
 
             if result.exit_status.zero?
               @internal_pwd = Rosh::Host::RemoteDir.new(result.ruby_object, self)
@@ -212,7 +216,9 @@ class Rosh
           full_destination = preprocess_path(destination)
 
           process(:cp, source: source, destination: destination) do
-            result = run "cp #{full_source} #{full_destination}"
+            cmd = "cp #{full_source} #{full_destination}"
+            cmd.insert(0, 'sudo ') if @sudo
+            result = run(cmd)
 
             if result.ssh_result.stderr.match %r[No such file or directory]
               error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
@@ -236,6 +242,7 @@ class Rosh
         #   STDERR were both written to during a non-0 resulting command, those
         #   strings will be concatenated and separated by 2 \n's.
         def exec(command)
+          command = %[sudo -s -- #{command}] if @sudo
           log "exec called with command '#{command}'"
 
           process(:exec, command: command) do
@@ -273,7 +280,9 @@ class Rosh
           base = preprocess_path(path)
 
           process(:ls, path: path) do
-            result = run "ls #{base}"
+            cmd = "ls #{base}"
+            cmd.insert(0, 'sudo ') if @sudo
+            result = run(command)
 
             if result.ssh_result.stderr.match %r[No such file or directory]
               error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
@@ -303,7 +312,9 @@ class Rosh
           log "ps called with args 'name: #{name}', 'pid: #{pid}'"
 
           process(:ps, name: name, pid: pid) do
-            result = run('ps auxe')
+            cmd = 'ps auxe'
+            cmd.insert(0, 'sudo ') if @sudo
+            result = run(command)
             list = []
 
             result.ssh_result.stdout.each_line do |line|

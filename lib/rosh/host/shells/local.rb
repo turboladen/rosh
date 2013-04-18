@@ -108,6 +108,7 @@ class Rosh
         #   fail, #last_exit_status is whatever was set by the command and returns
         #   the exception that was raised.
         def exec(command)
+          command = command.insert(0, 'sudo ') if @sudo
           log "exec called with command '#{command}'"
           #cmd, *args = Shellwords.shellsplit(command)
 

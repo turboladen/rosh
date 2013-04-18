@@ -24,10 +24,6 @@ class Rosh
       def link(path)
         Rosh::Host::RemoteLink.new(path, @shell)
       end
-
-      def su
-        @shell
-      end
     end
   end
 end
