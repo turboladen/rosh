@@ -1,5 +1,6 @@
 require 'etc'
 require 'net/ssh'
+require 'net/scp'
 
 require_relative 'base'
 require_relative '../remote_file_system_object'
@@ -57,6 +58,10 @@ class Rosh
 
           @internal_pwd = nil
           @history = []
+
+          at_exit do
+            @ssh.close unless @ssh.closed?
+          end
 
           log "Initialized for '#{@hostname}'"
         end
@@ -143,14 +148,33 @@ class Rosh
           new_options = @options.merge(ssh_options)
 
           result = begin
-            #output = @ssh.scp_ul(@hostname, source, destination, new_options, &ssh_exec)
-            output = @ssh.scp_ul(@hostname, source, destination, new_options)
-            Rosh::CommandResult.new(nil, output.exit_status, output)
+            stdout_data = ''
+
+            Net::SCP.upload!(@hostname, @user, source, destination, new_options) do |ch, name, sent, total|
+              ch.on_data do |ch, data|
+                good_info data
+
+                if data.match /sudo\] password/
+                  unless @options[:password]
+                    @options[:password] = prompt("\n<ROSH> Enter your password:  ", false)
+                  end
+
+                  ch.send_data "#{@options[:password]}\n"
+                  ch.eof!
+                end
+
+                stdout_data << data
+              end
+
+              puts "#{name}: #{sent}/#{total}"
+            end
+
+            Rosh::CommandResult.new(nil, 0, stdout_data)
           rescue => ex
             log "Exception: #{ex.class}"
             log "Exception: #{ex.message}"
             log "Exception: #{ex.backtrace.join("\n")}"
-            Rosh::CommandResult.new(ex, 1, ex)
+            Rosh::CommandResult.new(ex, 1, stdout_data)
           end
 
           log "SCP upload result: #{result.inspect}"

@@ -121,16 +121,11 @@ describe Rosh::Host::Shells::Remote do
   describe '#upload' do
     context 'with no options' do
       it 'runs the command and returns an ActionResult object' do
-        expected_options = {
-          user: Etc.getlogin,
-          timeout: 1800
-        }
-
-        ssh.should_receive(:scp_ul).
-          with(hostname, 'test file', '/destination', expected_options).
+        Net::SCP.should_receive(:upload!).
+          with(hostname, Etc.getlogin, 'test file', '/destination', timeout: 1800).
           and_return ssh_output
         Rosh::CommandResult.should_receive(:new).
-          with(nil, 0, ssh_output).and_return outcome
+          with(nil, 0, ssh_output.stdout).and_return outcome
 
         o = subject.upload 'test file', '/destination'
         o.should == outcome
@@ -144,17 +139,16 @@ describe Rosh::Host::Shells::Remote do
 
       it 'merges @options and runs the command' do
         expected_options = {
-          user: Etc.getlogin,
           timeout: 1800,
           one: 'one',
           two: 'two'
         }
 
-        ssh.should_receive(:scp_ul).
-          with(hostname, 'test file', '/destination', expected_options).
+        Net::SCP.should_receive(:upload!).
+          with(hostname, Etc.getlogin, 'test file', '/destination', expected_options).
           and_return ssh_output
         Rosh::CommandResult.should_receive(:new).
-          with(nil, 0, ssh_output).and_return outcome
+          with(nil, 0, ssh_output.stdout).and_return outcome
 
         subject.upload 'test file', '/destination', options
       end
