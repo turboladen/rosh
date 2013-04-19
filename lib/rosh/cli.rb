@@ -68,7 +68,7 @@ class Rosh
     end
 
     # @param [String] argv The command given at the prompt.
-    # @return [Ros::CommandResult]
+    # @return [Rosh::CommandResult]
     def execute(argv)
       new_argv = argv.dup.shellsplit
       command = new_argv.shift.to_sym
