@@ -5,6 +5,10 @@ class Rosh
   class Host
     module PackageManagers
       module Brew
+
+        # Lists all installed Brew packages.
+        #
+        # @return [Array<Rosh::Host::PackageTypes::Brew>]
         def list
           result = @shell.exec 'brew list'
 
@@ -13,6 +17,9 @@ class Rosh
           end
         end
 
+        # Updates homebrew's cache using `brew update`.
+        #
+        # @return [Boolean] +true+ if exit status was 0; +false+ if not.
         def update_cache
           @shell.exec '/usr/bin/env brew update'
 
