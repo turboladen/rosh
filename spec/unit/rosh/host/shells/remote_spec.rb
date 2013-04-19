@@ -4,7 +4,7 @@ require 'rosh/host/shells/remote'
 
 describe Rosh::Host::Shells::Remote do
   let(:ssh) do
-    double 'Net::SSH::Connection'
+    double 'Net::SSH::Connection', close: true, :closed? => true
   end
 
   let(:hostname) { 'testhost' }

@@ -105,7 +105,7 @@ describe Rosh::Host::LocalDir do
   end
 
   describe '#grpowned?' do
-    specify { subject.grpowned?.should be_false }
+    specify { subject.grpowned?.should be_true }
   end
 
   describe '#identical?' do

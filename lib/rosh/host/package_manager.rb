@@ -1,9 +1,11 @@
+require 'observer'
 Dir[File.dirname(__FILE__) + '/package_managers/*.rb'].each(&method(:require))
 
 
 class Rosh
   class Host
     class PackageManager
+      include Observable
 
       def initialize(shell, *manager_types)
         @shell = shell
