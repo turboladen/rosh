@@ -1,32 +1,37 @@
-require 'json'
-require 'yaml'
-require 'net/ssh/simple'
+require 'log_switch'
 
 
 class Rosh
-
   class CommandResult
+    extend LogSwitch
+    include LogSwitch::Mixin
 
-    attr_accessor :exit_status
-
+    attr_reader :exit_status
     attr_reader :ruby_object
+    attr_reader :stdout
+    attr_reader :stderr
 
-    attr_reader :ssh_result
-
-    def initialize(ruby_object, status=nil, ssh_result=nil)
-      @exit_status = status
+    def initialize(ruby_object, exit_status, stdout=nil, stderr=nil)
       @ruby_object = ruby_object
-      @ssh_result = ssh_result
+      @exit_status = exit_status
+      @stdout = stdout
+      @stderr = stderr
 
-      if @ssh_result.is_a?(Net::SSH::Simple::Result) && @ruby_object.nil?
-        @ruby_object = @ssh_result.stdout.strip
+      if @stdout && !@stdout.empty? && @ruby_object.nil?
+        @ruby_object = @stdout.strip
       end
 
+=begin
       if @ssh_result.is_a?(Net::SSH::Simple::Error) && @ruby_object.nil?
         @ruby_object = @ssh_result.wrapped
         @ssh_result.backtrace.each(&method(:puts))
         @ssh_result = @ssh_result.result
       end
+=end
+      msg = "New result: ruby_object=#{@ruby_object}; "
+      msg << "exit_status: #{@exit_status}; "
+      msg << "stdout=#{@stdout}; stderr=#{@stderr}"
+      log msg
     end
 
     # @return [Boolean] Tells if the result was an exception.  Exceptions are
@@ -39,32 +44,7 @@ class Rosh
     def failed?
       !@exit_status.zero?
     end
-
-    def no_change?
-      @exit_status == :no_change
-    end
-
-    def updated?
-      @exit_status == :updated
-    end
-
-    # @return [Hash] All attributes as a Hash.
-    def to_hash
-      instance_variables.inject({}) do |result, ivar|
-        key = ivar.to_s.delete('@').to_sym
-        result[key] = instance_variable_get(ivar)
-        result
-      end
-    end
-
-    # @return [String] All attributes as JSON.
-    def to_json
-      self.to_hash.to_json
-    end
-
-    # @return [String] All attributes as YAML.
-    def to_yaml
-      self.to_hash.to_yaml
-    end
   end
 end
+
+Rosh::CommandResult.log_class_name = true
