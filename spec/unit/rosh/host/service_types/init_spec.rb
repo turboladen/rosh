@@ -11,7 +11,8 @@ describe Rosh::Host::ServiceTypes::Init do
 
   let(:result) do
     r = double 'Rosh::CommandResult'
-    r.stub(:ssh_result).and_return 'output'
+    r.stub(:stdout).and_return 'output'
+    r.stub(:stderr)
 
     r
   end
@@ -39,7 +40,7 @@ describe Rosh::Host::ServiceTypes::Init do
 
         specify { @r.ruby_object.should eq info }
         specify { @r.exit_status.should eq 0 }
-        specify { @r.ssh_result.should eq 'output' }
+        specify { @r.stdout.should eq 'output' }
       end
 
       context 'pid is not an Array' do
@@ -55,7 +56,7 @@ describe Rosh::Host::ServiceTypes::Init do
 
         specify { @r.ruby_object.should eq info }
         specify { @r.exit_status.should eq 0 }
-        specify { @r.ssh_result.should eq 'output' }
+        specify { @r.stdout.should eq 'output' }
       end
     end
 

@@ -69,7 +69,7 @@ class Rosh
       def remote_shell
         command = 'echo $SHELL'
         result = @shell.exec(command)
-        stdout = result.ssh_result.stdout
+        stdout = result.stdout
         log "STDOUT: #{stdout}"
         %r[(?<shell>[a-z]+)$] =~ stdout
 

@@ -77,6 +77,16 @@ class Rosh
           result
         end
 
+        def good_info(text)
+          h = @hostname || 'localhost'
+          $stdout.puts "[#{h}] #{text.strip}".light_blue
+        end
+
+        def bad_info(text)
+          h = @hostname || 'localhost'
+          $stderr.puts "[#{h}] #{text.strip}".light_red
+        end
+
         private
 
         # Saves the result of the block given to #last_result and exit code to

@@ -34,7 +34,7 @@ class Rosh
             create(file.basename)
           end
 
-          Rosh::CommandResult.new(services, 0, result.ssh_result)
+          Rosh::CommandResult.new(services, 0, result.stdout, result.stderr)
         end
 
         def freebsd_list
@@ -44,7 +44,7 @@ class Rosh
             create(file.basename)
           end
 
-          Rosh::CommandResult.new(services, 0, result.ssh_result)
+          Rosh::CommandResult.new(services, 0, result.stdout, result.stderr)
         end
       end
     end

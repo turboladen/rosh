@@ -17,7 +17,7 @@ class Rosh
         result = @host.shell.exec 'dscl -plist . -readall /Groups'
         groups = Plist.parse_xml(result.ruby_object)
 
-        Rosh::CommandResult.new(groups, 0, result.ssh_result)
+        Rosh::CommandResult.new(groups, 0, result.stdout, result.stderr)
       end
 
       private

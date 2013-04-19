@@ -17,7 +17,7 @@ class Rosh
           info = build_info(state, pid: pid)
           info[:plist] = Plist.parse_xml(result.ruby_object)
 
-          Rosh::CommandResult.new(info, exit_code, result.ssh_result)
+          Rosh::CommandResult.new(info, exit_code, result.stdout, result.stderr)
         end
 
         # @return [Rosh::CommandResult] #ruby_object is a Symbol: +:running+,
@@ -25,7 +25,7 @@ class Rosh
         def status
           state, exit_code, result, = fetch_status
 
-          Rosh::CommandResult.new(state, exit_code, result.ssh_result)
+          Rosh::CommandResult.new(state, exit_code, result.stdout, result.stderr)
         end
 
         # Runs `launchctl load` on the current service.
@@ -38,7 +38,7 @@ class Rosh
 
           if result.ruby_object =~ /nothing found to load/m
             return Rosh::CommandResult.new(Rosh::UnrecognizedService.new(result.ruby_object),
-              result.exit_status, result.ssh_result)
+              result.exit_status, result.stdout, result.stderr)
           end
 
           result

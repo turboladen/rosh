@@ -17,7 +17,7 @@ class Rosh
         result = @host.shell.exec 'dscl -plist . -readall /Users'
         users = Plist.parse_xml(result.ruby_object)
 
-        Rosh::CommandResult.new(users, 0, result.ssh_result)
+        Rosh::CommandResult.new(users, 0, result.stdout, result.stderr)
       end
 
       private

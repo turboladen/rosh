@@ -1,5 +1,5 @@
 require 'etc'
-require 'net/ssh/simple'
+require 'net/ssh'
 
 require_relative 'base'
 require_relative '../remote_file_system_object'
@@ -9,9 +9,11 @@ require_relative '../remote_proc_table'
 
 class Rosh
   class Host
+    SSHResult = Struct.new(:stdout, :stderr, :exit_status, :exit_signal)
+
     module Shells
 
-      # Wrapper for Net::SSH::Simple to allow for a) not having to pass in the
+      # Wrapper for Net::SSH to allow for a) not having to pass in the
       # hostname with every SSH call, and b) handle STDOUT and STDERR the same way
       # across SSH builtin_commands.
       #
@@ -29,26 +31,29 @@ class Rosh
       class Remote < Base
         extend LogSwitch
         include LogSwitch::Mixin
+        include Net::SSH::PromptMethods::Highline
 
         DEFAULT_USER = Etc.getlogin
         DEFAULT_TIMEOUT = 1800
 
-        # @return [Hash] The Net::SSH::Simple options that were during initialization
+        # @return [Hash] The Net::SSH options that were during initialization
         #   and via #set.
         attr_reader :options
 
         attr_reader :hostname
+        attr_reader :user
 
         # @param [String] hostname Name or IP of the host to SSH in to.
-        # @param [Hash] options Net::SSH::Simple options.
+        # @param [Hash] options Net::SSH options.
         def initialize(hostname, **options)
           super()
           @hostname = hostname
           @options = options
+          @user = @options.delete(:user) || DEFAULT_USER
 
-          @options[:user] = DEFAULT_USER unless @options.has_key? :user
           @options[:timeout] = DEFAULT_TIMEOUT unless @options.has_key? :timeout
-          @ssh = Net::SSH::Simple.new(@options)
+          log "Net::SSH.configuration: #{Net::SSH.configuration_for(@hostname)}"
+          @ssh = new_ssh
 
           @internal_pwd = nil
           @history = []
@@ -58,7 +63,7 @@ class Rosh
 
         # Easy way to set a(n) SSH option(s).
         #
-        # @param [Hash] options Net::SSH::Simple options.
+        # @param [Hash] options Net::SSH options.
         def set(**options)
           log "Adding options: #{options}"
           @options.merge! options
@@ -78,33 +83,37 @@ class Rosh
         # Runs +command+ on the host for which this SSH object is connected to.
         #
         # @param [String] command The command to run on the remote box.
-        # @param [Hash] ssh_options Net::SSH::Simple options.  These will get merged
+        # @param [Hash] ssh_options Net::SSH options.  These will get merged
         #   with options set in #initialize and via #set.  Can be used to override
         #   those settings as well.
         #
         # @return [Rosh::CommandResult]
-        def run(command, **ssh_options)
-          new_options = @options.merge(ssh_options)
+        def run(command)
           retried = false
 
           begin
-            output = @ssh.ssh(@hostname, command, new_options, &ssh_block)
-            Rosh::CommandResult.new(nil, output.exit_code, output)
-          rescue Net::SSH::Simple::Error => ex
-            log "Net::SSH::Simple::Error: #{ex}"
+            result = ssh_exec(command)
+            log "Result: #{result}"
+            Rosh::CommandResult.new(nil, result.exit_status, result.stdout, result.stderr)
+          rescue => ex
+            log "Error: #{ex.class}"
+            log "Error: #{ex.message}"
+            log "Error: #{ex.backtrace.join("\n")}"
 
-            if ex.wrapped.class == Net::SSH::AuthenticationFailed
+            if ex.class == Net::SSH::AuthenticationFailed
               if retried
-                puts 'Authentication failed.'.red
+                bad_info 'Authentication failed.'
               else
                 retried = true
-                password = ask('<ROSH> Enter your password:  ') { |q| q.echo = false }
-                new_options.merge! password: password
+                password = prompt("\n<ROSH> Enter your password:  ", false)
+                @options.merge! password: password
+                @ssh = new_ssh
                 retry
               end
             end
 
-            if ex.wrapped.class == Net::SSH::Disconnect
+=begin
+            if ex.class == Net::SSH::Disconnect
               if retried
                 $stdout.puts 'Tried to reconnect to the remote host, but failed.'.red
               else
@@ -115,8 +124,9 @@ class Rosh
                 retry
               end
             end
+=end
 
-            Rosh::CommandResult.new(nil, 1, ex)
+            Rosh::CommandResult.new(ex, 1)
           end
         end
 
@@ -124,7 +134,7 @@ class Rosh
         #
         # @param [String] source The source file to upload.
         # @param [String] destination The destination path to upload to.
-        # @param [Hash] ssh_options Net::SSH::Simple options.  These will get merged
+        # @param [Hash] ssh_options Net::SSH options.  These will get merged
         #   with options set in #initialize and via #set.  Can be used to override
         #   those settings as well.
         #
@@ -133,12 +143,14 @@ class Rosh
           new_options = @options.merge(ssh_options)
 
           result = begin
-            #output = @ssh.scp_ul(@hostname, source, destination, new_options, &ssh_block)
+            #output = @ssh.scp_ul(@hostname, source, destination, new_options, &ssh_exec)
             output = @ssh.scp_ul(@hostname, source, destination, new_options)
-            Rosh::CommandResult.new(nil, output.exit_code, output)
-          rescue Net::SSH::Simple::Error => ex
-            log "Net::SSH::Simple::Error: #{ex}"
-            Rosh::CommandResult.new(nil, 1, ex)
+            Rosh::CommandResult.new(nil, output.exit_status, output)
+          rescue => ex
+            log "Exception: #{ex.class}"
+            log "Exception: #{ex.message}"
+            log "Exception: #{ex.backtrace.join("\n")}"
+            Rosh::CommandResult.new(ex, 1, ex)
           end
 
           log "SCP upload result: #{result.inspect}"
@@ -166,11 +178,11 @@ class Rosh
             cmd.insert(0, 'sudo ') if @sudo
             result = run(cmd)
 
-            if result.ssh_result.stderr.match %r[No such file or directory]
-              error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
-              [error, result.exit_status, result.ssh_result]
+            if result.stderr.match %r[No such file or directory]
+              error = Rosh::ErrorENOENT.new(result.stderr)
+              [error, result.exit_status, result.stdout, result.stderr]
             else
-              [result.ruby_object, 0, result.ssh_result]
+              [result.ruby_object, 0, result.stdout, result.stderr]
             end
           end
         end
@@ -193,13 +205,13 @@ class Rosh
             if result.exit_status.zero?
               @internal_pwd = Rosh::Host::RemoteDir.new(result.ruby_object, self)
 
-              [true, 0, result.ssh_result]
-            elsif result.ssh_result.stderr.match %r[No such file or directory]
-              error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
+              [true, 0, result.stdout, result.stderr]
+            elsif result.stderr.match %r[No such file or directory]
+              error = Rosh::ErrorENOENT.new(result.stderr)
 
-              [error, result.exit_status, result.ssh_result]
+              [error, result.exit_status, result.stdout, result.stderr]
             else
-              [result.ruby_object, result.exit_status, result.ssh_result]
+              result
             end
           end
         end
@@ -220,16 +232,16 @@ class Rosh
             cmd.insert(0, 'sudo ') if @sudo
             result = run(cmd)
 
-            if result.ssh_result.stderr.match %r[No such file or directory]
-              error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
+            if result.stderr.match %r[No such file or directory]
+              error = Rosh::ErrorENOENT.new(result.stderr)
 
-              [error, result.exit_status, result.ssh_result]
-            elsif result.ssh_result.stderr.match %r[omitting directory]
-              error = Rosh::ErrorEISDIR.new(result.ssh_result.stderr)
+              [error, result.exit_status, result.stdout, result.stderr]
+            elsif result.stderr.match %r[omitting directory]
+              error = Rosh::ErrorEISDIR.new(result.stderr)
 
-              [error, result.exit_status, result.ssh_result]
+              [error, result.exit_status, result.stdout, result.stderr]
             else
-              [true, result.exit_status, result.ssh_result]
+              [true, result.exit_status, result.stdout, result.stderr]
             end
           end
         end
@@ -250,20 +262,19 @@ class Rosh
             result = run(command)
 
             if result.exit_status.zero?
-              [result.ruby_object, 0, result.ssh_result]
+              [result.ruby_object, 0, result.stdout]
             else
-              ssh = result.ssh_result
-              output = if ssh.stdout.empty? && ssh.stderr.empty?
+              output = if result.stdout.empty? && result.stderr.empty?
                 ''
-              elsif ssh.stderr.empty?
-                ssh.stdout.strip
-              elsif ssh.stdout.empty?
-                ssh.stderr.strip
+              elsif result.stderr.empty?
+                result.stdout.strip
+              elsif result.stdout.empty?
+                result.stderr.strip
               else
-                ssh.stdout.strip + "\n\n" + ssh.stderr.strip
+                result.stdout.strip + "\n\n" + result.stderr.strip
               end
 
-              [output, result.exit_status, result.ssh_result]
+              [output, result.exit_status, result.stdout, result.stderr]
             end
           end
         end
@@ -282,19 +293,19 @@ class Rosh
           process(:ls, path: path) do
             cmd = "ls #{base}"
             cmd.insert(0, 'sudo ') if @sudo
-            result = run(command)
+            result = run(cmd)
 
-            if result.ssh_result.stderr.match %r[No such file or directory]
-              error = Rosh::ErrorENOENT.new(result.ssh_result.stderr)
+            if result.stderr.match %r[No such file or directory]
+              error = Rosh::ErrorENOENT.new(result.stderr)
 
-              [error, result.exit_status, result.ssh_result]
+              [error, result.exit_status, result.stdout, result.stderr]
             else
               listing = result.ruby_object.split.map do |entry|
                 full_path = "#{base}/#{entry}"
                 Rosh::Host::RemoteFileSystemObject.create(full_path, self)
               end
 
-              [listing, 0, result.ssh_result]
+              [listing, 0, result.stdout, result.stderr]
             end
           end
         end
@@ -314,10 +325,10 @@ class Rosh
           process(:ps, name: name, pid: pid) do
             cmd = 'ps auxe'
             cmd.insert(0, 'sudo ') if @sudo
-            result = run(command)
+            result = run(cmd)
             list = []
 
-            result.ssh_result.stdout.each_line do |line|
+            result.stdout.each_line do |line|
               match_data = %r[(?<user>\S+)\s+(?<pid>\S+)\s+(?<cpu>\S+)\s+(?<mem>\S+)\s+(?<vsz>\S+)\s+(?<rss>\S+)\s+(?<tty>\S+)\s+(?<stat>\S+)\s+(?<start>\S+)\s+(?<time>\S+)\s+(?<cmd>[^\n]+)].match(line)
 
               next if match_data[:user] == 'USER'
@@ -338,12 +349,12 @@ class Rosh
 
             if name
               p = list.find_all { |i| i.command =~ /\b#{name}\b/ }
-              [p, 0, result.ssh_result]
+              [p, 0, result.stdout, result.stderr]
             elsif pid
               p = list.find_all { |i| i.pid == pid }
-              [p, 0, result.ssh_result]
+              [p, 0, result.stdout, result.stderr]
             else
-              [list, 0, result.ssh_result]
+              [list, 0, result.stdout, result.stderr]
             end
           end
         end
@@ -358,7 +369,7 @@ class Rosh
             result = run('pwd')
             @internal_pwd = Rosh::Host::RemoteDir.new(result.ruby_object, self)
 
-            process(:pwd) { [@internal_pwd, 0, result.ssh_result] }
+            process(:pwd) { [@internal_pwd, 0, result.stdout, result.stderr] }
           end
         end
 
@@ -368,31 +379,59 @@ class Rosh
 
         private
 
+        def new_ssh
+          Net::SSH.start(@hostname, @user, @options)
+        end
+
         # DRYed up block to hand over to SSH commands for keeping handling of stdout
         # and stderr output.
         #
         # @return [Lambda]
-        def ssh_block
-          @ssh_block ||= lambda do |event, _, data|
-            case event
-            when :start
-              $stdout.puts 'Starting SSH command...'
-            when :stdout
-              (@buffer ||= '') << data
+        def ssh_exec(command)
+          stdout_data = ''
+          stderr_data = ''
+          exit_status = nil
+          exit_signal = nil
 
-              while line = @buffer.slice!(/(.*)\r?\n/)
-                $stdout.print line.light_blue
-              end
-            when :stderr
-              (@buffer ||= '') << data
+          @ssh.open_channel do |channel|
+            channel.request_pty do |ch, success|
+              raise 'Could not obtain pty' unless success
 
-              while line = @buffer.slice!(/(.*)\r?\n/)
-                $stderr.print line.light_red
+              ch.on_data do |ch, data|
+                good_info data
+
+                if data.match /sudo\] password/
+                  unless @options[:password]
+                    @options[:password] = prompt("\n<ROSH> Enter your password:  ", false)
+                  end
+
+                  ch.send_data "#{@options[:password]}\n"
+                  ch.eof!
+                end
+
+                stdout_data << data
               end
-            when :finish
-              $stdout.puts 'Finished executing command.'.light_blue
+
+              ch.exec(command)
+            end
+
+            channel.on_extended_data do |_, data|
+              bad_info data.to_s
+              stderr_data << data
+            end
+
+            channel.on_request('exit-status') do |_, data|
+              exit_status = data.read_long
+            end
+
+            channel.on_request('exit-signal') do |_, data|
+              exit_signal = data.read_long
             end
           end
+
+          @ssh.loop
+
+          SSHResult.new(stdout_data, stderr_data, exit_status, exit_signal)
         end
 
         def process(cmd, **args, &block)

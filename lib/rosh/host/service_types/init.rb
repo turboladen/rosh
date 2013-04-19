@@ -29,13 +29,13 @@ class Rosh
             build_info(state, pid: pid)
           end
 
-          Rosh::CommandResult.new(info, exit_code, result.ssh_result)
+          Rosh::CommandResult.new(info, exit_code, result.stdout, result.stderr)
         end
 
         def status
           state, exit_code, result, = fetch_status
 
-          Rosh::CommandResult.new(state, exit_code, result.ssh_result)
+          Rosh::CommandResult.new(state, exit_code, result.stdout, result.stderr)
         end
 
         def start
@@ -44,16 +44,16 @@ class Rosh
           if result.exit_status.zero?
             if permission_denied? result.ruby_object
               Rosh::CommandResult.new(Rosh::PermissionDenied.new(result.ruby_object),
-                result.exit_status, result.ssh_result)
+                result.exit_status, result.stdout, result.stderr)
             else
               result
             end
           elsif result.exit_status == 127
             Rosh::CommandResult.new(Rosh::UnrecognizedService.new(result.ruby_object),
-              result.exit_status, result.ssh_result)
+              result.exit_status, result.stdout, result.stderr)
           elsif permission_denied? result.ruby_object
             Rosh::CommandResult.new(Rosh::PermissionDenied.new(result.ruby_object),
-              result.exit_status, result.ssh_result)
+              result.exit_status, result.stdout, result.stderr)
           else
             result
           end

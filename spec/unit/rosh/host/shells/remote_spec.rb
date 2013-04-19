@@ -4,14 +4,17 @@ require 'rosh/host/shells/remote'
 
 describe Rosh::Host::Shells::Remote do
   let(:ssh) do
-    double 'Net::SSH::Simple'
+    double 'Net::SSH::Connection'
   end
 
   let(:hostname) { 'testhost' }
   let(:outcome) { double 'Rosh::CommandResult' }
+
   let(:ssh_output) do
-    o = double 'SSH command output'
-    o.stub(:exit_code).and_return 0
+    o = double 'SSHResult'
+    o.stub(:exit_status).and_return 0
+    o.stub(:stdout).and_return ''
+    o.stub(:stderr).and_return ''
 
     o
   end
@@ -28,33 +31,41 @@ describe Rosh::Host::Shells::Remote do
   end
 
   before do
-    Net::SSH::Simple.stub(:new).and_return(ssh)
+    Net::SSH.stub(:start).and_return(ssh)
     Rosh::Host::Shells::Remote.log = false
     subject.instance_variable_set(:@internal_pwd, internal_pwd)
   end
 
   after do
-    Net::SSH::Simple.unstub(:new)
+    Net::SSH.unstub(:start)
   end
 
   describe '#initialize' do
     context 'no options passed in' do
-      its(:options) { should eq(user: Etc.getlogin, timeout: 1800) }
+      its(:hostname) { should eq 'testhost' }
+      its(:user) { should eq Etc.getlogin }
+      its(:options) { should eq(timeout: 1800) }
     end
 
     context ':user option passed in' do
       subject { Rosh::Host::Shells::Remote.new('test', user: 'bobo') }
-      its(:options) { should eq(user: 'bobo', timeout: 1800) }
+      its(:hostname) { should eq 'test' }
+      its(:user) { should eq 'bobo' }
+      its(:options) { should eq(timeout: 1800) }
     end
 
     context ':timeout option passed in' do
       subject { Rosh::Host::Shells::Remote.new('test', timeout: 1) }
-      its(:options) { should eq(user: Etc.getlogin, timeout: 1) }
+      its(:hostname) { should eq 'test' }
+      its(:user) { should eq Etc.getlogin }
+      its(:options) { should eq(timeout: 1) }
     end
 
     context ':meow option passed in' do
       subject { Rosh::Host::Shells::Remote.new('test', meow: 'cat') }
-      its(:options) { should eq(user: Etc.getlogin, timeout: 1800, meow: 'cat') }
+      its(:hostname) { should eq 'test' }
+      its(:user) { should eq Etc.getlogin }
+      its(:options) { should eq(timeout: 1800, meow: 'cat') }
     end
   end
 
@@ -96,44 +107,14 @@ describe Rosh::Host::Shells::Remote do
   end
 
   describe '#run' do
-    context 'with no options' do
-      it 'runs the command and returns an ActionResult object' do
-        expected_options = {
-          user: Etc.getlogin,
-          timeout: 1800
-        }
+    it 'runs the command and returns an ActionResult object' do
+      subject.should_receive(:ssh_exec).with('test command').
+        and_return ssh_output
+      Rosh::CommandResult.should_receive(:new).
+        with(nil, 0, ssh_output.stdout, ssh_output.stderr).and_return outcome
 
-        ssh.should_receive(:ssh).
-          with(hostname, 'test command', expected_options).
-          and_return ssh_output
-        Rosh::CommandResult.should_receive(:new).
-          with(nil, 0,ssh_output).and_return outcome
-
-        o = subject.run 'test command'
-        o.should == outcome
-      end
-    end
-
-    context 'with options' do
-      let(:options) do
-        { one: 'one', two: 'two' }
-      end
-
-      it 'merges @options and runs the command' do
-        expected_options = {
-          user: Etc.getlogin,
-          timeout: 1800,
-          one: 'one',
-          two: 'two'
-        }
-
-        ssh.should_receive(:ssh).
-          with(hostname, 'test command', expected_options).and_return ssh_output
-        Rosh::CommandResult.should_receive(:new).
-          with(nil, 0, ssh_output).and_return outcome
-
-        subject.run 'test command', options
-      end
+      o = subject.run 'test command'
+      o.should == outcome
     end
   end
 
@@ -188,7 +169,8 @@ describe Rosh::Host::Shells::Remote do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 0
         r.stub(:ruby_object).and_return 'file contents'
-        r.stub_chain(:ssh_result, :stderr).and_return ''
+        r.stub(:stdout).and_return ''
+        r.stub(:stderr).and_return ''
 
         r
       end
@@ -222,7 +204,8 @@ describe Rosh::Host::Shells::Remote do
       let(:result) do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 1
-        r.stub_chain(:ssh_result, :stderr).and_return 'No such file or directory'
+        r.stub(:stderr).and_return 'No such file or directory'
+        r.stub(:stdout)
 
         r
       end
@@ -263,7 +246,8 @@ describe Rosh::Host::Shells::Remote do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 0
         r.stub(:ruby_object).and_return path
-        r.stub(:ssh_result)
+        r.stub(:stdout)
+        r.stub(:stderr)
 
         r
       end
@@ -298,7 +282,8 @@ describe Rosh::Host::Shells::Remote do
       let(:result) do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 1
-        r.stub_chain(:ssh_result, :stderr).and_return 'No such file or directory'
+        r.stub(:stderr).and_return 'No such file or directory'
+        r.stub(:stdout)
 
         r
       end
@@ -337,7 +322,8 @@ describe Rosh::Host::Shells::Remote do
       let(:result) do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 1
-        r.stub_chain(:ssh_result, :stderr).and_return 'No such file or directory'
+        r.stub(:stderr).and_return 'No such file or directory'
+        r.stub(:stdout)
 
         r
       end
@@ -358,7 +344,8 @@ describe Rosh::Host::Shells::Remote do
       let(:result) do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 1
-        r.stub_chain(:ssh_result, :stderr).and_return 'omitting directory'
+        r.stub(:stderr).and_return 'omitting directory'
+        r.stub(:stdout)
 
         r
       end
@@ -379,7 +366,8 @@ describe Rosh::Host::Shells::Remote do
       let(:result) do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 0
-        r.stub_chain(:ssh_result, :stderr).and_return ''
+        r.stub(:stderr).and_return ''
+        r.stub(:stdout)
 
         r
       end
@@ -402,8 +390,8 @@ describe Rosh::Host::Shells::Remote do
       let(:result) do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 1
-        r.stub_chain(:ssh_result, :stdout).and_return ''
-        r.stub_chain(:ssh_result, :stderr).and_return 'command not found'
+        r.stub(:stdout).and_return ''
+        r.stub(:stderr).and_return 'command not found'
 
         r
       end
@@ -423,7 +411,7 @@ describe Rosh::Host::Shells::Remote do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 0
         r.stub(:ruby_object).and_return 'some output'
-        r.stub(:ssh_result).and_return 'some output'
+        r.stub(:stdout).and_return 'some output'
 
         r
       end
@@ -452,7 +440,8 @@ describe Rosh::Host::Shells::Remote do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 0
         r.stub(:ruby_object).and_return path
-        r.stub_chain(:ssh_result, :stderr).and_return ''
+        r.stub(:stderr).and_return ''
+        r.stub(:stdout)
 
         r
       end
@@ -496,7 +485,8 @@ describe Rosh::Host::Shells::Remote do
       let(:result) do
         r = double 'Rosh::CommandResult'
         r.stub(:exit_status).and_return 1
-        r.stub_chain(:ssh_result, :stderr).and_return 'No such file or directory'
+        r.stub(:stderr).and_return 'No such file or directory'
+        r.stub(:stdout)
 
         r
       end
@@ -539,7 +529,8 @@ bobo         2  0.1  1.2    712    16 ?        S    18:46   0:01 /bin/bash
 
     let(:result) do
       r = double 'Rosh::CommandResult'
-      r.stub_chain(:ssh_result, :stdout).and_return ps_list
+      r.stub(:stdout).and_return ps_list
+      r.stub(:stderr)
 
       r
     end
@@ -611,13 +602,14 @@ bobo         2  0.1  1.2    712    16 ?        S    18:46   0:01 /bin/bash
     let(:result) do
       r = double 'Rosh::CommandResult'
       r.stub(:ruby_object).and_return 'some path'
+      r.stub(:stderr)
 
       r
     end
 
     context '@internal_pwd is not set' do
       before do
-        result.stub(:ssh_result)
+        result.stub(:stdout)
         subject.instance_variable_set(:@internal_pwd, nil)
         subject.should_receive(:run).with('pwd').and_return result
 

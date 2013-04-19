@@ -22,7 +22,7 @@ describe Rosh::Host::Attributes do
     let(:result) { double 'Rosh::CommandResult' }
 
     before do
-      result.stub_chain(:ssh_result, :stdout).and_return hostname
+      result.stub(:stdout).and_return hostname
     end
 
     it 'runs "echo $SHELL" and returns the output as a Symbol' do

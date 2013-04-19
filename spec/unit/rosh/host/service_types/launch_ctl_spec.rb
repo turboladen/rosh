@@ -11,7 +11,8 @@ describe Rosh::Host::ServiceTypes::LaunchCTL do
 
   let(:result) do
     r = double 'Rosh::CommandResult'
-    r.stub(:ssh_result).and_return 'output'
+    r.stub(:stdout).and_return 'output'
+    r.stub(:stderr)
 
     r
   end
@@ -49,7 +50,7 @@ describe Rosh::Host::ServiceTypes::LaunchCTL do
 
     specify { @r.ruby_object.should == { plist: 'plist' } }
     specify { @r.exit_status.should == 0 }
-    specify { @r.ssh_result.should == 'output' }
+    specify { @r.stdout.should == 'output' }
   end
 
   describe '#status' do

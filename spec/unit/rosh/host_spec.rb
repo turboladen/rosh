@@ -10,6 +10,10 @@ describe Rosh::Host do
   end
 
   describe '#initialize' do
+    before do
+      Rosh::Host::Shells::Remote.should_receive(:new)
+    end
+
     its(:hostname) { should eq hostname }
   end
 end
