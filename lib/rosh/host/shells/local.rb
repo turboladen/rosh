@@ -43,26 +43,6 @@ class Rosh
           end
         end
 
-        # @param [String] source The path to the file to copy.
-        # @param [String] destination The destination to copy the file to.
-        #
-        # @return [TrueClass] On success, returns +true+.  On fail, #last_exit_status
-        #   is set to 1 and returns the Exception that was raised.
-        def cp(source, destination)
-          log "cp called with args '#{source}', '#{destination}'"
-          full_source = preprocess_path(source)
-          full_destination = preprocess_path(destination)
-
-          process(:cp, source: source, destination: destination) do
-            begin
-              ::FileUtils.cp(full_source, full_destination)
-              [true, 0]
-            rescue Errno::ENOENT, Errno::EISDIR => ex
-              [ex, 1]
-            end
-          end
-        end
-
         # The shell's environment.  Note this doesn't trump the Ruby process's ENV
         # settings (which are still accessible).
         #

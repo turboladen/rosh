@@ -39,50 +39,6 @@ describe Rosh::Host::Shells::Local do
     end
   end
 
-  describe '#cp' do
-    context 'source does not exist' do
-      before do
-        FileUtils.should_receive(:cp).and_raise Errno::ENOENT
-        @r = subject.cp('source', 'destination')
-      end
-
-      specify { @r.should be_a Errno::ENOENT }
-      specify { subject.last_exit_status.should eq 1 }
-      specify { subject.last_result.should eq @r }
-    end
-
-    context 'source is a directory' do
-      before do
-        FileUtils.should_receive(:cp).and_raise Errno::EISDIR
-        @r = subject.cp('source', 'destination')
-      end
-
-      specify { @r.should be_a Errno::EISDIR }
-      specify { subject.last_exit_status.should eq 1 }
-      specify { subject.last_result.should eq @r }
-    end
-
-    context 'destination exists' do
-      let(:dest) do
-        Tempfile.new('rosh_test')
-      end
-
-      before do
-        at_exit { dest.unlink }
-      end
-
-      before { @r = subject.cp(__FILE__, dest.path) }
-
-      it 'overwrites the destination' do
-        File.size(__FILE__).should == File.size(dest.path)
-      end
-
-      specify { @r.should be_true }
-      specify { subject.last_exit_status.should eq 0 }
-      specify { subject.last_result.should eq @r }
-    end
-  end
-
   describe '#exec' do
     context 'invalid command' do
       before do
