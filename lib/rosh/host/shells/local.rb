@@ -169,7 +169,7 @@ class Rosh
         # @return [Dir] The current working directory as a Dir.
         def pwd
           log 'pwd called'
-          process(:pwd) { [Dir.new(@internal_pwd), 0] }
+          process(:pwd) { [Rosh::Host::LocalDir.new(@internal_pwd), 0] }
         end
 
         # Executes Ruby code in the context of an IRB::WorkSpace.  Thus, variables
