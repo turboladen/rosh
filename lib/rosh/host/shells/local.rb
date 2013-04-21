@@ -212,7 +212,7 @@ class Rosh
                 retried = true
                 retry
               end
-            rescue Exception => ex
+            rescue StandardError => ex
               [ex, 1]
             end
           end
