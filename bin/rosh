@@ -37,12 +37,12 @@ else
 
   if ARGV.include? '--log'
     Rosh::CLI.log = true
-    Rosh::Host::LocalShell.log = true
-    Rosh::Host::RemoteShell.log = true
+    Rosh::Host::Shells::Local.log = true
+    Rosh::Host::Shells::Local.log = true
   else
     Rosh::CLI.log = false
-    Rosh::Host::LocalShell.log = false
-    Rosh::Host::RemoteShell.log = false
+    Rosh::Host::Shells::Local.log = false
+    Rosh::Host::Shells::Local.log = false
   end
 
   Rosh::CLI.run
