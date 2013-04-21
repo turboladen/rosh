@@ -8,36 +8,6 @@ describe Rosh::Host::Shells::Local do
     Rosh::Host::Shells::Local.new
   end
 
-  describe '#cat' do
-    context 'file does not exist' do
-      before { @r = subject.cat('blah') }
-
-      specify { @r.should be_a Errno::ENOENT }
-      specify { subject.last_exit_status.should eq 1 }
-      specify { subject.last_result.should eq @r }
-    end
-
-    context 'file is a directory' do
-      before do
-        subject.should_receive(:open).with(File.expand_path('blah')).
-          and_raise Errno::EISDIR
-        @r = subject.cat('blah')
-      end
-
-      specify { @r.should be_a Errno::EISDIR }
-      specify { subject.last_exit_status.should eq 1 }
-      specify { subject.last_result.should eq @r }
-    end
-
-    context 'file exists' do
-      before { @r = subject.cat(__FILE__) }
-
-      specify { @r.should be_a String }
-      specify { subject.last_exit_status.should eq 0 }
-      specify { subject.last_result.should eq @r }
-    end
-  end
-
   describe '#cd' do
     context 'directory does not exist' do
       before { @r = subject.cd('blah') }

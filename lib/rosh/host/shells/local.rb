@@ -23,25 +23,6 @@ class Rosh
           @internal_pwd = Dir.pwd
         end
 
-        # @param [String] file Path to the file to cat.
-        #
-        # @return [String] On success, returns the contents of the file as a String.
-        #   On fail, #last_exit_status is set to 1 and returns the Exception that
-        #   was raised.
-        def cat(file)
-          log "cat called with arg '#{file}'"
-          full_file = preprocess_path(file)
-
-          process(:cat, file: file) do
-            begin
-              contents = open(full_file).read
-              [contents, 0]
-            rescue Errno::ENOENT, Errno::EISDIR => ex
-              [ex, 1]
-            end
-          end
-        end
-
         # @param [String] path The absolute or relative path to make the new working
         #   directory.
         #
