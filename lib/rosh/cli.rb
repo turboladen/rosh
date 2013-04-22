@@ -99,7 +99,7 @@ class Rosh
       user_and_host = '['.blue
       user_and_host << "#{@current_host.user}".red
       user_and_host << "@#{@current_host.hostname}".red
-      user_and_host << ":#{@current_host.shell.env[:pwd].split('/').last}".red
+      user_and_host << ":#{@current_host.shell.read_env[:pwd].split('/').last}".red
       user_and_host << ']'.blue
 
       _, width = Readline.get_screen_size

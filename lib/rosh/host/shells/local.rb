@@ -45,24 +45,33 @@ class Rosh
           end
         end
 
-        # The shell's environment.  Note this doesn't trump the Ruby process's ENV
-        # settings (which are still accessible).
+        # Prints and returns the shell's environment as a commnad.  Note this
+        # doesn't trump the Ruby process's ENV settings (which are still
+        # accessible).
         #
         # @return [Hash] A Hash containing the environment info.
         def env
           log 'env called'
 
           process(:env) do
-            @path ||= ENV['PATH'].split(':')
-
-            env = {
-              path: @path,
-              shell: File.expand_path(File.basename($0), File.dirname($0)),
-              pwd: pwd.to_path
-            }
+            env = read_env
 
             [env, 0]
           end
+        end
+
+        # The shell's environment as a Hash.  Useful internally, or if for some
+        # reason you don't want to use #env.
+        #
+        # @return [Hash]
+        def read_env
+          @path ||= ENV['PATH'].split(':')
+
+          {
+            path: @path,
+            shell: File.expand_path(File.basename($0), File.dirname($0)),
+            pwd: pwd.to_path
+          }
         end
 
         # @param [String] command The system command to execute.
@@ -168,7 +177,7 @@ class Rosh
 
         # @return [Array<String>] List of commands given in the PATH.
         def system_commands
-          env[:path].map do |dir|
+          read_env[:path].map do |dir|
             Dir["#{dir}/*"].map { |f| ::File.basename(f) }
           end.flatten
         end
