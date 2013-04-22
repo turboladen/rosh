@@ -58,7 +58,7 @@ class Rosh
       def owner
         cmd = "ls -l #{@path} | awk '{print $3}'"
 
-        @remote_shell.exec(cmd)
+        @remote_shell.exec(cmd).strip
       end
 
       def owner=(new_owner)
@@ -81,7 +81,7 @@ class Rosh
       def group
         cmd = "ls -l #{@path} | awk '{print $4}'"
 
-        @remote_shell.exec(cmd)
+        @remote_shell.exec(cmd).strip
       end
 
       def group=(new_group)

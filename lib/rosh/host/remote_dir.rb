@@ -7,13 +7,13 @@ class Rosh
       def owner
         cmd = "ls -ld #{@path} | awk '{print $3}'"
 
-        @remote_shell.exec(cmd)
+        @remote_shell.exec(cmd).strip
       end
 
       def group
         cmd = "ls -ld #{@path} | awk '{print $4}'"
 
-        @remote_shell.exec(cmd)
+        @remote_shell.exec(cmd).strip
       end
 
       def create
