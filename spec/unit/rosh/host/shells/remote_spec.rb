@@ -106,51 +106,78 @@ describe Rosh::Host::Shells::Remote do
     end
   end
 
-  describe '#run' do
-    it 'runs the command and returns an ActionResult object' do
-      subject.should_receive(:ssh_exec).with('test command').
-        and_return ssh_output
-      Rosh::CommandResult.should_receive(:new).
-        with(nil, 0, ssh_output.stdout, ssh_output.stderr).and_return outcome
-
-      o = subject.run 'test command'
-      o.should == outcome
-    end
-  end
-
   describe '#upload' do
-    context 'with no options' do
-      it 'runs the command and returns an ActionResult object' do
-        Net::SCP.should_receive(:upload!).
-          with(hostname, Etc.getlogin, 'test file', '/destination', timeout: 1800).
-          and_return ssh_output
+    context 'all goes well' do
+      it 'runs the command and returns an CommandResult object' do
+        subject.should_receive(:scp).with('test file', '/destination')
         Rosh::CommandResult.should_receive(:new).
-          with(nil, 0, ssh_output.stdout).and_return outcome
+          with(nil, 0).and_return outcome
 
         o = subject.upload 'test file', '/destination'
         o.should == outcome
       end
     end
 
-    context 'with options' do
-      let(:options) do
-        { one: 'one', two: 'two' }
+    context 'a Net::SSH::AuthenticationFailed error occurs' do
+      before do
+        subject.should_receive(:scp).and_raise Net::SSH::AuthenticationFailed
       end
 
-      it 'merges @options and runs the command' do
-        expected_options = {
-          timeout: 1800,
-          one: 'one',
-          two: 'two'
-        }
+      context 'successful password is entered' do
+        it 'carries on with the scp' do
+          subject.should_receive(:prompt).once.and_return 'test password'
+          subject.should_receive(:scp).with('test file', '/destination')
 
-        Net::SCP.should_receive(:upload!).
-          with(hostname, Etc.getlogin, 'test file', '/destination', expected_options).
-          and_return ssh_output
-        Rosh::CommandResult.should_receive(:new).
-          with(nil, 0, ssh_output.stdout).and_return outcome
+          Rosh::CommandResult.should_receive(:new).with(nil, 0).and_return outcome
 
-        subject.upload 'test file', '/destination', options
+          subject.upload('test file', '/destination')
+          subject.options[:password].should == 'test password'
+        end
+      end
+
+      context 'unsuccessful password is entered' do
+        before do
+          subject.should_receive(:scp).and_raise Net::SSH::AuthenticationFailed
+        end
+
+        it 'returns a CommandResult with the exception' do
+          subject.should_receive(:prompt).once.and_return 'test password'
+          subject.should_receive(:bad_info).with 'Authentication failed.'
+
+          Rosh::CommandResult.should_receive(:new) do |ruby_obj, exit_status|
+            ruby_obj.should be_a Net::SSH::AuthenticationFailed
+            exit_status.should eq 1
+          end
+
+          subject.upload('test file', '/destination')
+        end
+      end
+    end
+
+    context 'doing sudo upload' do
+      before do
+        subject.instance_variable_set(:@sudo, true)
+      end
+
+      it 'calls #upload with a tmp path' do
+        subject.should_receive(:upload).with('tmp file', '/destination').
+          and_call_original
+        subject.should_receive(:upload).with('tmp file', '/tmp/rosh_upload',
+          true, '/destination')
+
+        subject.upload('tmp file', '/destination')
+      end
+
+      it 'uploads and copies the remote file to the originally request destination' do
+        subject.should_receive(:upload).with('tmp file', '/destination').
+          and_call_original
+        subject.should_receive(:upload).with('tmp file', '/tmp/rosh_upload',
+          true, '/destination').and_call_original
+        subject.should_receive(:scp).with('tmp file', '/tmp/rosh_upload')
+        subject.should_receive(:exec).
+          with('cp /tmp/rosh_upload /destination && rm /tmp/rosh_upload')
+
+        subject.upload('tmp file', '/destination')
       end
     end
   end
@@ -312,6 +339,18 @@ describe Rosh::Host::Shells::Remote do
       specify { @r.should eq internal_pwd }
       specify { subject.last_exit_status.should eq 0 }
       specify { subject.last_result.should eq @r }
+    end
+  end
+
+  describe '#run' do
+    it 'runs the command and returns an CommandResult object' do
+      subject.should_receive(:ssh_exec).with('test command').
+        and_return ssh_output
+      Rosh::CommandResult.should_receive(:new).
+        with(nil, 0, ssh_output.stdout, ssh_output.stderr).and_return outcome
+
+      o = subject.send(:run, 'test command')
+      o.should == outcome
     end
   end
 end

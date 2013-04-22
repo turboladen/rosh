@@ -5,7 +5,6 @@ require 'net/scp'
 require_relative 'base'
 require_relative '../remote_file_system_object'
 require_relative '../remote_dir'
-require_relative '../remote_proc_table'
 require_relative '../wrapper_methods/remote'
 
 
@@ -53,6 +52,7 @@ class Rosh
           @hostname = hostname
           @options = options
           @user = @options.delete(:user) || DEFAULT_USER
+          log "New Remote shell.  options: #{@options}"
 
           @options[:timeout] = DEFAULT_TIMEOUT unless @options.has_key? :timeout
           log "Net::SSH.configuration: #{Net::SSH.configuration_for(@hostname)}"
@@ -87,25 +87,33 @@ class Rosh
           end
         end
 
-        # Runs +command+ on the host for which this SSH object is connected to.
+        # Uploads +source+ file to the +destination+ path on the remote box.
         #
-        # @param [String] command The command to run on the remote box.
-        # @param [Hash] ssh_options Net::SSH options.  These will get merged
-        #   with options set in #initialize and via #set.  Can be used to override
-        #   those settings as well.
+        # @param [String] source The source file to upload.
+        # @param [String] destination The destination path to upload to.
         #
         # @return [Rosh::CommandResult]
-        def run(command)
+        def upload(source, destination, doing_sudo_upload=false, original_dest=nil)
           retried = false
 
-          begin
-            result = ssh_exec(command)
-            log "Result: #{result}"
-            Rosh::CommandResult.new(nil, result.exit_status, result.stdout, result.stderr)
+          result = begin
+            if @sudo && !doing_sudo_upload
+              log 'sudo is set during #upload'
+              original_dest = destination
+              destination = '/tmp/rosh_upload'
+
+              upload(source, destination, true, original_dest)
+              return
+            end
+
+            log "doing upload with options #{@options}"
+            scp(source, destination)
+
+            Rosh::CommandResult.new(nil, 0)
           rescue => ex
-            log "Error: #{ex.class}"
-            log "Error: #{ex.message}"
-            log "Error: #{ex.backtrace.join("\n")}"
+            log "Exception: #{ex.class}".red
+            log "Exception: #{ex.message}".red
+            log "Exception: #{ex.backtrace.join("\n")}".red
 
             if ex.class == Net::SSH::AuthenticationFailed
               if retried
@@ -114,79 +122,23 @@ class Rosh
                 retried = true
                 password = prompt("\n<ROSH> Enter your password:  ", false)
                 @options.merge! password: password
-                @ssh = new_ssh
+                log "Password added.  options: #{@options}"
                 retry
               end
             end
-
-=begin
-            if ex.class == Net::SSH::Disconnect
-              if retried
-                $stdout.puts 'Tried to reconnect to the remote host, but failed.'.red
-              else
-                log 'Host disconnected us; retrying to connect...'
-                retried = true
-                @ssh = Net::SSH::Simple.new(@options)
-                run(command, new_options)
-                retry
-              end
-            end
-=end
 
             Rosh::CommandResult.new(ex, 1)
           end
-        end
 
-        # Uploads +source+ file to the +destination+ path on the remote box.
-        #
-        # @param [String] source The source file to upload.
-        # @param [String] destination The destination path to upload to.
-        # @param [Hash] ssh_options Net::SSH options.  These will get merged
-        #   with options set in #initialize and via #set.  Can be used to override
-        #   those settings as well.
-        #
-        # @return [Rosh::CommandResult]
-        def upload(source, destination, **ssh_options)
-          new_options = @options.merge(ssh_options)
-
-          result = begin
-            stdout_data = ''
-
-            Net::SCP.upload!(@hostname, @user, source, destination, new_options) do |ch, name, sent, total|
-              ch.on_data do |ch, data|
-                good_info data
-
-                if data.match /sudo\] password/
-                  unless @options[:password]
-                    @options[:password] = prompt("\n<ROSH> Enter your password:  ", false)
-                  end
-
-                  ch.send_data "#{@options[:password]}\n"
-                  ch.eof!
-                end
-
-                stdout_data << data
-              end
-
-              puts "#{name}: #{sent}/#{total}"
-            end
-
-            Rosh::CommandResult.new(nil, 0, stdout_data)
-          rescue => ex
-            log "Exception: #{ex.class}"
-            log "Exception: #{ex.message}"
-            log "Exception: #{ex.backtrace.join("\n")}"
-            Rosh::CommandResult.new(ex, 1, stdout_data)
+          if @sudo && doing_sudo_upload
+            log 'sudo is set during SCP and doing upload'
+            exec("cp #{destination} #{original_dest} && rm #{destination}")
+            return last_exit_status.zero?
           end
 
           log "SCP upload result: #{result.inspect}"
 
           result
-        end
-
-        # Closes the SSH connection and cleans up.
-        def close
-          @ssh.close
         end
 
         # @param [String] path The absolute or relative path to make the new
@@ -285,6 +237,52 @@ class Rosh
           Net::SSH.start(@hostname, @user, @options)
         end
 
+        # Runs +command+ on the host for which this SSH object is connected to.
+        #
+        # @param [String] command The command to run on the remote box.
+        #
+        # @return [Rosh::CommandResult]
+        def run(command)
+          retried = false
+
+          begin
+            result = ssh_exec(command)
+            log "Result: #{result}"
+            Rosh::CommandResult.new(nil, result.exit_status, result.stdout, result.stderr)
+          rescue StandardError => ex
+            log "Error: #{ex.class}"
+            log "Error: #{ex.message}"
+            log "Error: #{ex.backtrace.join("\n")}"
+
+            if ex.class == Net::SSH::AuthenticationFailed
+              if retried
+                bad_info 'Authentication failed.'
+              else
+                retried = true
+                password = prompt("\n<ROSH> Enter your password:  ", false)
+                @options.merge! password: password
+                log "Password added.  options: #{@options}"
+                @ssh = new_ssh
+                retry
+              end
+            end
+
+            if ex.class == Net::SSH::Disconnect
+              if retried
+                bad_info 'Tried to reconnect to the remote host, but failed.'
+              else
+                log 'Host disconnected us; retrying to connect...'
+                retried = true
+                @ssh = Net::SSH::Simple.new(@options)
+                run(command, new_options)
+                retry
+              end
+            end
+
+            Rosh::CommandResult.new(ex, 1)
+          end
+        end
+
         # DRYed up block to hand over to SSH commands for keeping handling of stdout
         # and stderr output.
         #
@@ -314,7 +312,8 @@ class Rosh
                 stdout_data << data
               end
 
-              ch.exec(command)
+              r = ch.exec(command)
+              channel.close if r
             end
 
             channel.on_extended_data do |_, data|
@@ -334,6 +333,18 @@ class Rosh
           @ssh.loop
 
           SSHResult.new(stdout_data, stderr_data, exit_status, exit_signal)
+        end
+
+        # DRYed up block to hand over to SSH commands for keeping handling of stdout
+        # and stderr output.
+        #
+        # @return [Lambda]
+        def scp(source, destination)
+          @ssh.scp.upload!(source, destination) do |ch, name, rec, total|
+            percentage = format('%.2f', rec.to_f / total.to_f * 100) + '%'
+            print "Saving to #{name}: Received #{rec} of #{total} bytes" + " (#{percentage})               \r"
+            $stdout.flush
+          end
         end
 
         def process(cmd, **args, &block)
