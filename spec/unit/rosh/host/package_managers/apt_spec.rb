@@ -12,7 +12,7 @@ describe Rosh::Host::PackageManagers::Apt do
 
   let(:observer) do
     o = double 'Observer'
-    o.define_singleton_method(:update) do |one, two, three, four|
+    o.define_singleton_method(:update) do |one, two|
       #
     end
 
@@ -46,7 +46,7 @@ Get: stuff2
 
       it 'updates observers' do
         observer.should_receive(:update).
-          with(subject, :update_cache, nil, ['Get: stuff1', 'Get: stuff2'])
+          with(subject, attribute: :update_cache, old: nil, new: ['Get: stuff1', 'Get: stuff2'])
         subject.update_cache
       end
     end
@@ -78,6 +78,7 @@ The following packages will be upgraded:
         expected_packages.each do |pkg|
           Rosh::Host::PackageTypes::Apt.should_receive(:new).with(shell, pkg)
         end
+
         subject.upgrade_packages
       end
     end

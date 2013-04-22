@@ -24,7 +24,7 @@ class Rosh
 
         if success
           changed
-          notify_observers(:create, @path)
+          notify_observers(self, attribute: :create, old: nil, new: @path)
         end
 
         success

@@ -72,7 +72,7 @@ class Rosh
 
         if success && old_owner != new_owner
           changed
-          notify_observers(:owner, new_owner)
+          notify_observers(self, attribute: :owner, old: old_owner, new: new_owner)
         end
 
         success
@@ -93,7 +93,7 @@ class Rosh
 
         if success && old_group != new_group
           changed
-          notify_observers(:group, new_group)
+          notify_observers(self, attribute: :group, old: old_group, new: new_group)
         end
 
         success
@@ -137,7 +137,7 @@ class Rosh
 
         if success && old_mode != new_mode.to_i
           changed
-          notify_observers(:mode, new_mode)
+          notify_observers(self, attribute: :mode, old: old_mode, new: new_mode)
         end
 
         success
@@ -155,7 +155,7 @@ class Rosh
 
         if success
           changed
-          notify_observers(:remove, nil)
+          notify_observers(self, attribute: :remove, old: @path, new: nil)
         end
 
         success

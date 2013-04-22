@@ -21,7 +21,7 @@ class Rosh
 
           unless updated_lines.empty?
             changed
-            notify_observers(self, :update_cache, nil, updated_lines)
+            notify_observers(self, attribute: :update_cache, old: nil, new: updated_lines)
           end
 
           @shell.history.last[:exit_status].zero?
@@ -45,7 +45,7 @@ class Rosh
 
           unless packages.empty?
             changed
-            notify_observers(self, :upgrade_packages, nil, packages)
+            notify_observers(self, attribute: :upgrade_packages, old: nil, new: packages)
           end
 
           @shell.history.last[:exit_status].zero?
