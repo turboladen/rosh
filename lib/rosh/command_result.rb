@@ -18,7 +18,7 @@ class Rosh
       @stderr = stderr
 
       if @stdout && !@stdout.empty? && @ruby_object.nil?
-        @ruby_object = @stdout.strip
+        @ruby_object = @stdout
       end
 
 =begin

@@ -88,7 +88,7 @@ class Rosh
       def extract_os(result)
         log "STDOUT: #{result}"
 
-        %r[^(?<os>[a-zA-Z]+) (?<uname>.*)] =~ result
+        %r[^(?<os>[a-zA-Z]+) (?<uname>[^\n]*)] =~ result.strip
         @operating_system = os.to_safe_down_sym
 
         case @operating_system

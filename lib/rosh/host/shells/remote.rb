@@ -243,17 +243,17 @@ class Rosh
               elsif result.stderr.empty?
                 good_info result.stdout
 
-                result.stdout.strip
+                result.stdout
               elsif result.stdout.empty?
                 bad_info result.stderr
 
-                result.stderr.strip
+                result.stderr
               else
-                good_info result.stdout.strip
+                good_info result.stdout
                 puts "\n\n"
-                bad_info result.stderr.strip
+                bad_info result.stderr
 
-                result.stdout.strip + "\n\n" + result.stderr.strip
+                result.stdout + "\n\n" + result.stderr
               end
 
               [output, result.exit_status, result.stdout, result.stderr]
@@ -269,7 +269,7 @@ class Rosh
             process(:pwd) { [@internal_pwd, 0, nil] }
           else
             result = run('pwd')
-            @internal_pwd = Rosh::Host::RemoteDir.new(result.ruby_object, self)
+            @internal_pwd = Rosh::Host::RemoteDir.new(result.ruby_object.strip, self)
 
             process(:pwd) { [@internal_pwd, 0, result.stdout, result.stderr] }
           end
