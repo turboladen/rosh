@@ -74,12 +74,13 @@ describe Rosh::Host::Shells::Local do
 
   describe '#pwd' do
     before do
-      Dir.should_receive(:new).with(subject.
-        instance_variable_get(:@internal_pwd)).and_return 'some dir'
+      Rosh::Host::LocalDir.should_receive(:new).with(subject.
+        instance_variable_get(:@internal_pwd)).and_call_original
       @r = subject.pwd
     end
 
-    specify { @r.should eq 'some dir' }
+    specify { @r.should be_a Rosh::Host::LocalDir }
+    specify { @r.path.should eq '/' }
     specify { subject.last_exit_status.should eq 0 }
     specify { subject.last_result.should eq @r }
   end

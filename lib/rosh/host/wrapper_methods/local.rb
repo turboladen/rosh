@@ -22,6 +22,8 @@ class Rosh
           process(:ls, path: path) do
             if File.file? full_path
               fso = Rosh::Host::LocalFileSystemObject.create(full_path)
+              good_info full_path
+
               [fso, 0]
             else
               begin

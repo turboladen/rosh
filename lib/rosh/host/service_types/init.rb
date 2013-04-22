@@ -99,7 +99,6 @@ class Rosh
           end
         end
 
-        # @todo fix sudo prompt!
         # @return [Array<Integer>] An Array of pids that match the name of the
         #   service.
         def fetch_pid

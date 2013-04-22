@@ -3,7 +3,6 @@ require 'ripper'
 require 'readline'
 require 'shellwords'
 
-require 'awesome_print'
 require 'log_switch'
 require 'colorize'
 
@@ -35,6 +34,8 @@ class Rosh
 
     # Starts the Readline loop for accepting input.  Each iteration through the
     # loop returns the resulting object of the Ruby code that was executed.
+    #
+    # @todo Allow accepting named params to commands (i.e. `ps pid: 234`)
     def run
       stty_save = `stty -g`.chomp
       trap('INT') { system('stty', stty_save); exit }
@@ -62,8 +63,7 @@ class Rosh
           log "Multi-line Ruby; argv is now: #{argv}"
         end
 
-        result = execute(argv)
-        print_result(result)
+        execute(argv)
       end
     end
 
@@ -114,29 +114,6 @@ class Rosh
       prompt << '$ '.red
 
       prompt
-    end
-
-    def print_result(result)
-      log "Result is a '#{result.class}'"
-      log "Resulting Ruby object is: '#{result}'"
-      log "Resulting Ruby object is a '#{result.class}'"
-
-      if [Array, Hash, Struct].any? { |klass| result.kind_of? klass }
-        ap result
-      elsif [Rosh::Host::LocalFileSystemObject, Rosh::Host::RemoteFileSystemObject, Dir].any? do |klass|
-        result.kind_of? klass
-      end
-        puts result.inspect.light_blue
-      elsif result.kind_of? Exception
-        puts result.message.red
-        result.backtrace.each { |b| puts b.red }
-      else
-        if !@current_host.shell.last_exit_status.zero?
-          $stderr.puts "  #{result}".light_red
-        else
-          $stdout.puts "  #{result}".light_blue
-        end
-      end
     end
 
     def multiline_ruby?(argv)

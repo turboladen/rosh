@@ -23,8 +23,11 @@ class Rosh
 
             if result.stderr.match %r[No such file or directory]
               error = Rosh::ErrorENOENT.new(result.stderr)
+
               [error, result.exit_status, result.stdout, result.stderr]
             else
+              good_info result.stdout
+
               [result.ruby_object, 0, result.stdout, result.stderr]
             end
           end
@@ -82,7 +85,9 @@ class Rosh
               [error, result.exit_status, result.stdout, result.stderr]
             else
               listing = result.ruby_object.split.map do |entry|
+                good_info entry
                 full_path = "#{base}/#{entry}"
+
                 Rosh::Host::RemoteFileSystemObject.create(full_path, self)
               end
 
@@ -129,12 +134,18 @@ class Rosh
             end
 
             if name
-              p = list.find_all { |i| i.command =~ /\b#{name}\b/ }
-              [p, 0, result.stdout, result.stderr]
+              processes = list.find_all { |i| i.command =~ /\b#{name}\b/ }
+              processes.each(&method(:ap))
+
+              [processes, 0, result.stdout, result.stderr]
             elsif pid
-              p = list.find_all { |i| i.pid == pid }
-              [p, 0, result.stdout, result.stderr]
+              processes = list.find_all { |i| i.pid == pid }
+              processes.each(&method(:ap))
+
+              [processes, 0, result.stdout, result.stderr]
             else
+              ap list
+
               [list, 0, result.stdout, result.stderr]
             end
           end

@@ -234,15 +234,25 @@ class Rosh
             result = run(command)
 
             if result.exit_status.zero?
+              good_info result.stdout unless result.stdout.empty?
+
               [result.ruby_object, 0, result.stdout]
             else
               output = if result.stdout.empty? && result.stderr.empty?
                 ''
               elsif result.stderr.empty?
+                good_info result.stdout
+
                 result.stdout.strip
               elsif result.stdout.empty?
+                bad_info result.stderr
+
                 result.stderr.strip
               else
+                good_info result.stdout.strip
+                puts "\n\n"
+                bad_info result.stderr.strip
+
                 result.stdout.strip + "\n\n" + result.stderr.strip
               end
 

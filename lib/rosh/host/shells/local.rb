@@ -38,6 +38,7 @@ class Rosh
             begin
               Dir.chdir(full_path)
               @internal_pwd = Dir.pwd
+
               [true, 0]
             rescue Errno::ENOENT, Errno::ENOTDIR => ex
               [ex, 1]
@@ -55,6 +56,7 @@ class Rosh
 
           process(:env) do
             env = read_env
+            ap env
 
             [env, 0]
           end
@@ -126,6 +128,7 @@ class Rosh
         # @return [Dir] The current working directory as a Dir.
         def pwd
           log 'pwd called'
+
           process(:pwd) { [Rosh::Host::LocalDir.new(@internal_pwd), 0] }
         end
 
