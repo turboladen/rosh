@@ -99,8 +99,16 @@ class Rosh
         end
       end
 
+      def to_path
+        @path
+      end
+
       def group
         Etc.getgrgid(stat.gid)
+      end
+
+      def to_s
+        File.basename @path
       end
     end
   end
