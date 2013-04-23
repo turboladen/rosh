@@ -51,13 +51,15 @@ var: <%= var %>
       end
     end
 
-    context 'in-memory contents' do
+    context 'in-memory contents that are the same as the existing contents' do
       let(:tempfile) do
         double 'Tempfile'
       end
 
       before do
         subject.instance_variable_set(:@unwritten_contents, 'file contents')
+        subject.should_receive(:contents).and_return 'file contents'
+        shell.should_receive(:last_exit_status).and_return 0
       end
 
       it 'writes the in-memory contents to a Tempfile and uploads that' do
@@ -68,9 +70,52 @@ var: <%= var %>
         tempfile.should_receive(:rewind)
         shell.should_receive(:upload).with(tempfile, path)
         tempfile.should_receive(:unlink)
-        shell.should_receive(:last_exit_status).and_return 0
 
         subject.save.should be_true
+      end
+
+      it 'does not notify observers' do
+        shell.stub(:upload)
+
+        subject.should_not_receive(:changed)
+        subject.should_not_receive(:notify_observers)
+
+        subject.save
+      end
+    end
+
+    context 'in-memory contents that are different from the existing contents' do
+      let(:tempfile) do
+        double 'Tempfile'
+      end
+
+      before do
+        subject.instance_variable_set(:@unwritten_contents, 'new contents')
+        subject.should_receive(:contents).and_return 'old contents'
+        shell.should_receive(:last_exit_status).and_return 0
+      end
+
+      it 'writes the in-memory contents to a Tempfile and uploads that' do
+        Tempfile.should_receive(:new).with('rosh_remote_file').
+          and_return tempfile
+
+        tempfile.should_receive(:write).with 'new contents'
+        tempfile.should_receive(:rewind)
+        shell.should_receive(:upload).with(tempfile, path)
+        tempfile.should_receive(:unlink)
+
+        subject.save.should be_true
+      end
+
+      it 'notifies observers' do
+        shell.stub(:upload)
+
+        subject.should_receive(:changed)
+        subject.should_receive(:notify_observers).
+          with(subject, attribute: :contents, old: 'old contents',
+          new: 'new contents')
+
+        subject.save
       end
     end
   end

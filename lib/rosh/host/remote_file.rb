@@ -45,15 +45,25 @@ class Rosh
       # @return [Boolean] +true+ if successful; +false+ if not.
       def save
         if @unwritten_contents
+          old_contents = contents
+
           tempfile = Tempfile.new('rosh_remote_file')
           tempfile.write(@unwritten_contents)
           tempfile.rewind
           @remote_shell.upload(tempfile, @path)
 
           tempfile.unlink
+          success = @remote_shell.last_exit_status.zero?
+
+          if success && old_contents != @unwritten_contents
+            changed
+            notify_observers(self, attribute: :contents, old: old_contents,
+              new: @unwritten_contents)
+          end
+
           @unwritten_contents = nil
 
-          @remote_shell.last_exit_status.zero?
+          success
         else
           false
         end
