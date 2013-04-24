@@ -324,7 +324,6 @@ describe Rosh::Host::RemoteFileSystemObject do
     it 'gets the letter mode and passes that to #mode_to_i' do
       shell.should_receive(:exec).with("ls -l /file | awk '{print $1}'").
         and_return 'rwx'
-
       subject.should_receive(:mode_to_i).with('rwx')
 
       subject.mode
