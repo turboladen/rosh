@@ -172,7 +172,7 @@ var: <%= var %>
       it 'updates observers' do
         subject.should_receive(:changed)
         subject.should_receive(:notify_observers).
-          with(subject, attribute: :exists, old: false, new: true)
+          with(subject, attribute: :path, old: nil, new: '/file')
         subject.send(:create)
       end
 

@@ -66,7 +66,7 @@ class Rosh
 
         if success
           changed
-          notify_observers(self, attribute: :exists, old: false, new: true)
+          notify_observers(self, attribute: :path, old: nil, new: @path)
         end
 
         success
