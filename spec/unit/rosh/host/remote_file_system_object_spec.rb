@@ -321,22 +321,13 @@ describe Rosh::Host::RemoteFileSystemObject do
   end
 
   describe '#mode' do
-    context 'command output is empty' do
-      it 'returns an empty string' do
-        shell.should_receive(:exec).with("ls -l /file | awk '{print $1}'").
-          and_return('')
+    it 'gets the letter mode and passes that to #mode_to_i' do
+      shell.should_receive(:exec).with("ls -l /file | awk '{print $1}'").
+        and_return 'rwx'
 
-        subject.mode.should == nil
-      end
-    end
+      subject.should_receive(:mode_to_i).with('rwx')
 
-    context 'command output contains the mode' do
-      it 'returns the mode' do
-        shell.should_receive(:exec).with("ls -l /file | awk '{print $1}'").
-          and_return("-rwxrwxrwx\r\n")
-
-        subject.mode.should == 777
-      end
+      subject.mode
     end
   end
 
@@ -430,6 +421,20 @@ describe Rosh::Host::RemoteFileSystemObject do
         subject.should_not_receive(:notify_observers)
 
         subject.remove
+      end
+    end
+  end
+
+  describe '#mode_do_i' do
+    context 'letter mode is empty string' do
+      it 'returns an empty string' do
+        subject.send(:mode_to_i, '').should == nil
+      end
+    end
+
+    context 'letter mode contains valid leters' do
+      it 'returns the mode' do
+        subject.send(:mode_to_i, "-rwxrwxrwx\r\n").should == 777
       end
     end
   end

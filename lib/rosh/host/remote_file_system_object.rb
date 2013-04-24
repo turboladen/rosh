@@ -131,33 +131,8 @@ class Rosh
       def mode
         cmd = "ls -l #{@path} | awk '{print $1}'"
         letter_mode = @remote_shell.exec(cmd)
-        %r[^(?<type>.)(?<user>.{3})(?<group>.{3})(?<others>.{3})] =~ letter_mode.strip
 
-        converter = lambda do |letters|
-          value = 0
-
-          letters.chars do |char|
-            case char
-            when '-' then next
-            when 'x' then value += 1
-            when 'w' then value += 2
-            when 'r' then value += 4
-            end
-          end
-
-          value.to_s
-        end
-
-        if user && group && others
-          number_mode = ''
-          number_mode << converter.call(user)
-          number_mode << converter.call(group)
-          number_mode << converter.call(others)
-
-          number_mode.to_i
-        else
-          nil
-        end
+        mode_to_i(letter_mode)
       end
 
       # Sets the mode on the file system object to +new_mode+.  If the update was a
@@ -202,6 +177,50 @@ class Rosh
         end
 
         success
+      end
+
+      #-------------------------------------------------------------------------
+      # Privates
+      #-------------------------------------------------------------------------
+      private
+
+      # Converts mode as letters ('-rwxr--r--') to numbers (744).  Returns +nil+
+      # if it can't determine numbers from +letter_mode+.
+      #
+      # @param [String] letter_mode
+      # @return [Integer]
+      def mode_to_i(letter_mode)
+        %r[^(?<type>.)(?<user>.{3})(?<group>.{3})(?<others>.{3})] =~ letter_mode.strip
+
+        converter = lambda do |letters|
+          value = 0
+
+          letters.chars do |char|
+            case char
+            when '-' then
+              next
+            when 'x' then
+              value += 1
+            when 'w' then
+              value += 2
+            when 'r' then
+              value += 4
+            end
+          end
+
+          value.to_s
+        end
+
+        if user && group && others
+          number_mode = ''
+          number_mode << converter.call(user)
+          number_mode << converter.call(group)
+          number_mode << converter.call(others)
+
+          number_mode.to_i
+        else
+          nil
+        end
       end
     end
   end
