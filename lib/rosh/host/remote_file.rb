@@ -42,31 +42,60 @@ class Rosh
 
       # If in-memory contents exist, writes them to the file.
       #
-      # @return [Boolean] +true+ if successful; +false+ if not.
+      # @return [Boolean] +true+ if successful or no change; +false+ if not
+      #   successful.
       def save
-        if @unwritten_contents
-          old_contents = contents
+        create_ok = exists? ? true : create
+        upload_ok = @unwritten_contents ? upload_new_content : true
 
-          tempfile = Tempfile.new('rosh_remote_file')
-          tempfile.write(@unwritten_contents)
-          tempfile.rewind
-          @remote_shell.upload(tempfile, @path)
+        create_ok && upload_ok
+      end
 
-          tempfile.unlink
-          success = @remote_shell.last_exit_status.zero?
+      #-------------------------------------------------------------------------
+      # Privates
+      #-------------------------------------------------------------------------
+      private
 
-          if success && old_contents != @unwritten_contents
-            changed
-            notify_observers(self, attribute: :contents, old: old_contents,
-              new: @unwritten_contents)
-          end
+      # Just creates the file.  No content added.
+      #
+      # @return [Boolean] +true+ if creating was successful; +false+ if not.
+      def create
+        @remote_shell.exec("touch #{@path}")
 
-          @unwritten_contents = nil
+        success = @remote_shell.last_exit_status.zero?
 
-          success
-        else
-          false
+        if success
+          changed
+          notify_observers(self, attribute: :exists, old: false, new: true)
         end
+
+        success
+      end
+
+      # Writes all in-memory contents to a local Tempfile, then uploads the
+      # Tempfile to the remote path.
+      #
+      # @return [Boolean] +true+ if creating was successful; +false+ if not.
+      def upload_new_content
+        old_contents = contents
+
+        tempfile = Tempfile.new('rosh_remote_file')
+        tempfile.write(@unwritten_contents)
+        tempfile.rewind
+        @remote_shell.upload(tempfile, @path)
+
+        tempfile.unlink
+        success = @remote_shell.last_exit_status.zero?
+
+        if success && old_contents != @unwritten_contents
+          changed
+          notify_observers(self, attribute: :contents, old: old_contents,
+            new: @unwritten_contents)
+        end
+
+        @unwritten_contents = nil
+
+        success
       end
     end
   end
