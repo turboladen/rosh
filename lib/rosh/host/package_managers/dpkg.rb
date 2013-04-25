@@ -1,4 +1,4 @@
-require_relative '../package_types/dpkg'
+require_relative '../package_types/deb'
 
 
 class Rosh
@@ -6,7 +6,8 @@ class Rosh
     module PackageManagers
       module Dpkg
 
-        def list
+        # @return [Array<Rosh::Host::PackageTypes::Deb>]
+        def packages
           result = @shell.exec 'dpkg --list'
 
           result.split("\n").map do |pkg|
@@ -14,20 +15,19 @@ class Rosh
               %r[(?<status>[\w]{1,3})\s+(?<name>\S+)\s+(?<version>\S+)\s+(?<description>[^\n]+)] =~
                 pkg
 
-              {
-                status: status,
-                name: name,
-                version: version,
-                description: description
-              }
+              create(name, version: version, status: status)
             end
           end.compact
         end
 
         private
 
-        def create(name)
-          Rosh::Host::PackageTypes::Dpkg.new(@shell, name)
+        # @param [String] name
+        # @param [String] version
+        # @param [String] status
+        def create(name, version: nil, status: nil)
+          Rosh::Host::PackageTypes::Deb.new(name, @shell, version: version,
+            status: status)
         end
       end
     end
