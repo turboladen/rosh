@@ -1,7 +1,11 @@
+require 'observer'
+
+
 class Rosh
   class Host
     module PackageTypes
       class Base
+        include Observable
 
         attr_reader :name
         attr_reader :version
