@@ -27,7 +27,8 @@ class Rosh
         mode_to_i(letter_mode)
       end
 
-      # Creates the directory if it doesn't already exist.
+      # Creates the directory if it doesn't already exist.  Notifies observers
+      # with the new path.
       #
       # @return [Boolean] +true+ if the directory already exists or if creating
       #   it was successful; +false+ if creating it failed.

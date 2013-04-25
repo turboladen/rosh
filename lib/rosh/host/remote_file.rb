@@ -56,7 +56,8 @@ class Rosh
       #-------------------------------------------------------------------------
       private
 
-      # Just creates the file.  No content added.
+      # Just creates the file; no content added.  Notifies observers with the
+      # new path.
       #
       # @return [Boolean] +true+ if creating was successful; +false+ if not.
       def create
@@ -73,7 +74,7 @@ class Rosh
       end
 
       # Writes all in-memory contents to a local Tempfile, then uploads the
-      # Tempfile to the remote path.
+      # Tempfile to the remote path.  Notifies observers about the new contents.
       #
       # @return [Boolean] +true+ if creating was successful; +false+ if not.
       def upload_new_content
