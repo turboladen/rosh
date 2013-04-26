@@ -75,6 +75,7 @@ files.",
     context 'with version' do
       it 'passes the version to the command' do
         subject.should_receive(:installed?).and_return true
+        subject.stub_chain(:info, :[]).and_return '0.1.2'
         shell.should_receive(:exec).with('apt-get install thing=1.2.3')
         shell.should_receive(:last_exit_status).and_return 0
 
@@ -87,8 +88,9 @@ files.",
         shell.should_receive(:exec).with('apt-get install thing')
       end
 
-      context 'package was already installed' do
+      context 'package was already installed and at latest version' do
         before do
+          subject.stub_chain(:info, :[]).and_return '1.2.3'
           subject.should_receive(:installed?).and_return true
         end
 
@@ -117,9 +119,42 @@ files.",
         end
       end
 
+      context 'package was already installed but at older version' do
+        before do
+          subject.should_receive(:installed?).and_return true
+          subject.stub_chain(:info, :[]).and_return '0.1.2', '1.2.3'
+        end
+
+        context 'failed install' do
+          before { shell.stub(:last_exit_status).and_return 1 }
+          specify { subject.install.should == false }
+
+          it 'does not notify observers' do
+            subject.should_not_receive(:changed)
+            subject.should_not_receive(:notify_observers)
+
+            subject.install
+          end
+        end
+
+        context 'successful install' do
+          before { shell.stub(:last_exit_status).and_return 0 }
+          specify { subject.install.should == true }
+
+          it 'notifies observers' do
+            subject.should_receive(:changed)
+            subject.should_receive(:notify_observers).
+              with(subject, attribute: :version, old: '0.1.2', new: '1.2.3')
+
+            subject.install
+          end
+        end
+      end
+
       context 'package not yet installed' do
         before do
           subject.should_receive(:installed?).and_return false
+          subject.stub_chain(:info, :[]).and_return '1.2.3'
         end
 
         context 'failed install' do

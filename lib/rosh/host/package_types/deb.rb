@@ -1,5 +1,4 @@
 require_relative 'base'
-require_relative '../string_refinements'
 
 
 class Rosh
@@ -52,17 +51,20 @@ class Rosh
         # @return [Boolean] +true+ if install was successful, +false+ if not.
         def install(version: nil)
           already_installed = installed?
+          old_version = info[:version] if already_installed
 
           cmd = "apt-get install #{@name}"
           cmd << "=#{version}" if version
 
           @shell.exec(cmd)
           success = @shell.last_exit_status.zero?
+          new_version = info[:version]
+          puts "new version: #{new_version}"
 
-          if success && !already_installed
+          if success && old_version != new_version
             changed
-            notify_observers(self, attribute: :version, old: nil,
-              new: info[:version])
+            notify_observers(self, attribute: :version, old: old_version,
+              new: new_version)
           end
 
           success
@@ -87,6 +89,9 @@ class Rosh
           success
         end
 
+        # Upgrades the package, using `apt-get install`.
+        #
+        # @return [Boolean] +true+ if install was successful, +false+ if not.
         def upgrade
           install
         end
