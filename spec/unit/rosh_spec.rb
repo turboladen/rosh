@@ -2,11 +2,10 @@ require 'spec_helper'
 require 'rosh'
 
 describe Rosh do
-  describe '#initialize' do
-    its(:hosts) { should be_empty }
-  end
+  subject { Rosh }
+  before { subject.reset }
 
-  describe '#add_host' do
+  describe '.add_host' do
     let(:current_host) do
       double 'Rosh::Host'
     end
@@ -27,5 +26,9 @@ describe Rosh do
         subject.hosts.should == { thing: current_host }
       end
     end
+  end
+
+  describe '.hosts' do
+    specify { subject.hosts.should be_empty }
   end
 end

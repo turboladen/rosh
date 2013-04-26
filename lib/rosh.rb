@@ -3,16 +3,11 @@ require_relative 'rosh/host'
 
 
 class Rosh
-  attr_reader :hosts
-
   DEFAULT_RC_FILE = '.roshrc.yml'
+  @hosts = {}
+  @config = nil
 
-  def initialize
-    @hosts = {}
-    @config = nil
-  end
-
-  def add_host(hostname, host_alias: nil, **ssh_options)
+  def self.add_host(hostname, host_alias: nil, **ssh_options)
     if host_alias.nil?
       @hosts[hostname] = Rosh::Host.new(hostname, ssh_options)
     else
@@ -20,12 +15,21 @@ class Rosh
     end
   end
 
-  def config
+  def self.hosts
+    @hosts
+  end
+
+  def self.config
     return @config if @config
 
     if File.exists? DEFAULT_RC_FILE
       erb = ERB.new(File.read(DEFAULT_RC_FILE))
       @config = YAML.load(erb.result)
     end
+  end
+
+  def self.reset
+    @hosts = {}
+    @config = nil
   end
 end
