@@ -1,4 +1,4 @@
-require_relative '../package_types/yum'
+require_relative '../package_types/rpm'
 
 
 class Rosh

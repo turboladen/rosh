@@ -1,4 +1,5 @@
 require 'observer'
+require_relative '../string_refinements'
 
 
 class Rosh
