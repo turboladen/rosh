@@ -56,7 +56,7 @@ class Rosh
 
           @options[:timeout] = DEFAULT_TIMEOUT unless @options.has_key? :timeout
           log "Net::SSH.configuration: #{Net::SSH.configuration_for(@hostname)}"
-          @ssh = new_ssh
+          @ssh = nil
 
           @internal_pwd = nil
           @history = []
@@ -233,6 +233,10 @@ class Rosh
 
         private
 
+        def ssh
+          @ssh ||= new_ssh
+        end
+
         def new_ssh
           Net::SSH.start(@hostname, @user, @options)
         end
@@ -273,7 +277,7 @@ class Rosh
               else
                 log 'Host disconnected us; retrying to connect...'
                 retried = true
-                @ssh = Net::SSH::Simple.new(@options)
+                @ssh = new_ssh
                 run(command, new_options)
                 retry
               end
@@ -293,7 +297,7 @@ class Rosh
           exit_status = nil
           exit_signal = nil
 
-          @ssh.open_channel do |channel|
+          ssh.open_channel do |channel|
             channel.request_pty do |ch, success|
               raise 'Could not obtain pty' unless success
 
@@ -330,7 +334,7 @@ class Rosh
             end
           end
 
-          @ssh.loop
+          ssh.loop
 
           SSHResult.new(stdout_data, stderr_data, exit_status, exit_signal)
         end
@@ -340,7 +344,7 @@ class Rosh
         #
         # @return [Lambda]
         def scp(source, destination)
-          @ssh.scp.upload!(source, destination) do |ch, name, rec, total|
+          ssh.scp.upload!(source, destination) do |ch, name, rec, total|
             percentage = format('%.2f', rec.to_f / total.to_f * 100) + '%'
             print "Saving to #{name}: Received #{rec} of #{total} bytes" + " (#{percentage})               \r"
             $stdout.flush
