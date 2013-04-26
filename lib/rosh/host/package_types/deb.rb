@@ -12,7 +12,8 @@ class Rosh
         #   Shell for the OS that's being managed.
         # @param [String] version
         # @param [Status] status
-        def initialize(name, shell, version: nil, status: nil)
+        # @param [Status] architecture
+        def initialize(name, shell, version: nil, status: nil, architecture: nil)
           super(name, shell, version: version, status: status)
         end
 
