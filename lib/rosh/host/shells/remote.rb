@@ -62,7 +62,9 @@ class Rosh
           @history = []
 
           at_exit do
-            @ssh.close unless @ssh.closed?
+            if @ssh
+              @ssh.close unless @ssh.closed?
+            end
           end
 
           log "Initialized for '#{@hostname}'"
