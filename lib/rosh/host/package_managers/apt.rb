@@ -54,31 +54,49 @@ class Rosh
           success
         end
 
-        # Upgrades outdated packages using `apt-get upgrade -y`.
+        # Upgrades outdated packages using `apt-get upgrade -y`.  Notifies
+        # observers with packages that were updated.  The list of packages in
+        # the update notification is an Array of Rosh::Host::PackageTypes::Deb
+        # objects.
         #
         # @return [Boolean] +true+ if exit status was 0; +false+ if not.
         def upgrade_packages
+          old_packages = packages
           output = @shell.exec 'apt-get upgrade -y'
-          packages = []
+          new_package_names = extract_upgradable_packages(output)
+          success = @shell.last_exit_status.zero?
+
+          if success && !new_package_names.empty?
+            new_packages = new_package_names.map(&method(:create))
+            changed
+            notify_observers(self, attribute: :packages, old: old_packages,
+              new: new_packages)
+          end
+
+          success
+        end
+
+        private
+
+        # Extracts Deb package names for #upgrade_packages from the command
+        # output.
+        #
+        # @param [String] output Output from the apt-get upgrade command.
+        # @return [Array<String>]
+        def extract_upgradable_packages(output)
+          new_packages = []
 
           output.each_line do |line|
             next if line.match(/The following packages will be upgraded:/)
             break if line.match(/\d+ upgraded, \d+ newly installed/)
 
             line.split.each do |pkg|
-              packages << create(pkg)
+              new_packages << pkg
             end
           end
 
-          unless packages.empty?
-            changed
-            notify_observers(self, attribute: :upgrade_packages, old: nil, new: packages)
-          end
-
-          @shell.history.last[:exit_status].zero?
+          new_packages
         end
-
-        private
 
         # Creates a new Apt package by name.
         #

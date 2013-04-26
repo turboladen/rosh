@@ -23,11 +23,9 @@ class Rosh
         private
 
         # @param [String] name
-        # @param [String] version
-        # @param [String] status
-        def create(name, version: nil, status: nil)
-          Rosh::Host::PackageTypes::Deb.new(name, @shell, version: version,
-            status: status)
+        # @param [Hash] options
+        def create(name, **options)
+          Rosh::Host::PackageTypes::Deb.new(name, @shell, **options)
         end
       end
     end
