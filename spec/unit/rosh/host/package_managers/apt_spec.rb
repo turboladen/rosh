@@ -61,26 +61,64 @@ Package: libxml-simpleobject-perl
   end
 
   describe '#update_cache' do
-    it 'runs "apt-get update"' do
-      shell.should_receive(:exec).with('apt-get update').and_return ''
-      subject.update_cache
-    end
+    before { shell.should_receive(:exec).with('apt-get update') }
 
-    context 'stdout includes Get:' do
+    context 'cache does not change after update' do
       before do
-        subject.add_observer(observer)
-        shell.should_receive(:exec).with('apt-get update').and_return <<-EOF
-things1
-Get: stuff1
-things2
-Get: stuff2
-        EOF
+        subject.should_receive(:cache).and_return []
+        subject.should_receive(:cache).and_return []
       end
 
-      it 'updates observers' do
-        observer.should_receive(:update).
-          with(subject, attribute: :update_cache, old: nil, new: ['Get: stuff1', 'Get: stuff2'])
-        subject.update_cache
+      context 'successful command' do
+        before { shell.stub(:last_exit_status).and_return 0 }
+
+        it 'returns true and does not notify observers' do
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.update_cache.should == true
+        end
+      end
+
+      context 'unsuccessful command' do
+        before { shell.stub(:last_exit_status).and_return 1 }
+
+        it 'returns false and does not notify observers' do
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.update_cache.should == false
+        end
+      end
+    end
+
+    context 'cache changes after update' do
+      before do
+        subject.should_receive(:cache).and_return []
+        subject.should_receive(:cache).and_return %w[new_package]
+      end
+
+      context 'successful command' do
+        before { shell.stub(:last_exit_status).and_return 0 }
+
+        it 'returns true and notifies observers' do
+          subject.should_receive(:changed)
+          subject.should_receive(:notify_observers).
+            with(subject, attribute: :cache, old: [], new: %w[new_package])
+
+          subject.update_cache.should == true
+        end
+      end
+
+      context 'unsuccessful command' do
+        before { shell.stub(:last_exit_status).and_return 1 }
+
+        it 'returns false and does not notify observers' do
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.update_cache.should == false
+        end
       end
     end
   end
