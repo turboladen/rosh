@@ -1,5 +1,3 @@
-require 'observer'
-
 require_relative '../package_types/deb'
 
 
@@ -7,7 +5,6 @@ class Rosh
   class Host
     module PackageManagers
       module Apt
-        include Observable
 
         # Lists all packages that exist in the apt cache.
         #
