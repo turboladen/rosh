@@ -53,7 +53,7 @@ class Rosh
           temp_pid.to_s.to_i if temp_pid
         end
 
-        # @return Array[Symbol, Integer, Rosh::CommandResult, Integer]
+        # @return [Array[Symbol, Integer, Rosh::CommandResult, Integer]]
         def fetch_status
           result = @shell.exec("launchctl list -x #{@name}")
           pid = @pid || fetch_pid
