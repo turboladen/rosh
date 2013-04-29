@@ -27,9 +27,8 @@ class Rosh
     def initialize
       ENV['SHELL'] = ::File.expand_path($0)
 
-      @rosh = Rosh.new
-      @rosh.add_host 'localhost'
-      @current_host = @rosh.hosts['localhost']
+      Rosh.add_host 'localhost'
+      @current_host = Rosh.hosts['localhost']
     end
 
     # Starts the Readline loop for accepting input.  Each iteration through the
@@ -48,7 +47,7 @@ class Rosh
           [
             @current_host.shell.public_methods(false).map(&:to_s) |
             @current_host.shell.system_commands.map(&:to_s),
-            @rosh.hosts.keys,
+            Rosh.hosts.keys,
             @current_host.shell.workspace.send(:binding)
           ]
         end
@@ -148,7 +147,7 @@ class Rosh
     private
 
     def ch(hostname)
-      new_host = @rosh.hosts[hostname]
+      new_host = Rosh.hosts[hostname]
 
       if new_host.nil?
         log "No host defined for '#{hostname}'"

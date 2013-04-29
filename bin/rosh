@@ -9,27 +9,23 @@ if arg == '--irb'
   require_relative '../lib/rosh'
   IRB.setup '../lib/rosh'
 
-  def r
-    @r ||= Rosh.new
-  end
-
-  r.add_host('192.168.33.100', host_alias: :centos5, user: 'vagrant',
+  Rosh.add_host('192.168.33.100', host_alias: :centos5, user: 'vagrant',
     keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
 
-  r.add_host('192.168.33.102', host_alias: :deb, user: 'vagrant',
+  Rosh.add_host('192.168.33.102', host_alias: :deb, user: 'vagrant',
     keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
 
-  r.add_host('192.168.33.104', host_alias: :freebsd, user: 'sloveless')
+  Rosh.add_host('192.168.33.104', host_alias: :freebsd, user: 'sloveless')
 
-  r.add_host('192.168.33.105', host_alias: :gentoo, user: 'vagrant',
+  Rosh.add_host('192.168.33.105', host_alias: :gentoo, user: 'vagrant',
     keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
 
-  r.add_host('192.168.33.110', host_alias: :ubuntu, user: 'vagrant',
+  Rosh.add_host('192.168.33.110', host_alias: :ubuntu, user: 'vagrant',
     keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
 
-  r.add_host('localhost', host_alias: :local)
+  Rosh.add_host('localhost', host_alias: :local)
 
-  r.add_host('sloveless-lin.pelco.org', host_alias: :lin, user: 'sloveless')
+  Rosh.add_host('sloveless-lin.pelco.org', host_alias: :lin, user: 'sloveless')
 
   IRB.start
 else
