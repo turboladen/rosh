@@ -9,6 +9,8 @@ class Rosh
 
       def initialize(shell, *manager_types)
         @shell = shell
+        @cache = {}
+        @cache_is_dirty = false
 
         manager_types.each do |type|
           self.class.
