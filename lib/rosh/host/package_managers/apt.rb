@@ -11,21 +11,20 @@ class Rosh
 
         # Lists all packages that exist in the apt cache.
         #
-        # @return [Array<Rosh::Host::PackageTypes::Deb>]
+        # @return [Hash{ String => Hash }]
         def cache
-          output = @shell.exec "apt-cache dump | grep 'Package:\||*Version:'"
+          output = @shell.exec "apt-cache dump | grep 'Package:\\||*Version:'"
+          package_array = output.split("Package: ")
           cached_packages = {}
 
-          output.each_line do |line|
-            if line.strip.match /Package: [^\n]+/
-              /Package: (?<name>[^:]+):?(?<arch>\S*)/ =~ line
-              cached_packages[name.strip] ||= {}
-              cached_packages[name.strip][:architecture] = arch.strip
-            elsif line.strip.match /Version: (?<version>\S+)/
-              last_pkg = cached_packages.keys.last
-              cached_packages[last_pkg][:version] = $~[:version]
-            end
-          end
+          package_array.each do |pkg|
+            /(?<name>[^:]+):?(?<arch>\S*)?(\n\sVersion: (?<version>\S+))?\n/m =~ pkg
+            next unless name
+            cached_packages[name.strip] = { arch: arch, version: version }
+          end.compact
+
+          cached_packages
+        end
 
           cached_packages.map do |name, attributes|
             create(name, attributes)

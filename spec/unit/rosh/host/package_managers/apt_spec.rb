@@ -42,21 +42,17 @@ Package: libxml-simpleobject-perl
     end
 
     before do
-      shell.should_receive(:exec).with("apt-cache dump | grep 'Package:\||*Version:'").
+      shell.should_receive(:exec).with("apt-cache dump | grep 'Package:\\||*Version:'").
         and_return cache_dump
     end
 
-    it 'returns an Array of cached packages' do
-      subject.should_receive(:create).
-        with('psemu-sound-oss', architecture: 'i386')
-      subject.should_receive(:create).
-        with('mp3wrap', architecture: 'i386', version: '0.5-3')
-      subject.should_receive(:create).
-        with('libxml-simpleobject-perl', architecture: '', version: '0.53-2')
-
+    it 'returns an Hash of cached packages' do
       cache = subject.cache
-      cache.should be_an Array
-      cache.size.should == 3
+      cache.should == {
+        'psemu-sound-oss' => { arch: 'i386', version: nil },
+        'mp3wrap' => { arch: 'i386', version: '0.5-3' },
+        'libxml-simpleobject-perl' => { arch: '', version: '0.53-2' }
+      }
     end
   end
 
