@@ -66,7 +66,7 @@ Package: libxml-simpleobject-perl
         subject.instance_variable_set(:@cache_is_dirty, false)
       end
 
-      let(:cache) { { 'package' => { arch: nil, version:nil } } }
+      let(:cache) { { 'package' => { arch: nil, version: nil } } }
       specify { subject.cache.should eq cache }
     end
   end
