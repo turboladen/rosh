@@ -57,12 +57,23 @@ Package: libxml-simpleobject-perl
   end
 
   describe '#update_cache' do
-    before { shell.should_receive(:exec).with('apt-get update') }
+    before do
+      shell.should_receive(:exec).with('apt-get update').and_return output
+    end
 
-    context 'cache does not change after update' do
-      before do
-        subject.should_receive(:cache).and_return []
-        subject.should_receive(:cache).and_return []
+    context 'cache does not change during update' do
+      let(:output) do
+        <<-OUTPUT
+Hit http://us.archive.ubuntu.com precise Release.gpg
+Hit http://us.archive.ubuntu.com precise-updates Release.gpg
+Hit http://us.archive.ubuntu.com precise-backports Release.gpg
+Hit http://security.ubuntu.com precise-security Release.gpg
+Hit http://us.archive.ubuntu.com precise Release
+Hit http://us.archive.ubuntu.com precise-updates Release
+Hit http://security.ubuntu.com precise-security Release
+Hit http://us.archive.ubuntu.com precise-backports Release
+Reading package lists... Done
+        OUTPUT
       end
 
       context 'successful command' do
@@ -89,9 +100,19 @@ Package: libxml-simpleobject-perl
     end
 
     context 'cache changes after update' do
-      before do
-        subject.should_receive(:cache).and_return []
-        subject.should_receive(:cache).and_return %w[new_package]
+      let(:output) do
+        <<-OUTPUT
+Hit http://us.archive.ubuntu.com precise Release.gpg
+Hit http://us.archive.ubuntu.com precise-updates Release.gpg
+Get:1 http://us.archive.ubuntu.com precise-backports Release.gpg [198 B]
+Hit http://security.ubuntu.com precise-security Release.gpg
+Hit http://us.archive.ubuntu.com precise Release
+Hit http://us.archive.ubuntu.com precise-updates Release
+Hit http://security.ubuntu.com precise-security Release
+Get:2 http://us.archive.ubuntu.com precise-backports Release [49.6 kB]
+Fetched 163 kB in 1s (94.4 kB/s)
+Reading package lists... Done
+        OUTPUT
       end
 
       context 'successful command' do
@@ -100,7 +121,7 @@ Package: libxml-simpleobject-perl
         it 'returns true and notifies observers' do
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
-            with(subject, attribute: :cache, old: [], new: %w[new_package])
+            with(subject, attribute: :cache, old: false, new: true)
 
           subject.update_cache.should == true
         end
@@ -114,6 +135,69 @@ Package: libxml-simpleobject-perl
           subject.should_not_receive(:notify_observers)
 
           subject.update_cache.should == false
+        end
+      end
+    end
+  end
+
+  describe '#update_cache!' do
+    before { shell.should_receive(:exec).with('apt-get update') }
+
+    context 'cache does not change after update' do
+      before do
+        subject.should_receive(:cache).and_return []
+        subject.should_receive(:cache).and_return []
+      end
+
+      context 'successful command' do
+        before { shell.stub(:last_exit_status).and_return 0 }
+
+        it 'returns true and does not notify observers' do
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.update_cache!.should == true
+        end
+      end
+
+      context 'unsuccessful command' do
+        before { shell.stub(:last_exit_status).and_return 1 }
+
+        it 'returns false and does not notify observers' do
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.update_cache!.should == false
+        end
+      end
+    end
+
+    context 'cache changes after update' do
+      before do
+        subject.should_receive(:cache).and_return []
+        subject.should_receive(:cache).and_return %w[new_package]
+      end
+
+      context 'successful command' do
+        before { shell.stub(:last_exit_status).and_return 0 }
+
+        it 'returns true and notifies observers' do
+          subject.should_receive(:changed)
+          subject.should_receive(:notify_observers).
+            with(subject, attribute: :cache, old: [], new: %w[new_package])
+
+          subject.update_cache!.should == true
+        end
+      end
+
+      context 'unsuccessful command' do
+        before { shell.stub(:last_exit_status).and_return 1 }
+
+        it 'returns false and does not notify observers' do
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.update_cache!.should == false
         end
       end
     end
