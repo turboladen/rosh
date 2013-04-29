@@ -190,7 +190,7 @@ class Rosh
         # Expands paths based on the context of the shell.  Allows for using Ruby
         # to pass in a path (via eval).
         #
-        # @param [] path A String or some Ruby code that will eval to represent a
+        # @param path A String or some Ruby code that will eval to represent a
         #   path.
         #
         # @return [String] Fully expanded path of the given path.
