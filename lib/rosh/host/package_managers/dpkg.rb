@@ -7,7 +7,7 @@ class Rosh
       module Dpkg
 
         # @return [Array<Rosh::Host::PackageTypes::Deb>]
-        def packages
+        def installed_packages
           result = @shell.exec 'dpkg --list'
 
           result.split("\n").map do |pkg|

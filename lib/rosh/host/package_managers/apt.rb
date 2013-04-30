@@ -63,7 +63,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if exit status was 0; +false+ if not.
         def upgrade_packages
-          old_packages = packages
+          old_packages = installed_packages
           output = @shell.exec 'apt-get upgrade -y'
           new_package_names = extract_upgradable_packages(output)
           success = @shell.last_exit_status.zero?
@@ -71,7 +71,7 @@ class Rosh
           if success && !new_package_names.empty?
             new_packages = new_package_names.map(&method(:create))
             changed
-            notify_observers(self, attribute: :packages, old: old_packages,
+            notify_observers(self, attribute: :installed_packages, old: old_packages,
               new: new_packages)
           end
 

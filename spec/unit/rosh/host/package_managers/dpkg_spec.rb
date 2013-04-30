@@ -13,7 +13,7 @@ describe Rosh::Host::PackageManagers::Dpkg do
     o
   end
 
-  describe '#packages' do
+  describe '#installed_packages' do
     let(:output) do
       <<-OUTPUT
 Desired=Unknown/Install/Remove/Purge/Hold
@@ -42,7 +42,7 @@ ii  apparmor                                     2.7.102-0ubuntu3.7             
         with('apparmor', version: '2.7.102-0ubuntu3.7', status: 'ii').
         and_return 'third package'
 
-      packages = subject.packages
+      packages = subject.installed_packages
       packages.should be_an Array
       packages.size.should == 3
     end

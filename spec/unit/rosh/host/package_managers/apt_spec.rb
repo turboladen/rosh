@@ -158,7 +158,7 @@ Reading package lists... Done
     let(:output) { 'some output' }
 
     before do
-      subject.stub(:packages).and_return []
+      subject.stub(:installed_packages).and_return []
       shell.should_receive(:exec).with('apt-get upgrade -y').and_return output
     end
 
@@ -211,7 +211,8 @@ Reading package lists... Done
           subject.should_receive(:create).and_return deb_package
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
-            with(subject, attribute: :packages, old: [], new: [deb_package])
+            with(subject, attribute: :installed_packages, old: [],
+            new: [deb_package])
 
           subject.upgrade_packages.should == true
         end
@@ -230,7 +231,6 @@ Reading package lists... Done
         end
       end
     end
-
   end
 
   describe '#extract_upgradable_packages' do
