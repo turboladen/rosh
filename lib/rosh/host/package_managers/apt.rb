@@ -24,7 +24,8 @@ class Rosh
         end
 
         # Updates APT's package index using `apt-get update`.  Notifies
-        # observers with Boolean value whether cache was updated or not.
+        # observers with Arrays of old sources (that weren't updated) and
+        # updated sources.
         #
         # @return [Boolean] +true+ if exit status was 0; +false+ if not.
         def update_index
