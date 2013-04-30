@@ -25,19 +25,25 @@ class Rosh
           @cache = cached_packages
         end
 
-        # Updates APT's cache using `apt-get update`.  Notifies observers with
-        # Boolean value whether cache was updated or not.
+        # Updates APT's package index using `apt-get update`.  Notifies
+        # observers with Boolean value whether cache was updated or not.
         #
         # @return [Boolean] +true+ if exit status was 0; +false+ if not.
-        def update_cache
+        def update_index
           output = @shell.exec 'apt-get update'
-          updated = output.match(/Get:\d/m) ? true : false
+
+          updated = output.each_line.map do |line|
+            /Get:\d\s+(?<pkg_source>.+)/ =~ line
+
+            pkg_source
+          end.compact
+
           success = @shell.last_exit_status.zero?
 
-          if success && updated
+          if success && !updated.empty?
             @cache_is_dirty = true
             changed
-            notify_observers(self, attribute: :cache, old: false, new: true)
+            notify_observers(self, attribute: :cache, old: [], new: updated)
           end
 
           success
@@ -50,7 +56,7 @@ class Rosh
         # Note the +!+: this method can take some time, depending on the size of
         # your cache; only use it if you really want your observer to know which
         # packages in the cache were updated.  Generally, you probably want to
-        # use {#update_cache}.
+        # use {#update_index}.
         #
         # @return [Boolean] +true+ if exit status was 0; +false+ if not.
         # @todo The list of packages should be of Deb objects.

@@ -71,7 +71,7 @@ Package: libxml-simpleobject-perl
     end
   end
 
-  describe '#update_cache' do
+  describe '#update_index' do
     before do
       shell.should_receive(:exec).with('apt-get update').and_return output
     end
@@ -98,7 +98,7 @@ Reading package lists... Done
           subject.should_not_receive(:changed)
           subject.should_not_receive(:notify_observers)
 
-          subject.update_cache.should == true
+          subject.update_index.should == true
         end
       end
 
@@ -109,7 +109,7 @@ Reading package lists... Done
           subject.should_not_receive(:changed)
           subject.should_not_receive(:notify_observers)
 
-          subject.update_cache.should == false
+          subject.update_index.should == false
         end
       end
     end
@@ -136,9 +136,12 @@ Reading package lists... Done
         it 'returns true and notifies observers' do
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
-            with(subject, attribute: :cache, old: false, new: true)
+            with(subject, attribute: :cache, old: [], new: [
+            'http://us.archive.ubuntu.com precise-backports Release.gpg [198 B]',
+            'http://us.archive.ubuntu.com precise-backports Release [49.6 kB]'
+          ])
 
-          subject.update_cache.should == true
+          subject.update_index.should == true
         end
       end
 
@@ -149,7 +152,7 @@ Reading package lists... Done
           subject.should_not_receive(:changed)
           subject.should_not_receive(:notify_observers)
 
-          subject.update_cache.should == false
+          subject.update_index.should == false
         end
       end
     end
