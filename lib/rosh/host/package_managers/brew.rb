@@ -10,8 +10,6 @@ class Rosh
         #
         # @return [Hash{ String => Hash }]
         def cache
-          return @cache if @cache && !@cache_is_dirty
-
           output = @shell.exec 'ls `brew --cache`'
           cached_packages = {}
 
