@@ -6,7 +6,7 @@ class Rosh
     module PackageTypes
       class Deb < Base
 
-        # @param [String] name Name of the packages.
+        # @param [String] name Name of the package.
         # @param [Rosh::Host::Shells::Local,Rosh::Host::Shells::Remote] shell
         #   Shell for the OS that's being managed.
         # @param [String] version
