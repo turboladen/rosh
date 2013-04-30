@@ -39,13 +39,37 @@ class Rosh
           end
         end
 
-        # Updates homebrew's cache using `brew update`.
+        # Updates homebrew's package index using `brew update`.  Notifies
+        # observers with lists of new, updated, and deleted packages from the
+        # index.
         #
         # @return [Boolean] +true+ if exit status was 0; +false+ if not.
-        def update_cache
-          @shell.exec '/usr/bin/env brew update'
+        def update_index
+          output = @shell.exec 'brew update'
 
-          @shell.history.last[:exit_status].zero?
+          /==> New Formulae\n(?<new_formulae>[^=>]*)/m =~ output
+          /==> Updated Formulae\n(?<updated_formulae>[^=>]*)/m =~ output
+          /==> Deleted Formulae\n(?<deleted_formulae>[^=>]*)/m =~ output
+
+          updated = []
+          updated << { new_formulae: new_formulae.split } if new_formulae
+
+          if updated_formulae
+            updated << { updated_formulae: updated_formulae.split }
+          end
+
+          if deleted_formulae
+            updated << { deleted_formulae: deleted_formulae.split }
+          end
+
+          success = @shell.last_exit_status.zero?
+
+          if success && !updated.empty?
+            changed
+            notify_observers(self, attribute: :index, old: [], new: updated)
+          end
+
+          success
         end
 
         # @param [String,Regexp] text
