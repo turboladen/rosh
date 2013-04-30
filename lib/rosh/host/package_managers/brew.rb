@@ -72,6 +72,28 @@ class Rosh
           success
         end
 
+        # Upgrades outdated packages using `brew upgrade`.  Notifies
+        # observers with packages that were updated.  The list of packages in
+        # the update notification is an Array of Rosh::Host::PackageTypes::Brew
+        # objects.
+        #
+        # @return [Boolean] +true+ if exit status was 0; +false+ if not.
+        def upgrade_packages
+          old_packages = installed_packages
+          output = @shell.exec 'brew upgrade'
+          new_package_names = extract_upgradable_packages(output)
+          success = @shell.last_exit_status.zero?
+
+          if success && !new_package_names.empty?
+            new_packages = new_package_names.map(&method(:create))
+            changed
+            notify_observers(self, attribute: :installed_packages,
+              old: old_packages, new: new_packages)
+          end
+
+          success
+        end
+
         # @param [String,Regexp] text
         # @return [Array]
         def search(text=nil)
@@ -89,6 +111,22 @@ class Rosh
         end
 
         private
+
+        # Extracts Brew package names for #upgrade_packages from the command
+        # output.
+        #
+        # @param [String] output Output from the brew upgrade command.
+        # @return [Array<String>]
+        def extract_upgradable_packages(output)
+          /Upgrading \d+ outdated packages, with result:\n(?<list>[^=>]+)/ =~ output
+
+          name_and_version = list.split(', ')
+          name_and_version.map do |pkg|
+            /(?<name>\S+)/ =~ pkg
+
+            name
+          end
+        end
 
         def create(name)
           Rosh::Host::PackageTypes::Brew.new(@shell, name)
