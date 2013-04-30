@@ -68,6 +68,30 @@ automake-1.12.2.tar.gz                          imagemagick-6.8.0-10.mountainlio
     end
   end
 
+  describe '#installed_packages' do
+    let(:output) do
+      <<-OUTPUT
+apple-gcc42			ffmpeg				imagemagick
+atk				freetype			intltool
+      OUTPUT
+    end
+
+    before do
+      shell.should_receive(:exec).with('brew list').and_return output
+    end
+
+    it 'creates a Brew package object for each package' do
+      subject.should_receive(:create).with('apple-gcc42')
+      subject.should_receive(:create).with('ffmpeg')
+      subject.should_receive(:create).with('imagemagick')
+      subject.should_receive(:create).with('atk')
+      subject.should_receive(:create).with('freetype')
+      subject.should_receive(:create).with('intltool')
+
+      subject.installed_packages
+    end
+  end
+
   describe '#update_index' do
     before do
       shell.should_receive(:exec).with('brew update').and_return output

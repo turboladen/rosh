@@ -31,10 +31,10 @@ class Rosh
         # Lists all installed Brew packages.
         #
         # @return [Array<Rosh::Host::PackageTypes::Brew>]
-        def list
-          result = @shell.exec 'brew list'
+        def installed_packages
+          output = @shell.exec 'brew list'
 
-          result.split(/\s+/).map do |pkg|
+          output.split(/\s+/).map do |pkg|
             create(pkg)
           end
         end
