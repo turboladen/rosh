@@ -94,22 +94,6 @@ class Rosh
           success
         end
 
-        # @param [String,Regexp] text
-        # @return [Array]
-        def search(text=nil)
-          text = "/#{text.source}/" if text.is_a? Regexp
-
-          result = @shell.exec("brew search #{text}")
-
-          # For some reason, doing this causes a memory leak and Ruby blows up.
-          #packages = result.split(/\s+/).map do |pkg|
-          #  puts "package #{pkg}"
-          #  create(pkg)
-          #end
-
-          result.split(/\s+/)
-        end
-
         private
 
         # Extracts Brew package names for #upgrade_packages from the command
