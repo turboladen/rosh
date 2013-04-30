@@ -253,7 +253,6 @@ class Rosh
 
           begin
             result = ssh_exec(command)
-            log "Result: #{result}"
             Rosh::CommandResult.new(nil, result.exit_status, result.stdout, result.stderr)
           rescue StandardError => ex
             log "Error: #{ex.class}"
@@ -280,7 +279,7 @@ class Rosh
                 log 'Host disconnected us; retrying to connect...'
                 retried = true
                 @ssh = new_ssh
-                run(command, new_options)
+                run(command)
                 retry
               end
             end
