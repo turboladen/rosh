@@ -15,10 +15,8 @@ class Rosh
 
           output.split.each do |pkg|
             /^(?<name>\w*(-\w*)?)-(?<version>(\d+[^\.]*\.)+)/ =~ pkg
-            puts "name: #{name}"
-            puts "version: #{version}"
-
             next unless name
+
             version.chomp!('.') if version
             cached_packages[name.strip] = { arch: '', version: version.strip }
           end
