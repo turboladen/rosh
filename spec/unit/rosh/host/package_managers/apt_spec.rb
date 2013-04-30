@@ -133,10 +133,21 @@ Reading package lists... Done
       context 'successful command' do
         before { shell.stub(:last_exit_status).and_return 0 }
 
+        let(:old) do
+          [
+            'http://us.archive.ubuntu.com precise Release.gpg',
+            'http://us.archive.ubuntu.com precise-updates Release.gpg',
+            'http://security.ubuntu.com precise-security Release.gpg',
+            'http://us.archive.ubuntu.com precise Release',
+            'http://us.archive.ubuntu.com precise-updates Release',
+            'http://security.ubuntu.com precise-security Release'
+          ]
+        end
+
         it 'returns true and notifies observers' do
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
-            with(subject, attribute: :cache, old: [], new: [
+            with(subject, attribute: :index, old: old, new: [
             'http://us.archive.ubuntu.com precise-backports Release.gpg [198 B]',
             'http://us.archive.ubuntu.com precise-backports Release [49.6 kB]'
           ])

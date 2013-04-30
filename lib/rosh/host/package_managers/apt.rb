@@ -32,18 +32,27 @@ class Rosh
         def update_index
           output = @shell.exec 'apt-get update'
 
-          updated = output.each_line.map do |line|
-            /Get:\d\s+(?<pkg_source>.+)/ =~ line
+          not_updated = []
+          updated = []
 
-            pkg_source
-          end.compact
+          output.each_line do |line|
+            /Hit\s+(?<hit_source>.+)/ =~ line
+            if hit_source
+              not_updated << hit_source
+              next
+            end
+
+            /Get:\d\s+(?<get_source>.+)/ =~ line
+            updated << get_source if get_source
+          end
 
           success = @shell.last_exit_status.zero?
 
           if success && !updated.empty?
             @cache_is_dirty = true
             changed
-            notify_observers(self, attribute: :cache, old: [], new: updated)
+            notify_observers(self, attribute: :index, old: not_updated,
+              new: updated)
           end
 
           success
