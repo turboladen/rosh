@@ -108,8 +108,8 @@ class Rosh
           end
         end
 
-        def create(name)
-          Rosh::Host::PackageTypes::Brew.new(@shell, name)
+        def create(name, **options)
+          Rosh::Host::PackageTypes::Brew.new(name, @shell, **options)
         end
       end
     end
