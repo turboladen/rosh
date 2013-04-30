@@ -56,32 +56,6 @@ class Rosh
           success
         end
 
-        # Updates APT's cache using `apt-get update`.  Notifies observers with
-        # packages updated in the cache.  The list of updated packages in the
-        # update notification is a Hash, where keys are the package name that
-        # was updated in the cache, and values are attributes of the package.
-        # Note the +!+: this method can take some time, depending on the size of
-        # your cache; only use it if you really want your observer to know which
-        # packages in the cache were updated.  Generally, you probably want to
-        # use {#update_index}.
-        #
-        # @return [Boolean] +true+ if exit status was 0; +false+ if not.
-        # @todo The list of packages should be of Deb objects.
-        def update_cache!
-          before = cache
-          @shell.exec 'apt-get update'
-          after = cache
-          difference = after - before
-          success = @shell.last_exit_status.zero?
-
-          if success && !difference.empty?
-            changed
-            notify_observers(self, attribute: :cache, old: before, new: after)
-          end
-
-          success
-        end
-
         # Upgrades outdated packages using `apt-get upgrade -y`.  Notifies
         # observers with packages that were updated.  The list of packages in
         # the update notification is an Array of Rosh::Host::PackageTypes::Deb
