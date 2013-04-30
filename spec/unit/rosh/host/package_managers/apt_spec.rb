@@ -28,9 +28,8 @@ describe Rosh::Host::PackageManagers::Apt do
   end
 
   describe '#cache' do
-    context 'cache is dirty' do
-      let(:cache_dump) do
-        <<-DUMP
+    let(:cache_dump) do
+      <<-DUMP
 Package: psemu-sound-oss
 Package: psemu-sound-oss:i386
 Package: mp3wrap
@@ -39,35 +38,21 @@ Package: mp3wrap:i386
  Version: 0.5-3
 Package: libxml-simpleobject-perl
  Version: 0.53-2
-        DUMP
-      end
-
-      before do
-        subject.instance_variable_set(:@cache, 'stuff')
-        subject.instance_variable_set(:@cache_is_dirty, true)
-
-        shell.should_receive(:exec).with("apt-cache dump | grep 'Package:\\||*Version:'").
-          and_return cache_dump
-      end
-
-      it 'returns an Hash of cached packages' do
-        cache = subject.cache
-        cache.should == {
-          'psemu-sound-oss' => { arch: 'i386', version: nil },
-          'mp3wrap' => { arch: 'i386', version: '0.5-3' },
-          'libxml-simpleobject-perl' => { arch: '', version: '0.53-2' }
-        }
-      end
+      DUMP
     end
 
-    context 'cache is not dirty' do
-      before do
-        subject.instance_variable_set(:@cache, cache)
-        subject.instance_variable_set(:@cache_is_dirty, false)
-      end
+    before do
+      shell.should_receive(:exec).with("apt-cache dump | grep 'Package:\\||*Version:'").
+        and_return cache_dump
+    end
 
-      let(:cache) { { 'package' => { arch: nil, version: nil } } }
-      specify { subject.cache.should eq cache }
+    it 'returns an Hash of cached packages' do
+      cache = subject.cache
+      cache.should == {
+        'psemu-sound-oss' => { arch: 'i386', version: nil },
+        'mp3wrap' => { arch: 'i386', version: '0.5-3' },
+        'libxml-simpleobject-perl' => { arch: '', version: '0.53-2' }
+      }
     end
   end
 

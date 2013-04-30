@@ -10,8 +10,6 @@ class Rosh
         #
         # @return [Hash{ String => Hash }]
         def cache
-          return @cache if @cache && !@cache_is_dirty
-
           output = @shell.exec "apt-cache dump | grep 'Package:\\||*Version:'"
           package_array = output.split('Package: ')
           cached_packages = {}
@@ -22,7 +20,7 @@ class Rosh
             cached_packages[name.strip] = { arch: arch, version: version }
           end.compact
 
-          @cache = cached_packages
+          cached_packages
         end
 
         # Updates APT's package index using `apt-get update`.  Notifies
@@ -49,7 +47,6 @@ class Rosh
           success = @shell.last_exit_status.zero?
 
           if success && !updated.empty?
-            @cache_is_dirty = true
             changed
             notify_observers(self, attribute: :index, old: not_updated,
               new: updated)
@@ -77,7 +74,6 @@ class Rosh
           success = @shell.last_exit_status.zero?
 
           if success && !difference.empty?
-            @cache_is_dirty = true
             changed
             notify_observers(self, attribute: :cache, old: before, new: after)
           end
