@@ -270,6 +270,50 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/gdbm.rb
     end
   end
 
+  describe '#upgrade' do
+    before do
+      subject.stub_chain(:info, :[]).and_return '1.2.3'
+      shell.should_receive(:exec).with('brew upgrade thing')
+    end
+
+    context 'package not already installed' do
+      before { shell.should_receive(:last_exit_status).and_return 1 }
+
+      it 'returns false and does not update observers' do
+        subject.should_not_receive(:changed)
+        subject.should_not_receive(:notify_observers)
+
+        subject.upgrade.should == false
+      end
+    end
+
+    context 'package installed but latest' do
+      before { shell.should_receive(:last_exit_status).and_return 1 }
+
+      it 'returns false and does not update observers' do
+        subject.should_not_receive(:changed)
+        subject.should_not_receive(:notify_observers)
+
+        subject.upgrade.should == false
+      end
+    end
+
+    context 'package installed and outdated' do
+      before do
+        shell.should_receive(:last_exit_status).and_return 0
+        subject.stub_chain(:info, :[]).and_return '0.1.2', '1.2.3'
+      end
+
+      it 'returns true and updates observers' do
+        subject.should_receive(:changed)
+        subject.should_receive(:notify_observers).
+          with(subject, attribute: :version, old: '0.1.2', new: '1.2.3')
+
+        subject.upgrade.should == true
+      end
+    end
+  end
+
   describe '#install_and_switch_version' do
     let(:version_output) do
       <<-OUTPUT

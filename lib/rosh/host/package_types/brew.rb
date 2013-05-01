@@ -87,6 +87,29 @@ class Rosh
           success
         end
 
+        # Upgrades the package, using `brew upgrade ` and updates observers with
+        # the new version.
+        #
+        # @return [Boolean] +true+ if upgrade was successful, +false+ if not.
+        def upgrade
+          old_version = info[:version]
+
+          @shell.exec "brew upgrade #{@name}"
+          success = @shell.last_exit_status.zero?
+
+          if success
+            new_version = info[:version]
+
+            if old_version != new_version
+              changed
+              notify_observers(self, attribute: :version, old: old_version,
+                new: new_version)
+            end
+          end
+
+          success
+        end
+
         private
 
         # Handles checking out appropriate git version for the package version,
