@@ -36,9 +36,7 @@ class Rosh
         def upgrade_packages
           old_packages = installed_packages
           output = @shell.exec 'yum update -y'
-
           new_packages = extract_upgradable_packages(output)
-
           success = @shell.last_exit_status.zero?
 
           if success && !new_packages.empty?
