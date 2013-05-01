@@ -28,8 +28,8 @@ class Rosh
 
           info_hash[:package] = @name
           info_hash[:spec] = $~[:spec]
-          info_hash[:version] = $~[:version]
-          info_hash[:homepage] = $~[:home]
+          info_hash[:version] = $~[:version].strip
+          info_hash[:homepage] = $~[:home].strip
 
           info_hash
         end
@@ -41,30 +41,31 @@ class Rosh
           !result.match /Not installed/
         end
 
+        # Installs the package using brew and notifies observers with the new
+        # version.  If a version is given and that version is already installed,
+        # brew switches back to use the given version.
+        #
+        # @param [String] version Version of the package to install.
         # @return [Boolean] +true+ if install was successful; +false+ if not.
         def install(version: nil)
-          result = if version
-            version_line = @shell.exec("brew versions #{@name} | grep #{version}").
-              split("\n").last
-            @shell.cd `brew --prefix`
-            %r[git checkout (?<hash>\w+)] =~ version_line
+          already_installed = installed?
+          old_version = info[:version] if already_installed
 
-            @shell.exec "git checkout #{hash} Library/Formula/#{@name}.rb"
-            @shell.exec "brew unlink #{@name}"
-            @shell.exec "brew install #{@name}"
-            @shell.exec "brew switch #{@name} #{version}"
-            @shell.exec "git checkout -- Library/Formula/#{@name}.rb"
-
-            @shell.history.last[:exit_status]
+          if version
+            install_and_switch_version(version)
           else
-            if installed?
-              0
-            else
-              @shell.exec "brew install #{@name}"
-            end
-          end
+            @shell.exec "brew install #{@name}"
+            success = @shell.last_exit_status.zero?
+            new_version = info[:version]
 
-          result.zero?
+            if success && old_version != new_version
+              changed
+              notify_observers(self, attribute: :version, old: old_version,
+                new: new_version)
+            end
+
+            success
+          end
         end
 
         # @param [Boolean] force
@@ -75,6 +76,41 @@ class Rosh
 
           @shell.history.last[:exit_status].zero?
         end
+
+        private
+
+        # Handles checking out appropriate git version for the package version,
+        # unlinking the old version, installing the requested version, and
+        # switching to the requested version.
+        #
+        # @param [String] version The version to install/switch to.
+        # @return [Boolean] +true+ if install was successful; +false+ if not.
+        def install_and_switch_version(version)
+          version_line = @shell.exec("brew versions #{@name} | grep #{version}").
+            split("\n").last
+          return false unless version_line
+
+          %r[git checkout (?<hash>\w+)] =~ version_line
+
+          prefix = @shell.exec 'brew --prefix'
+          @shell.cd(prefix)
+
+          @shell.exec "git checkout #{hash} Library/Formula/#{@name}.rb"
+          return false unless @shell.last_exit_status.zero?
+
+          @shell.exec "brew unlink #{@name}"
+          return false unless @shell.last_exit_status.zero?
+
+          @shell.exec "brew install #{@name}"
+          return false unless @shell.last_exit_status.zero?
+
+          @shell.exec "brew switch #{@name} #{version}"
+          return false unless @shell.last_exit_status.zero?
+
+          @shell.exec "git checkout -- Library/Formula/#{@name}.rb"
+          @shell.last_exit_status.zero?
+        end
+
       end
     end
   end
