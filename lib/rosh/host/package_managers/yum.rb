@@ -21,6 +21,10 @@ class Rosh
           end
         end
 
+        # Updates Yum's package index using `yum check-update`.  Notifies
+        # observers with updated sources.
+        #
+        # @return [Boolean] +true+ if exit status was 0; +false+ if not.
         def update_index
           output = @shell.exec 'yum check-update'
 
