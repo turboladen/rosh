@@ -37,7 +37,7 @@ class Rosh
           info_hash
         end
 
-        # @return [Boolean] +true+ if installed; +false if not.
+        # @return [Boolean] +true+ if installed; +false+ if not.
         def installed?
           @shell.exec "dpkg --status #{@name}"
 
@@ -59,7 +59,6 @@ class Rosh
           @shell.exec(cmd)
           success = @shell.last_exit_status.zero?
           new_version = info[:version]
-          puts "new version: #{new_version}"
 
           if success && old_version != new_version
             changed
