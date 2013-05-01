@@ -6,23 +6,6 @@ class Rosh
     module PackageManagers
       module Apt
 
-        # Lists all packages that exist in the apt cache.
-        #
-        # @return [Hash{ String => Hash }]
-        def cache
-          output = @shell.exec "apt-cache dump | grep 'Package:\\||*Version:'"
-          package_array = output.split('Package: ')
-          cached_packages = {}
-
-          package_array.each do |pkg|
-            /(?<name>[^:]+):?(?<arch>\S*)?(\n\sVersion: (?<version>\S+))?\n/m =~ pkg
-            next unless name
-            cached_packages[name.strip] = { arch: arch, version: version }
-          end.compact
-
-          cached_packages
-        end
-
         # Updates APT's package index using `apt-get update`.  Notifies
         # observers with Arrays of old sources (that weren't updated) and
         # updated sources.

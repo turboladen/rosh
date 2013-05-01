@@ -6,24 +6,6 @@ class Rosh
     module PackageManagers
       module Brew
 
-        # Lists all packages that exist in the homebrew cache.
-        #
-        # @return [Hash{ String => Hash }]
-        def cache
-          output = @shell.exec 'ls `brew --cache`'
-          cached_packages = {}
-
-          output.split.each do |pkg|
-            /^(?<name>\w*(-\w*)?)-(?<version>(\d+[^\.]*\.)+)/ =~ pkg
-            next unless name
-
-            version.chomp!('.') if version
-            cached_packages[name.strip] = { arch: '', version: version.strip }
-          end
-
-          @cache = Hash[cached_packages.sort]
-        end
-
         # Lists all installed Brew packages.
         #
         # @return [Array<Rosh::Host::PackageTypes::Brew>]

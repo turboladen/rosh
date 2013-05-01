@@ -27,35 +27,6 @@ describe Rosh::Host::PackageManagers::Apt do
     subject.instance_variable_set(:@shell, shell)
   end
 
-  describe '#cache' do
-    let(:cache_dump) do
-      <<-DUMP
-Package: psemu-sound-oss
-Package: psemu-sound-oss:i386
-Package: mp3wrap
- Version: 0.5-3
-Package: mp3wrap:i386
- Version: 0.5-3
-Package: libxml-simpleobject-perl
- Version: 0.53-2
-      DUMP
-    end
-
-    before do
-      shell.should_receive(:exec).with("apt-cache dump | grep 'Package:\\||*Version:'").
-        and_return cache_dump
-    end
-
-    it 'returns an Hash of cached packages' do
-      cache = subject.cache
-      cache.should == {
-        'psemu-sound-oss' => { arch: 'i386', version: nil },
-        'mp3wrap' => { arch: 'i386', version: '0.5-3' },
-        'libxml-simpleobject-perl' => { arch: '', version: '0.53-2' }
-      }
-    end
-  end
-
   describe '#update_index' do
     before do
       shell.should_receive(:exec).with('apt-get update').and_return output
