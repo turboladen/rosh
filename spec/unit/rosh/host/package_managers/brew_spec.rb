@@ -52,7 +52,7 @@ atk				freetype			intltool
       shell.should_receive(:exec).with('brew update').and_return output
     end
 
-    context 'cache does not change during update' do
+    context 'index does not change during update' do
       let(:output) do
         <<-OUTPUT
 Already up-to-date.
@@ -82,7 +82,7 @@ Already up-to-date.
       end
     end
 
-    context 'cache changes after update' do
+    context 'index changes after update' do
       let(:output) do
         <<-OUTPUT
         Updated Homebrew from 6352f739 to 10bb62cb.

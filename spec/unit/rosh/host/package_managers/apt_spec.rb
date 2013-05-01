@@ -32,7 +32,7 @@ describe Rosh::Host::PackageManagers::Apt do
       shell.should_receive(:exec).with('apt-get update').and_return output
     end
 
-    context 'cache does not change during update' do
+    context 'index does not change during update' do
       let(:output) do
         <<-OUTPUT
 Hit http://us.archive.ubuntu.com precise Release.gpg
@@ -70,7 +70,7 @@ Reading package lists... Done
       end
     end
 
-    context 'cache changes after update' do
+    context 'index changes after update' do
       let(:output) do
         <<-OUTPUT
 Hit http://us.archive.ubuntu.com precise Release.gpg
