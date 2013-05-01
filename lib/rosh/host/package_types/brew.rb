@@ -1,18 +1,37 @@
+require_relative 'base'
+
+
 class Rosh
   class Host
     module PackageTypes
+      class Brew < Base
 
-      class Brew
-        attr_reader :name
-
-        def initialize(shell, name)
-          @shell = shell
-          @name = name
+        # @param [String] name Name of the package.
+        # @param [Rosh::Host::Shells::Local,Rosh::Host::Shells::Remote] shell
+        #   Shell for the OS that's being managed.
+        # @param [String] version
+        # @param [Status] status
+        # @param [Status] architecture
+        def initialize(name, shell, version: nil, status: nil, architecture: nil)
+          super(name, shell, version: version, status: status)
         end
 
-        # @return [String]
+        # Partial result of `brew info ` as a Hash.
+        #
+        # @return [Hash]
         def info
-          @shell.exec "brew info #{@name}"
+          output = @shell.exec "brew info #{@name}"
+          info_hash = {}
+
+          /^\s*#{@name}: (?<spec>\w+) (?<version>[^\n]+)
+(?<home>https?:\/\/[^\n]*)/ =~ output
+
+          info_hash[:package] = @name
+          info_hash[:spec] = $~[:spec]
+          info_hash[:version] = $~[:version]
+          info_hash[:homepage] = $~[:home]
+
+          info_hash
         end
 
         # @return [Boolean] +true+ if install was successful; +false+ if not.
