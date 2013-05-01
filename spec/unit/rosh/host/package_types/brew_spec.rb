@@ -41,4 +41,40 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
       }
     end
   end
+
+  describe 'installed?' do
+    before do
+      shell.should_receive(:exec).with('brew info thing').and_return output
+    end
+
+    context 'is not installed' do
+      let(:output) do
+        <<-OUTPUT
+yaz: stable 4.2.56
+http://www.indexdata.com/yaz
+Depends on: pkg-config
+Not installed
+https://github.com/mxcl/homebrew/commits/master/Library/Formula/yaz.rb
+        OUTPUT
+      end
+
+      specify { subject.should_not be_installed }
+    end
+
+    context 'is installed' do
+      let(:output) do
+        <<-OUTPUT
+gdbm: stable 1.10
+http://www.gnu.org/software/gdbm/
+/usr/local/Cellar/gdbm/1.10 (10 files, 228K) *
+https://github.com/mxcl/homebrew/commits/master/Library/Formula/gdbm.rb
+==> Options
+--universal
+	Build a universal binary
+        OUTPUT
+      end
+
+      specify { subject.should be_installed }
+    end
+  end
 end

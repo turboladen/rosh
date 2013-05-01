@@ -34,6 +34,13 @@ class Rosh
           info_hash
         end
 
+        # @return [Boolean] +true+ if installed; +false+ if not.
+        def installed?
+          result = @shell.exec "brew info #{@name}"
+
+          !result.match /Not installed/
+        end
+
         # @return [Boolean] +true+ if install was successful; +false+ if not.
         def install(version: nil)
           result = if version
@@ -58,13 +65,6 @@ class Rosh
           end
 
           result.zero?
-        end
-
-        # @return [Boolean]
-        def installed?
-          result = @shell.exec "brew info #{@name}"
-
-          !result.match /Not installed/
         end
 
         # @param [Boolean] force
