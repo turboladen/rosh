@@ -75,20 +75,10 @@ ORBit2.x86_64                            2.14.3-5.el5          installed
     end
 
     context 'no packages to upgrade' do
-      let(:output) do
-        <<-OUTPUT
-Loaded plugins: fastestmirror
-Loading mirror speeds from cached hostfile
- * base: mirror.spro.net
- * extras: mirror.fdcservers.net
- * updates: mirrors.lga7.us.voxel.net
-Setting up Update Process
-No Packages marked for Update
-        OUTPUT
-      end
+      let(:output) { 'some output' }
 
       before do
-        #subject.should_receive(:extract_upgradable_packages).and_return []
+        subject.should_receive(:extract_upgradable_packages).and_return []
       end
 
       context 'successful command' do
