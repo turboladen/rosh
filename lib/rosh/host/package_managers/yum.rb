@@ -5,11 +5,24 @@ class Rosh
   class Host
     module PackageManagers
       module Yum
-        def update_cache(sudo: false)
-          cmd = 'yum update -y'
-          cmd.insert(0, 'sudo ') if sudo
 
-          @shell.exec(cmd)
+        # Lists all installed Rpm packages.
+        #
+        # @return [Array<Rosh::Host::PackageTypes::Rpm>]
+        def installed_packages
+          output = @shell.exec 'yum list'
+
+          output.each_line.map do |line|
+            /^(?<name>\S+)\.(?<arch>\S+)\s+(?<version>\S+)\s+(?<status>\S*)/ =~ line
+            puts "name: #{name}"
+            next unless name
+
+            create(name, architecture: arch, version: version, status: status)
+          end
+        end
+
+        def update_index
+          @shell.exec 'yum update -y'
 
           @shell.last_exit_status.zero?
         end
@@ -23,17 +36,10 @@ class Rosh
           @shell.last_exit_status.zero?
         end
 
-        def list(sudo: false)
-          cmd = 'yum list'
-          cmd.insert(0, 'sudo ') if sudo
-
-          @shell.exec(cmd)
-        end
-
         private
 
-        def create(name)
-          Rosh::Host::PackageTypes::Yum.new(@shell, name)
+        def create(name, **options)
+          Rosh::Host::PackageTypes::Rpm.new(name, @shell, **options)
         end
       end
     end
