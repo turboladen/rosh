@@ -68,13 +68,23 @@ class Rosh
           end
         end
 
-        # @param [Boolean] force
-        def remove(force: false)
-          cmd = "brew remove #{@name}"
-          cmd << ' --force' if force
-          @shell.exec(cmd)
+        # Removes the package using `brew remove ` and notifies observers.
+        #
+        # @return [Boolean] +true+ if install was successful; +false+ if not.
+        def remove
+          already_installed = installed?
+          old_version = info[:version] if already_installed
 
-          @shell.history.last[:exit_status].zero?
+          @shell.exec "brew remove #{@name}"
+          success = @shell.last_exit_status.zero?
+
+          if success && already_installed
+            changed
+            notify_observers(self, attribute: :version, old: old_version,
+              new: nil)
+          end
+
+          success
         end
 
         private

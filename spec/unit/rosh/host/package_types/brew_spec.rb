@@ -198,6 +198,78 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/gdbm.rb
     end
   end
 
+  describe '#remove' do
+    before do
+      shell.should_receive(:exec).with('brew remove thing')
+      subject.stub_chain(:info, :[]).and_return '1.2.3'
+    end
+
+    context 'package was already installed' do
+      before do
+        subject.should_receive(:installed?).and_return true
+      end
+
+      context 'failed removal' do
+        before { shell.stub(:last_exit_status).and_return 1 }
+        specify { subject.remove.should == false }
+
+        it 'does not notify observers' do
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.remove
+        end
+      end
+
+      context 'successful removal' do
+        before { shell.stub(:last_exit_status).and_return 0 }
+        specify { subject.remove.should == true }
+
+        it 'notifies observers' do
+          subject.should_receive(:changed)
+          subject.should_receive(:notify_observers).
+            with(subject, attribute: :version, old: '1.2.3', new: nil)
+
+          subject.remove
+        end
+      end
+    end
+
+    context 'package not yet installed' do
+      before do
+        subject.should_receive(:installed?).and_return false
+      end
+
+      context 'failed removal' do
+        before { shell.stub(:last_exit_status).and_return 1 }
+        specify { subject.remove.should == false }
+
+        it 'does not notify observers' do
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.remove
+        end
+      end
+
+      context 'successful removal' do
+        before do
+          shell.stub(:last_exit_status).and_return 0
+          subject.stub_chain(:info, :[]).and_return '1.2.3'
+        end
+
+        specify { subject.remove.should == true}
+
+        it 'does not notify observers' do
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.remove
+        end
+      end
+    end
+  end
+
   describe '#install_and_switch_version' do
     let(:version_output) do
       <<-OUTPUT
