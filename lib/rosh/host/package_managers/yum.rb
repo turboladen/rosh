@@ -22,21 +22,50 @@ class Rosh
         end
 
         def update_index
-          @shell.exec 'yum update -y'
+          @shell.exec 'yum check-update -y'
 
           @shell.last_exit_status.zero?
         end
 
-        def upgrade(sudo: false)
-          cmd = 'yum upgrade -y'
-          cmd.insert(0, 'sudo ') if sudo
+        # Upgrades outdated packages using `yum update -y`.  Notifies
+        # observers with packages that were updated.  The list of packages in
+        # the update notification is an Array of Rosh::Host::PackageTypes::Rpm
+        # objects.
+        #
+        # @return [Boolean] +true+ if exit status was 0; +false+ if not.
+        def upgrade_packages
+          old_packages = installed_packages
+          output = @shell.exec 'yum update -y'
 
-          @shell.exec(cmd)
+          new_packages = extract_upgradable_packages(output)
 
-          @shell.last_exit_status.zero?
+          success = @shell.last_exit_status.zero?
+
+          if success && !new_packages.empty?
+            changed
+            notify_observers(self, attribute: :installed_packages,
+              old: old_packages, new: new_packages)
+          end
+
+          success
         end
 
         private
+
+        # Extracts Rpm packagesnames for #upgrade_packages from the command
+        # output.
+        #
+        # @param [String] output Output from the yum update command.
+        # @return [Array<Rosh::Host::PackageTypes::Rpm>]
+        def extract_upgradable_packages(output)
+          output.each_line.map do |line|
+            /Package (?<name>\S+)\.(?<arch>\S+)\s+(?<version>\S+).*to be / =~ line
+            next unless name
+            puts "name: #{name}"
+
+            create(name, version: version, architecture: arch)
+          end.compact
+        end
 
         def create(name, **options)
           Rosh::Host::PackageTypes::Rpm.new(name, @shell, **options)
