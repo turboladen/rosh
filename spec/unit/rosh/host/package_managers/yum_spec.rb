@@ -71,7 +71,7 @@ ORBit2.x86_64                            2.14.3-5.el5          installed
   describe '#upgrade_packages' do
     before do
       subject.stub(:installed_packages).and_return []
-      shell.should_receive(:exec).with('yum update -y').and_return output
+      shell.should_receive(:exec).with('yum update -y')
     end
 
     context 'no packages to upgrade' do
@@ -109,24 +109,20 @@ ORBit2.x86_64                            2.14.3-5.el5          installed
     end
 
     context 'packages to upgrade' do
-      before do
-        subject.should_receive(:extract_upgradable_packages).
-          and_return %w[upgrade_me]
-      end
-
       context 'successful command' do
         before do
           shell.should_receive(:last_exit_status).and_return 0
+          subject.should_receive(:extract_upgradable_packages).
+            and_return [rpm_package]
         end
 
-        let(:brew_package) { double 'Rosh::Host::PackageTypes::Brew' }
+        let(:rpm_package) { double 'Rosh::Host::PackageTypes::Rpm' }
 
         it 'returns true and notifies observers' do
-          subject.should_receive(:create).and_return brew_package
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
             with(subject, attribute: :installed_packages, old: [],
-            new: [brew_package])
+            new: [rpm_package])
 
           subject.upgrade_packages.should == true
         end
@@ -135,6 +131,8 @@ ORBit2.x86_64                            2.14.3-5.el5          installed
       context 'unsuccessful command' do
         before do
           shell.should_receive(:last_exit_status).and_return 1
+          subject.should_receive(:extract_upgradable_packages).
+            and_return []
         end
 
         it 'returns false and does not notify observers' do
