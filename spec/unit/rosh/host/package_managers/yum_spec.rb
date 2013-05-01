@@ -68,6 +68,92 @@ ORBit2.x86_64                            2.14.3-5.el5          installed
     end
   end
 
+  describe '#update_index' do
+    before do
+      shell.should_receive(:exec).with('yum check-update').and_return output
+    end
+
+    context 'index does not change during update' do
+      let(:output) do
+        <<-OUTPUT
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: yum.phx.singlehop.com
+ * extras: mirror.cisp.com
+ * updates: mirror.umd.edu
+        OUTPUT
+      end
+
+      context 'successful command' do
+        before { shell.stub(:last_exit_status).and_return 0 }
+
+        it 'returns true and does not notify observers' do
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.update_index.should == true
+        end
+      end
+
+      context 'unsuccessful command' do
+        before { shell.stub(:last_exit_status).and_return 1 }
+
+        it 'returns false and does not notify observers' do
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.update_index.should == false
+        end
+      end
+    end
+
+    context 'index changes after update' do
+      let(:output) do
+        <<-OUTPUT
+Loaded plugins: fastestmirror
+Determining fastest mirrors
+ * base: mirror.spro.net
+ * extras: mirror.umd.edu
+ * updates: mirrors-pa.sioru.com
+base                                                              | 1.1 kB     00:00
+base/primary                                                      | 1.2 MB     00:00
+base                                                                           3641/3641
+extras                                                            | 2.1 kB     00:00
+extras/primary_db                                                 | 188 kB     00:00
+updates                                                           | 1.9 kB     00:00
+updates/primary_db                                                | 376 kB     00:01
+        OUTPUT
+      end
+
+      context 'successful command' do
+        before { shell.stub(:last_exit_status).and_return 0 }
+
+        let(:updated) do
+          %w[base base/primary extras extras/primary_db updates updates/primary_db]
+        end
+
+        it 'returns true and notifies observers' do
+          subject.should_receive(:changed)
+          subject.should_receive(:notify_observers).
+            with(subject, attribute: :index, old: [], new: updated)
+
+          subject.update_index.should == true
+        end
+      end
+
+      context 'unsuccessful command' do
+        before { shell.stub(:last_exit_status).and_return 1 }
+
+        it 'returns false and does not notify observers' do
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.update_index.should == false
+        end
+      end
+    end
+  end
+
   describe '#upgrade_packages' do
     before do
       subject.stub(:installed_packages).and_return []

@@ -22,9 +22,23 @@ class Rosh
         end
 
         def update_index
-          @shell.exec 'yum check-update -y'
+          output = @shell.exec 'yum check-update'
 
-          @shell.last_exit_status.zero?
+          updated = output.each_line.map do |line|
+            /^(?<yum_source>\S+)\s+\|\s+\d/ =~ line
+            next unless yum_source
+
+            yum_source
+          end.compact
+
+          success = @shell.last_exit_status.zero?
+
+          if success && !updated.empty?
+            changed
+            notify_observers(self, attribute: :index, old: [], new: updated)
+          end
+
+          success
         end
 
         # Upgrades outdated packages using `yum update -y`.  Notifies
