@@ -13,7 +13,8 @@ class Rosh
         # @param [Status] status
         # @param [Status] architecture
         def initialize(name, shell, version: nil, status: nil, architecture: nil)
-          super(name, shell, version: version, status: status)
+          super(name, shell, version: version, status: status,
+            architecture: architecture)
         end
 
         # Result of `dpkg --status` as a Hash.
