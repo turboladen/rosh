@@ -18,7 +18,11 @@ class Rosh
         attr_accessor :sudo
         attr_reader :history
 
-        def initialize
+        # @param [String] output_commands Toggle for outputting all commands
+        #   that were executed.  Note that some operations comprise of multiple
+        #   commands.
+        def initialize(output_commands=true)
+          @output_commands = output_commands
           @history = []
           @sudo = false
         end
@@ -81,12 +85,17 @@ class Rosh
 
         def good_info(text)
           h = @hostname || 'localhost'
-          $stdout.puts "[#{h}] #{text.strip}".light_blue
+          $stdout.puts "[#{h}] => #{text.strip}".light_blue
         end
 
         def bad_info(text)
           h = @hostname || 'localhost'
-          $stderr.puts "[#{h}] #{text.strip}".light_red
+          $stderr.puts "[#{h}] !> #{text.strip}".light_red
+        end
+
+        def run_info(text)
+          h = @hostname || 'localhost'
+          $stdout.puts "[#{h}] $$ #{text.strip}".yellow
         end
 
         # Saves the result of the block given to #last_result and exit code to

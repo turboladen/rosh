@@ -46,9 +46,12 @@ class Rosh
         attr_reader :user
 
         # @param [String] hostname Name or IP of the host to SSH in to.
+        # @param [String] output_commands Toggle for outputting all commands
+        #   that were executed.  Note that some operations comprise of multiple
+        #   commands.
         # @param [Hash] options Net::SSH options.
-        def initialize(hostname, **options)
-          super()
+        def initialize(hostname, output_commands=true, **options)
+          super(output_commands)
           @hostname = hostname
           @options = options
           @user = @options.delete(:user) || DEFAULT_USER
@@ -317,6 +320,7 @@ class Rosh
                 stdout_data << data
               end
 
+              run_info(command) if @output_commands
               r = ch.exec(command)
               channel.close if r
             end

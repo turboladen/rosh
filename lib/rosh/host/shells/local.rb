@@ -20,8 +20,11 @@ class Rosh
 
         attr_reader :workspace
 
-        def initialize
-          super()
+        # @param [String] output_commands Toggle for outputting all commands
+        #   that were executed.  Note that some operations comprise of multiple
+        #   commands.
+        def initialize(output_commands=true)
+          super(output_commands)
           @internal_pwd = Dir.pwd
         end
 
@@ -87,6 +90,8 @@ class Rosh
           #cmd, *args = Shellwords.shellsplit(command)
 
           process(:exec, command: command) do
+            run_info(command) if @output_commands
+
             begin
               output = ''
 
