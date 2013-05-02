@@ -234,6 +234,26 @@ class Rosh
           process { ['Not implemented!', 1, nil] }
         end
 
+        # Called by serializer when dumping.
+        def encode_with(coder)
+          coder['hostname'] = @hostname
+          o = @options.dup
+          o.delete(:password) if o[:password]
+
+          coder['options'] = o
+          coder['user'] = @user
+        end
+
+        # Called by serializer when loading.
+        def init_with(coder)
+          @user = coder['user']
+          @options = coder['options']
+          @hostname = coder['hostname']
+        end
+
+        #-----------------------------------------------------------------------
+        # Privates
+        #-----------------------------------------------------------------------
         private
 
         def ssh

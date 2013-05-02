@@ -192,11 +192,13 @@ class Rosh
       # Called by serializer when dumping.
       def encode_with(coder)
         coder['path'] = @path
+        coder['shell'] = @remote_shell
       end
 
       # Called by serializer when loading.
       def init_with(coder)
         @path = coder['path']
+        @remote_shell = coder['shell']
       end
 
       #-------------------------------------------------------------------------
