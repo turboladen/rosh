@@ -36,7 +36,6 @@ class Rosh
         include WrapperMethods::Remote
 
         DEFAULT_USER = Etc.getlogin
-        DEFAULT_TIMEOUT = 1800
 
         # @return [Hash] The Net::SSH options that were during initialization
         #   and via #set.
@@ -57,7 +56,6 @@ class Rosh
           @user = @options.delete(:user) || DEFAULT_USER
           log "New Remote shell.  options: #{@options}"
 
-          @options[:timeout] = DEFAULT_TIMEOUT unless @options.has_key? :timeout
           log "Net::SSH.configuration: #{Net::SSH.configuration_for(@hostname)}"
           @ssh = nil
 

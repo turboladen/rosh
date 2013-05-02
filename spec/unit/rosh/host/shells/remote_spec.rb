@@ -44,14 +44,13 @@ describe Rosh::Host::Shells::Remote do
     context 'no options passed in' do
       its(:hostname) { should eq 'testhost' }
       its(:user) { should eq Etc.getlogin }
-      its(:options) { should eq(timeout: 1800) }
     end
 
     context ':user option passed in' do
       subject { Rosh::Host::Shells::Remote.new('test', user: 'bobo') }
       its(:hostname) { should eq 'test' }
       its(:user) { should eq 'bobo' }
-      its(:options) { should eq(timeout: 1800) }
+      its(:options) { should eq({}) }
     end
 
     context ':timeout option passed in' do
@@ -65,7 +64,7 @@ describe Rosh::Host::Shells::Remote do
       subject { Rosh::Host::Shells::Remote.new('test', meow: 'cat') }
       its(:hostname) { should eq 'test' }
       its(:user) { should eq Etc.getlogin }
-      its(:options) { should eq(timeout: 1800, meow: 'cat') }
+      its(:options) { should eq(meow: 'cat') }
     end
   end
 
@@ -92,6 +91,10 @@ describe Rosh::Host::Shells::Remote do
     end
 
     context 'key that exists' do
+      before do
+        subject.instance_variable_set(:@options, timeout: 1800)
+      end
+
       it 'removes that option' do
         subject.options.should include(timeout: 1800)
         subject.unset :timeout
