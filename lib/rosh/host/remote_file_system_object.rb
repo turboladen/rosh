@@ -3,6 +3,16 @@ require 'observer'
 
 class Rosh
   class Host
+
+    # This is a generic base class for representing file system objects: files,
+    # directories, and links.  It implements what's pretty close to Ruby's
+    # +File+ class.
+    #
+    # Objects of this type are Observable and will notify observers with:
+    # self, attribute: [changed attribute], old: [old value], new: [new value]
+    #
+    # When serializing (i.e. dumping to YAML), it maintains only the path to the
+    # object.
     class RemoteFileSystemObject
       include Observable
 
@@ -177,6 +187,16 @@ class Rosh
         end
 
         success
+      end
+
+      # Called by serializer when dumping.
+      def encode_with(coder)
+        coder['path'] = @path
+      end
+
+      # Called by serializer when loading.
+      def init_with(coder)
+        @path = coder['path']
       end
 
       #-------------------------------------------------------------------------
