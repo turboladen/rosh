@@ -44,7 +44,8 @@ class Rosh
 
           if success && !updated.empty?
             changed
-            notify_observers(self, attribute: :index, old: [], new: updated)
+            notify_observers(self,
+              attribute: :index, old: [], new: updated, as_sudo: @shell.su?)
           end
 
           success
@@ -65,8 +66,9 @@ class Rosh
           if success && !new_package_names.empty?
             new_packages = new_package_names.map(&method(:create))
             changed
-            notify_observers(self, attribute: :installed_packages,
-              old: old_packages, new: new_packages)
+            notify_observers(self,
+              attribute: :installed_packages, old: old_packages,
+              new: new_packages, as_sudo: @shell.su?)
           end
 
           success

@@ -60,8 +60,9 @@ class Rosh
 
           if success && !already_installed
             changed
-            notify_observers(self, attribute: :version, old: nil,
-              new: info[:version])
+            notify_observers(self,
+              attribute: :version, old: nil, new: info[:version],
+              as_sudo: @shell.su?)
           end
 
           success
@@ -79,8 +80,9 @@ class Rosh
 
           if success && already_installed
             changed
-            notify_observers(self, attribute: :version, old: old_version,
-              new: nil)
+            notify_observers(self,
+              attribute: :version, old: old_version, new: nil,
+              as_sudo: @shell.su?)
           end
 
           success
@@ -102,8 +104,9 @@ class Rosh
           if success && already_installed
             new_version = info[:version]
             changed
-            notify_observers(self, attribute: :version, old: old_version,
-              new: new_version)
+            notify_observers(self,
+              attribute: :version, old: old_version, new: new_version,
+              as_sudo: @shell.su?)
           end
 
           success

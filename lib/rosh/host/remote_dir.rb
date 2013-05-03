@@ -42,7 +42,8 @@ class Rosh
 
         if success
           changed
-          notify_observers(self, attribute: :path, old: nil, new: @path)
+          notify_observers(self,
+            attribute: :path, old: nil, new: @path, as_sudo: @shell.su?)
         end
 
         success

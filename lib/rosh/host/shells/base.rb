@@ -71,6 +71,9 @@ class Rosh
         end
         alias :_! :last_exception
 
+        # Run commands in the +block+ as sudo.
+        #
+        # @return Returns whatever the +block+ returns.
         def su(&block)
           log 'sudo enabled'
           @sudo = true
@@ -79,6 +82,13 @@ class Rosh
           log 'sudo disabled'
 
           result
+        end
+
+        # Are commands being run as sudo?
+        #
+        # @return [Boolean]
+        def su?
+          @sudo
         end
 
         private

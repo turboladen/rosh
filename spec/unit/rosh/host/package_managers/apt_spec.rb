@@ -6,6 +6,7 @@ describe Rosh::Host::PackageManagers::Apt do
   let(:shell) do
     s = double 'Rosh::Host::Shell'
     s.stub_chain(:history, :last, :[], :zero?)
+    s.stub(:su?).and_return false
 
     s
   end
@@ -106,7 +107,7 @@ Reading package lists... Done
             with(subject, attribute: :index, old: old, new: [
             'http://us.archive.ubuntu.com precise-backports Release.gpg [198 B]',
             'http://us.archive.ubuntu.com precise-backports Release [49.6 kB]'
-          ])
+          ], as_sudo: false)
 
           subject.update_index.should == true
         end
@@ -183,7 +184,7 @@ Reading package lists... Done
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
             with(subject, attribute: :installed_packages, old: [],
-            new: [deb_package])
+            new: [deb_package], as_sudo: false)
 
           subject.upgrade_packages.should == true
         end

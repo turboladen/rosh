@@ -3,7 +3,7 @@ require 'rosh/host/package_managers/yum'
 
 
 describe Rosh::Host::PackageManagers::Yum do
-  let(:shell) { double 'Rosh::Host::Shell' }
+  let(:shell) { double 'Rosh::Host::Shell', :su? => false }
 
   let(:observer) do
     o = double 'Observer'
@@ -135,7 +135,8 @@ updates/primary_db                                                | 376 kB     0
         it 'returns true and notifies observers' do
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
-            with(subject, attribute: :index, old: [], new: updated)
+            with(subject, attribute: :index, old: [], new: updated,
+            as_sudo: false)
 
           subject.update_index.should == true
         end
@@ -208,7 +209,7 @@ updates/primary_db                                                | 376 kB     0
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
             with(subject, attribute: :installed_packages, old: [],
-            new: [rpm_package])
+            new: [rpm_package], as_sudo: false)
 
           subject.upgrade_packages.should == true
         end

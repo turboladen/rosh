@@ -3,7 +3,7 @@ require 'rosh/host/package_types/rpm'
 
 
 describe Rosh::Host::PackageTypes::Rpm do
-  let(:shell) { double 'Rosh::Host::Shell' }
+  let(:shell) { double 'Rosh::Host::Shell', :su? => false }
 
   subject do
     Rosh::Host::PackageTypes::Rpm.new('thing', shell)
@@ -150,7 +150,8 @@ Description: The zsh shell is a command interpreter usable as an interactive log
           it 'notifies observers' do
             subject.should_receive(:changed)
             subject.should_receive(:notify_observers).
-              with(subject, attribute: :version, old: nil, new: '1.2.3')
+              with(subject, attribute: :version, old: nil, new: '1.2.3',
+              as_sudo: false)
 
             subject.install
           end
@@ -189,7 +190,8 @@ Description: The zsh shell is a command interpreter usable as an interactive log
         it 'notifies observers' do
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
-            with(subject, attribute: :version, old: '1.2.3', new: nil)
+            with(subject, attribute: :version, old: '1.2.3', new: nil,
+            as_sudo: false)
 
           subject.remove
         end
@@ -371,7 +373,8 @@ Complete!
       it 'returns true and notifies observers' do
         subject.should_receive(:changed)
         subject.should_receive(:notify_observers).
-          with(subject, attribute: :version, old: '0.1.2', new: '1.2.3')
+          with(subject, attribute: :version, old: '0.1.2', new: '1.2.3',
+          as_sudo: false)
 
         subject.upgrade.should == true
       end

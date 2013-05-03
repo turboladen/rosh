@@ -67,7 +67,8 @@ class Rosh
 
         if success
           changed
-          notify_observers(self, attribute: :path, old: nil, new: @path)
+          notify_observers(self,
+            attribute: :path, old: nil, new: @path, as_sudo: @shell.su?)
         end
 
         success
@@ -90,8 +91,9 @@ class Rosh
 
         if success && old_contents != @unwritten_contents
           changed
-          notify_observers(self, attribute: :contents, old: old_contents,
-            new: @unwritten_contents)
+          notify_observers(self,
+            attribute: :contents, old: old_contents, new: @unwritten_contents,
+            as_sudo: @shell.su?)
         end
 
         @unwritten_contents = nil

@@ -8,7 +8,7 @@ describe Rosh::Host::RemoteFile do
   end
 
   let(:path) { '/file' }
-  let(:shell) { double 'Rosh::Host::Shells::Remote' }
+  let(:shell) { double 'Rosh::Host::Shells::Remote', :su? => false }
 
   describe '#contents' do
     before do
@@ -172,7 +172,7 @@ var: <%= var %>
       it 'updates observers' do
         subject.should_receive(:changed)
         subject.should_receive(:notify_observers).
-          with(subject, attribute: :path, old: nil, new: '/file')
+          with(subject, attribute: :path, old: nil, new: '/file', as_sudo: false)
         subject.send(:create)
       end
 
@@ -243,7 +243,7 @@ var: <%= var %>
         subject.should_receive(:changed)
         subject.should_receive(:notify_observers).
           with(subject, attribute: :contents, old: 'old contents',
-          new: 'new contents')
+          new: 'new contents', as_sudo: false)
 
         subject.send(:upload_new_content)
       end

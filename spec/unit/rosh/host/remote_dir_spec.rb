@@ -8,7 +8,7 @@ describe Rosh::Host::RemoteDir do
   end
 
   let(:path) { '/dir' }
-  let(:shell) { double 'Rosh::Host::Shells::Remote' }
+  let(:shell) { double 'Rosh::Host::Shells::Remote', :su? => false }
 
   describe '#owner' do
     context 'command output is empty' do
@@ -91,7 +91,9 @@ describe Rosh::Host::RemoteDir do
         it 'notifies observers and returns true' do
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
-            with(subject, attribute: :path, old: nil, new: '/dir')
+            with(subject, attribute: :path, old: nil, new: '/dir',
+            as_sudo: false)
+
           subject.save.should == true
         end
       end

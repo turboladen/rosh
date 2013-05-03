@@ -3,7 +3,7 @@ require 'rosh/host/package_types/brew'
 
 
 describe Rosh::Host::PackageTypes::Brew do
-  let(:shell) { double 'Rosh::Host::Shell' }
+  let(:shell) { double 'Rosh::Host::Shell', :su? => false }
 
   subject do
     Rosh::Host::PackageTypes::Brew.new('thing', shell)
@@ -153,7 +153,8 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/gdbm.rb
           it 'notifies observers' do
             subject.should_receive(:changed)
             subject.should_receive(:notify_observers).
-              with(subject, attribute: :version, old: '0.1.2', new: '1.2.3')
+              with(subject, attribute: :version, old: '0.1.2', new: '1.2.3',
+              as_sudo: false)
 
             subject.install
           end
@@ -189,7 +190,8 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/gdbm.rb
           it 'notifies observers' do
             subject.should_receive(:changed)
             subject.should_receive(:notify_observers).
-              with(subject, attribute: :version, old: nil, new: '1.2.3')
+              with(subject, attribute: :version, old: nil, new: '1.2.3',
+              as_sudo: false)
 
             subject.install
           end
@@ -228,7 +230,8 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/gdbm.rb
         it 'notifies observers' do
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
-            with(subject, attribute: :version, old: '1.2.3', new: nil)
+            with(subject, attribute: :version, old: '1.2.3', new: nil,
+            as_sudo: false)
 
           subject.remove
         end
@@ -307,7 +310,8 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/gdbm.rb
       it 'returns true and updates observers' do
         subject.should_receive(:changed)
         subject.should_receive(:notify_observers).
-          with(subject, attribute: :version, old: '0.1.2', new: '1.2.3')
+          with(subject, attribute: :version, old: '0.1.2', new: '1.2.3',
+          as_sudo: false)
 
         subject.upgrade.should == true
       end

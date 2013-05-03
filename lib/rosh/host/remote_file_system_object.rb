@@ -108,7 +108,9 @@ class Rosh
 
         if @shell.last_exit_status.zero? && old_owner != new_owner
           changed
-          notify_observers(self, attribute: :owner, old: old_owner, new: new_owner)
+          notify_observers(self,
+            attribute: :owner, old: old_owner, new: new_owner,
+            as_sudo: @shell.su?)
         end
       end
 
@@ -133,7 +135,9 @@ class Rosh
 
         if @shell.last_exit_status.zero? && old_group != new_group
           changed
-          notify_observers(self, attribute: :group, old: old_group, new: new_group)
+          notify_observers(self,
+            attribute: :group, old: old_group, new: new_group,
+            as_sudo: @shell.su?)
         end
       end
 
@@ -157,9 +161,11 @@ class Rosh
         cmd = "chmod #{new_mode} #{@path}"
         @shell.exec(cmd)
 
-        if @remote_shell.last_exit_status.zero? && old_mode != new_mode.to_i
+        if @shell.last_exit_status.zero? && old_mode != new_mode.to_i
           changed
-          notify_observers(self, attribute: :mode, old: old_mode, new: new_mode)
+          notify_observers(self,
+            attribute: :mode, old: old_mode, new: new_mode,
+            as_sudo: @shell.su?)
         end
       end
 
@@ -183,7 +189,8 @@ class Rosh
 
         if success && existed
           changed
-          notify_observers(self, attribute: :path, old: @path, new: nil)
+          notify_observers(self,
+            attribute: :path, old: @path, new: nil, as_sudo: @shell.su?)
         end
 
         success

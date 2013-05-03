@@ -8,7 +8,7 @@ describe Rosh::Host::RemoteFileSystemObject do
   end
 
   let(:path) { '/file' }
-  let(:shell) { double 'Rosh::Host::Shells::Remote' }
+  let(:shell) { double 'Rosh::Host::Shells::Remote', :su? => false }
 
   describe '.create' do
     before do
@@ -237,7 +237,8 @@ describe Rosh::Host::RemoteFileSystemObject do
         shell.should_receive(:exec).with 'chown someone /file'
         subject.should_receive(:changed)
         subject.should_receive(:notify_observers).
-          with(subject, attribute: :owner, old: 'person', new: 'someone')
+          with(subject, attribute: :owner, old: 'person', new: 'someone',
+          as_sudo: false)
 
         subject.owner = 'someone'
       end
@@ -299,7 +300,8 @@ describe Rosh::Host::RemoteFileSystemObject do
         shell.should_receive(:exec).with 'chgrp strangers /file'
         subject.should_receive(:changed)
         subject.should_receive(:notify_observers).
-          with(subject, attribute: :group, old: 'people', new: 'strangers')
+          with(subject, attribute: :group, old: 'people', new: 'strangers',
+          as_sudo: false)
 
         subject.group = 'strangers'
       end
@@ -351,7 +353,7 @@ describe Rosh::Host::RemoteFileSystemObject do
         shell.should_receive(:exec).with 'chmod 755 /file'
         subject.should_receive(:changed)
         subject.should_receive(:notify_observers).
-          with(subject, attribute: :mode, old: 644, new: 755)
+          with(subject, attribute: :mode, old: 644, new: 755, as_sudo: false)
 
         subject.mode = 755
       end
@@ -403,7 +405,8 @@ describe Rosh::Host::RemoteFileSystemObject do
         shell.should_receive(:exec).with 'rm -rf /file'
         subject.should_receive(:changed)
         subject.should_receive(:notify_observers).
-          with(subject, attribute: :path, old: '/file', new: nil)
+          with(subject, attribute: :path, old: '/file', new: nil,
+          as_sudo: false)
 
         subject.remove
       end

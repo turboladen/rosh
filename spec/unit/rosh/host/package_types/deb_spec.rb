@@ -3,7 +3,7 @@ require 'rosh/host/package_types/deb'
 
 
 describe Rosh::Host::PackageTypes::Deb do
-  let(:shell) { double 'Rosh::Host::Shell' }
+  let(:shell) { double 'Rosh::Host::Shell', :su? => false }
 
   subject do
     Rosh::Host::PackageTypes::Deb.new('thing', shell)
@@ -144,7 +144,8 @@ files.",
           it 'notifies observers' do
             subject.should_receive(:changed)
             subject.should_receive(:notify_observers).
-              with(subject, attribute: :version, old: '0.1.2', new: '1.2.3')
+              with(subject, attribute: :version, old: '0.1.2', new: '1.2.3',
+              as_sudo: false)
 
             subject.install
           end
@@ -180,7 +181,8 @@ files.",
           it 'notifies observers' do
             subject.should_receive(:changed)
             subject.should_receive(:notify_observers).
-              with(subject, attribute: :version, old: nil, new: '1.2.3')
+              with(subject, attribute: :version, old: nil, new: '1.2.3',
+              as_sudo: false)
 
             subject.install
           end
@@ -219,7 +221,8 @@ files.",
         it 'notifies observers' do
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
-            with(subject, attribute: :version, old: '1.2.3', new: nil)
+            with(subject, attribute: :version, old: '1.2.3', new: nil,
+            as_sudo: false)
 
           subject.remove
         end
