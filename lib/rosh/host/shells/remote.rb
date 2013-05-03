@@ -110,6 +110,7 @@ class Rosh
             end
 
             log "doing upload with options #{@options}"
+            log "sudo is #{@sudo}"
             scp(source, destination)
 
             Rosh::CommandResult.new(nil, 0)
@@ -250,6 +251,8 @@ class Rosh
           @user = coder['user']
           @options = coder['options']
           @hostname = coder['hostname']
+          @sudo = false
+          @history = []
         end
 
         #-----------------------------------------------------------------------
