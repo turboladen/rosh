@@ -40,10 +40,10 @@ class Rosh
       attr_reader :path
 
       # @param [String] path Path to the remote file system object.
-      # @param [Rosh::Host::Shells::Remote] remote_shell
-      def initialize(path, remote_shell)
+      # @param [Rosh::Host::Shells::Remote] shell
+      def initialize(path, shell)
         @path = path
-        @remote_shell = remote_shell
+        @shell = shell
       end
 
       # Returns the pathname used to create file as a String. Does not normalize
@@ -57,41 +57,41 @@ class Rosh
       # @return [Boolean] +true+ if the object is a file; +false+ if not.
       def file?
         cmd = "[ -f #{@path} ]"
-        @remote_shell.exec(cmd)
+        @shell.exec(cmd)
 
-        @remote_shell.last_exit_status.zero?
+        @shell.last_exit_status.zero?
       end
 
       # @return [Boolean] +true+ if the object is a directory; +false+ if not.
       def directory?
         cmd = "[ -d #{@path} ]"
-        @remote_shell.exec(cmd)
+        @shell.exec(cmd)
 
-        @remote_shell.last_exit_status.zero?
+        @shell.last_exit_status.zero?
       end
 
       # @return [Boolean] +true+ if the object is a link; +false+ if not.
       def link?
         cmd = "[ -L #{@path} ]"
-        @remote_shell.exec(cmd)
+        @shell.exec(cmd)
 
-        @remote_shell.last_exit_status.zero?
+        @shell.last_exit_status.zero?
       end
 
       # @return [Boolean] +true+ if the object exists on the file system;
       #   +false+ if not.
       def exists?
         cmd = "[ -e #{@path} ]"
-        @remote_shell.exec(cmd)
+        @shell.exec(cmd)
 
-        @remote_shell.last_exit_status.zero?
+        @shell.last_exit_status.zero?
       end
 
       # @return [String] The owner of the file system object.
       def owner
         cmd = "ls -l #{@path} | awk '{print $3}'"
 
-        @remote_shell.exec(cmd).strip
+        @shell.exec(cmd).strip
       end
 
       # Sets the file system object to +new_owner+.  If the update was a
@@ -104,9 +104,9 @@ class Rosh
       def owner=(new_owner)
         old_owner = owner
         cmd = "chown #{new_owner} #{@path}"
-        @remote_shell.exec(cmd)
+        @shell.exec(cmd)
 
-        if @remote_shell.last_exit_status.zero? && old_owner != new_owner
+        if @shell.last_exit_status.zero? && old_owner != new_owner
           changed
           notify_observers(self, attribute: :owner, old: old_owner, new: new_owner)
         end
@@ -116,7 +116,7 @@ class Rosh
       def group
         cmd = "ls -l #{@path} | awk '{print $4}'"
 
-        @remote_shell.exec(cmd).strip
+        @shell.exec(cmd).strip
       end
 
       # Sets the group on the file system object to +new_group+.  If the update was a
@@ -129,9 +129,9 @@ class Rosh
       def group=(new_group)
         old_group = group
         cmd = "chgrp #{new_group} #{@path}"
-        @remote_shell.exec(cmd)
+        @shell.exec(cmd)
 
-        if @remote_shell.last_exit_status.zero? && old_group != new_group
+        if @shell.last_exit_status.zero? && old_group != new_group
           changed
           notify_observers(self, attribute: :group, old: old_group, new: new_group)
         end
@@ -140,7 +140,7 @@ class Rosh
       # @return [Integer] The mode of the file system object.
       def mode
         cmd = "ls -l #{@path} | awk '{print $1}'"
-        letter_mode = @remote_shell.exec(cmd)
+        letter_mode = @shell.exec(cmd)
 
         mode_to_i(letter_mode)
       end
@@ -155,7 +155,7 @@ class Rosh
       def mode=(new_mode)
         old_mode = mode
         cmd = "chmod #{new_mode} #{@path}"
-        @remote_shell.exec(cmd)
+        @shell.exec(cmd)
 
         if @remote_shell.last_exit_status.zero? && old_mode != new_mode.to_i
           changed
@@ -177,9 +177,9 @@ class Rosh
       def remove
         existed = exists?
         cmd = "rm -rf #{@path}"
-        @remote_shell.exec(cmd)
+        @shell.exec(cmd)
 
-        success = @remote_shell.last_exit_status.zero?
+        success = @shell.last_exit_status.zero?
 
         if success && existed
           changed
@@ -192,13 +192,13 @@ class Rosh
       # Called by serializer when dumping.
       def encode_with(coder)
         coder['path'] = @path
-        coder['shell'] = @remote_shell
+        coder['shell'] = @shell
       end
 
       # Called by serializer when loading.
       def init_with(coder)
         @path = coder['path']
-        @remote_shell = coder['shell']
+        @shell = coder['shell']
       end
 
       #-------------------------------------------------------------------------

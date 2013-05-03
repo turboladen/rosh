@@ -66,7 +66,7 @@ shell: !ruby/object:Rosh::Host::Shells::Remote
         new_fso = YAML.load(yaml)
         new_fso.should be_a Rosh::Host::RemoteFileSystemObject
         new_fso.to_path.should eq __FILE__
-        shell = new_fso.instance_variable_get(:@remote_shell)
+        shell = new_fso.instance_variable_get(:@shell)
         shell.hostname.should eq 'example.com'
         shell.instance_variable_get(:@user).should eq 'bobo'
       end

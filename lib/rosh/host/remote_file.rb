@@ -16,7 +16,7 @@ class Rosh
 
       # @return [String] The contents of the remote file.
       def contents
-        @remote_shell.cat(@path)
+        @shell.cat(@path)
       end
 
       # Stores +new_contents+ in memory until #save is called.
@@ -61,9 +61,9 @@ class Rosh
       #
       # @return [Boolean] +true+ if creating was successful; +false+ if not.
       def create
-        @remote_shell.exec("touch #{@path}")
+        @shell.exec("touch #{@path}")
 
-        success = @remote_shell.last_exit_status.zero?
+        success = @shell.last_exit_status.zero?
 
         if success
           changed
@@ -83,10 +83,10 @@ class Rosh
         tempfile = Tempfile.new('rosh_remote_file')
         tempfile.write(@unwritten_contents)
         tempfile.rewind
-        @remote_shell.upload(tempfile, @path)
+        @shell.upload(tempfile, @path)
 
         tempfile.unlink
-        success = @remote_shell.last_exit_status.zero?
+        success = @shell.last_exit_status.zero?
 
         if success && old_contents != @unwritten_contents
           changed
