@@ -6,7 +6,7 @@ require 'rosh/host/remote_file_system_object'
 describe 'Serialization' do
   describe Rosh::Host::Shells::Remote do
     subject do
-      Rosh::Host::Shells::Remote.new('example.com', user: 'bobo')
+      Rosh::Host::Shells::Remote.new('example.com', user: 'bobo', keys: %w[some_key])
     end
 
     context 'YAML' do
@@ -15,16 +15,14 @@ describe 'Serialization' do
 --- !ruby/object:Rosh::Host::Shells::Remote
 hostname: example.com
 user: bobo
+options:
+  :keys:
+  - some_key
         SHELL
       end
 
       it 'outputs YAML with' do
-        subject.to_yaml.should == <<-SHELL
---- !ruby/object:Rosh::Host::Shells::Remote
-hostname: example.com
-options: {}
-user: bobo
-        SHELL
+        subject.to_yaml.should == yaml
       end
 
       it 'imports to a Rosh::Host::Shells::Remote' do
@@ -59,8 +57,8 @@ shell: !ruby/object:Rosh::Host::Shells::Remote
 path: #{__FILE__}
 shell: !ruby/object:Rosh::Host::Shells::Remote
   hostname: example.com
-  options: {}
   user: bobo
+  options: {}
         FSO
       end
 

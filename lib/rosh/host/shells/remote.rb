@@ -237,11 +237,12 @@ class Rosh
         # Called by serializer when dumping.
         def encode_with(coder)
           coder['hostname'] = @hostname
+          coder['user'] = @user
           o = @options.dup
           o.delete(:password) if o[:password]
+          o.delete(:user) if o[:user]
 
           coder['options'] = o
-          coder['user'] = @user
         end
 
         # Called by serializer when loading.
