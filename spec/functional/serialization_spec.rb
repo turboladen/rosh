@@ -6,7 +6,8 @@ require 'rosh/host/remote_file_system_object'
 describe 'Serialization' do
   describe Rosh::Host::Shells::Remote do
     subject do
-      Rosh::Host::Shells::Remote.new('example.com', user: 'bobo', keys: %w[some_key])
+      Rosh::Host::Shells::Remote.new('example.com', user: 'bobo',
+        keys: %w[some_key])
     end
 
     context 'YAML' do
@@ -29,7 +30,9 @@ options:
         new_shell = YAML.load(yaml)
         new_shell.should be_a Rosh::Host::Shells::Remote
         new_shell.hostname.should eq 'example.com'
+        new_shell.options[:keys].should == %w[some_key]
         new_shell.instance_variable_get(:@user).should eq 'bobo'
+        new_shell.instance_variable_get(:@sudo).should eq false
       end
     end
   end
