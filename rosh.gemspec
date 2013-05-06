@@ -2,19 +2,19 @@ require './lib/rosh/version'
 
 
 Gem::Specification.new do |s| 
-  s.name = "rosh"
+  s.name = 'rosh'
   s.version = Rosh::VERSION
-  s.author = "Steve Loveless"
-  s.homepage = "http://github.com/turboladen/rosh"
-  s.email = "steve.loveless@gmail.com"
+  s.author = 'Steve Loveless'
+  s.homepage = 'http://github.com/turboladen/rosh'
+  s.email = 'steve.loveless@gmail.com'
   s.summary = "FIX"
   s.description = %q(FIX)
 
-  s.required_rubygems_version = ">=1.8.0"
-  s.files = Dir.glob("{lib,spec}/**/*") + Dir.glob("*.rdoc") +
+  s.required_rubygems_version = '>=1.8.0'
+  s.files = Dir.glob('{lib,spec}/**/*') + Dir.glob('*.rdoc') +
     %w(.gemtest Gemfile rosh.gemspec Rakefile)
-  s.test_files = Dir.glob("{spec}/**/*")
-  s.require_paths = ["lib"]
+  s.test_files = Dir.glob('{spec}/**/*')
+  s.require_paths = %w[lib]
 
   s.add_dependency 'awesome_print'
   s.add_dependency 'colorize'
