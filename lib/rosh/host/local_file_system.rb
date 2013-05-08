@@ -1,4 +1,4 @@
-require_relative 'local_file_system_object'
+require_relative 'file_system_objects/local_base'
 
 
 class Rosh
@@ -11,7 +11,7 @@ class Rosh
       end
 
       def [](fs_object)
-        LocalFileSystemObject.create(fs_object)
+        LocalBase.create(fs_object)
       end
     end
   end

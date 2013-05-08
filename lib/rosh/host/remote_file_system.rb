@@ -1,4 +1,4 @@
-require_relative 'remote_file_system_object'
+require_relative 'file_system_objects/remote_base'
 
 
 class Rosh
@@ -10,19 +10,19 @@ class Rosh
       end
 
       def [](fs_object)
-        RemoteFileSystemObject.new(fs_object, @shell)
+        RemoteBase.new(fs_object, @shell)
       end
 
       def directory(path)
-        Rosh::Host::RemoteDir.new(path, @shell)
+        Rosh::Host::FileSystemObjects::RemoteDir.new(path, @shell)
       end
 
       def file(path)
-        Rosh::Host::RemoteFile.new(path, @shell)
+        Rosh::Host::FileSystemObjects::RemoteFile.new(path, @shell)
       end
 
       def link(path)
-        Rosh::Host::RemoteLink.new(path, @shell)
+        Rosh::Host::FileSystemObjects::RemoteLink.new(path, @shell)
       end
     end
   end

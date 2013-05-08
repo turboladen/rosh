@@ -3,8 +3,8 @@ require 'net/ssh'
 require 'net/scp'
 
 require_relative 'base'
-require_relative '../remote_file_system_object'
-require_relative '../remote_dir'
+require_relative '../file_system_objects/remote_base'
+require_relative '../file_system_objects/remote_dir'
 require_relative '../wrapper_methods/remote'
 
 
@@ -22,7 +22,7 @@ class Rosh
       # subsequent #run or #upload commands.
       #
       # Example use:
-      #   ssh = Rosh::Host::RemoteShell.new '10.0.0.1', keys: [Dir.home + '/.ssh/keyfile'], port: 2222
+      #   ssh = Rosh::Host::Shells::Remote.new '10.0.0.1', keys: [Dir.home + '/.ssh/keyfile'], port: 2222
       #   ssh.options     # => { :keys=>["/Users/me/.ssh/keyfile"], :port=>2222, :user=>"me", :timeout=>1800 }
       #   ssh.upload 'pretty_picture.jpg', '/var/www/pretty_things/current/images/'
       #   ssh.set user: 'deploy'
@@ -148,7 +148,7 @@ class Rosh
         # @param [String] path The absolute or relative path to make the new
         #   working directory.
         #
-        # @return [Boolean] On success, returns a Rosh::RemoteDir.  On
+        # @return [Boolean] On success, returns a Rosh::Host::FileSystemObjects::RemoteDir.  On
         #   fail, #last_exit_status is set to the exit status from the remote
         #   command, Rosh::ErrorNOENT error.
         def cd(path)
@@ -161,7 +161,7 @@ class Rosh
             result = run(cmd)
 
             if result.exit_status.zero?
-              @internal_pwd = Rosh::Host::RemoteDir.new(result.ruby_object, self)
+              @internal_pwd = Rosh::Host::FileSystemObjects::RemoteDir.new(result.ruby_object, self)
 
               [true, 0, result.stdout, result.stderr]
             elsif result.stderr.match %r[No such file or directory]
@@ -217,7 +217,7 @@ class Rosh
           end
         end
 
-        # @return [Rosh::RemoteDir] The current working directory.
+        # @return [Rosh::Host::FileSystemObjects::RemoteDir] The current working directory.
         def pwd
           log 'pwd called'
 
@@ -225,7 +225,7 @@ class Rosh
             process(:pwd) { [@internal_pwd, 0, nil] }
           else
             result = run('pwd')
-            @internal_pwd = Rosh::Host::RemoteDir.new(result.ruby_object.strip, self)
+            @internal_pwd = Rosh::Host::FileSystemObjects::RemoteDir.new(result.ruby_object.strip, self)
 
             process(:pwd) { [@internal_pwd, 0, result.stdout, result.stderr] }
           end

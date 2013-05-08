@@ -12,7 +12,7 @@ describe Rosh::Host::WrapperMethods::Remote do
   end
 
   let(:internal_pwd) do
-    i = double 'Rosh::Host::RemoteDir'
+    i = double 'Rosh::Host::FileSystemObjects::RemoteDir'
     i.stub(:to_path).and_return '/home'
 
     i
@@ -190,11 +190,11 @@ describe Rosh::Host::WrapperMethods::Remote do
       end
 
       let(:file_system_object) do
-        double 'Rosh::Host::RemoteFileSystemObject'
+        double 'Rosh::Host::FileSystemObjects::RemoteBase'
       end
 
       before do
-        Rosh::Host::RemoteFileSystemObject.should_receive(:create).
+        Rosh::Host::FileSystemObjects::RemoteBase.should_receive(:create).
           and_return file_system_object
       end
 

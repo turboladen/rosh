@@ -1,10 +1,10 @@
 require 'spec_helper'
-require 'rosh/host/remote_file'
+require 'rosh/host/file_system_objects/remote_file'
 
 
-describe Rosh::Host::RemoteFile do
+describe Rosh::Host::FileSystemObjects::RemoteFile do
   subject do
-    Rosh::Host::RemoteFile.new(path, shell)
+    Rosh::Host::FileSystemObjects::RemoteFile.new(path, shell)
   end
 
   let(:path) { '/file' }

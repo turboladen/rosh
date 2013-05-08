@@ -1,9 +1,9 @@
 require 'spec_helper'
-require 'rosh/host/local_file'
+require 'rosh/host/file_system_objects/local_file'
 require 'tempfile'
 
 
-describe Rosh::Host::LocalFile do
+describe Rosh::Host::FileSystemObjects::LocalFile do
   let(:file) do
     f = Tempfile.open('rosh_test')
     f.write 'content'
@@ -16,7 +16,7 @@ describe Rosh::Host::LocalFile do
     file.unlink
   end
 
-  subject { Rosh::Host::LocalFile.new(file.path) }
+  subject { Rosh::Host::FileSystemObjects::LocalFile.new(file.path) }
 
   describe '#absolute_path' do
     specify { subject.absolute_path.should == File.expand_path(file.path) }

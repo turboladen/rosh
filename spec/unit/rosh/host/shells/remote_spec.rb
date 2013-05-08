@@ -24,7 +24,7 @@ describe Rosh::Host::Shells::Remote do
   end
 
   let(:internal_pwd) do
-    i = double 'Rosh::Host::RemoteDir'
+    i = double 'Rosh::Host::FileSystemObjects::RemoteDir'
     i.stub(:to_path).and_return '/home'
 
     i
@@ -294,7 +294,7 @@ describe Rosh::Host::Shells::Remote do
       end
 
       let(:internal_pwd) do
-        double 'Rosh::RemoteDir', to_path: '/home'
+        double 'Rosh::Host::FileSystemObjects::RemoteDir', to_path: '/home'
       end
 
       before do
@@ -327,7 +327,7 @@ describe Rosh::Host::Shells::Remote do
         @r = subject.pwd
       end
 
-      specify { @r.should be_a Rosh::Host::RemoteDir }
+      specify { @r.should be_a Rosh::Host::FileSystemObjects::RemoteDir }
       specify { subject.last_exit_status.should eq 0 }
       specify { subject.last_result.should eq @r }
     end

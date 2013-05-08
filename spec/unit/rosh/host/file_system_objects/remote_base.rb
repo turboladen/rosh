@@ -1,10 +1,10 @@
 require 'spec_helper'
-require 'rosh/host/remote_file'
+require 'rosh/host/file_system_objects/remote_base'
 
 
-describe Rosh::Host::RemoteFileSystemObject do
+describe Rosh::Host::FileSystemOjbects::RemoteBase do
   subject do
-    Rosh::Host::RemoteFileSystemObject.new(path, shell)
+    Rosh::Host::FileSystemOjbects::RemoteBase.new(path, shell)
   end
 
   let(:path) { '/file' }
@@ -12,46 +12,46 @@ describe Rosh::Host::RemoteFileSystemObject do
 
   describe '.create' do
     before do
-      Rosh::Host::RemoteFileSystemObject.should_receive(:new).
+      Rosh::Host::FileSystemObjects::RemoteBase.should_receive(:new).
         and_return fso
     end
 
     context 'path is a directory' do
       let(:fso) do
-        f = double 'Rosh::Host::RemoteDir'
+        f = double 'Rosh::Host::FileSystemObjects::RemoteDir'
         f.should_receive(:directory?).and_return true
 
         f
       end
 
-      it 'returns a new Rosh::Host::RemoteDir' do
-        Rosh::Host::RemoteDir.should_receive(:new).with('dir', shell).
+      it 'returns a new Rosh::Host::FileSystemObjects::RemoteDir' do
+        Rosh::Host::FileSystemObjects::RemoteDir.should_receive(:new).with('dir', shell).
           and_return 'the dir'
-        Rosh::Host::RemoteFileSystemObject.create('dir', shell).
+        Rosh::Host::FileSystemObjects::RemoteBase.create('dir', shell).
           should eq 'the dir'
       end
     end
 
     context 'path is a file' do
       let(:fso) do
-        f = double 'Rosh::Host::RemoteFile'
+        f = double 'Rosh::Host::FileSystemObjects::RemoteFile'
         f.should_receive(:directory?).and_return false
         f.should_receive(:file?).and_return true
 
         f
       end
 
-      it 'returns a new Rosh::Host::RemoteFile' do
-        Rosh::Host::RemoteFile.should_receive(:new).with('file', shell).
+      it 'returns a new Rosh::Host::FileSystemObjects::RemoteFile' do
+        Rosh::Host::FileSystemObjects::RemoteFile.should_receive(:new).with('file', shell).
           and_return 'the file'
-        Rosh::Host::RemoteFileSystemObject.create('file', shell).
+        Rosh::Host::FileSystemObjects::RemoteBase.create('file', shell).
           should eq 'the file'
       end
     end
 
     context 'path is a link' do
       let(:fso) do
-        f = double 'Rosh::Host::RemoteLink'
+        f = double 'Rosh::Host::FileSystemObjects::RemoteLink'
         f.should_receive(:directory?).and_return false
         f.should_receive(:file?).and_return false
         f.should_receive(:link?).and_return true
@@ -59,17 +59,17 @@ describe Rosh::Host::RemoteFileSystemObject do
         f
       end
 
-      it 'returns a new Rosh::Host::RemoteLink' do
-        Rosh::Host::RemoteLink.should_receive(:new).with('link', shell).
+      it 'returns a new Rosh::Host::FileSystemObjects::RemoteLink' do
+        Rosh::Host::FileSystemObjects::RemoteLink.should_receive(:new).with('link', shell).
           and_return 'the link'
-        Rosh::Host::RemoteFileSystemObject.create('link', shell).
+        Rosh::Host::FileSystemObjects::RemoteBase.create('link', shell).
           should eq 'the link'
       end
     end
 
     context 'force_type is given' do
       let(:fso) do
-        f = double 'Rosh::Host::RemoteFileSystemObject'
+        f = double 'Rosh::Host::FileSystemObjects::RemoteBase'
         f.should_receive(:directory?).and_return false
         f.should_receive(:file?).and_return false
         f.should_receive(:link?).and_return false
@@ -78,9 +78,9 @@ describe Rosh::Host::RemoteFileSystemObject do
       end
 
       it 'returns a new object of force_type' do
-        Rosh::Host::RemoteLink.should_receive(:new).with('link', shell).
+        Rosh::Host::FileSystemObjects::RemoteLink.should_receive(:new).with('link', shell).
           and_return 'the link'
-        Rosh::Host::RemoteFileSystemObject.create('link', shell, force_type: :link).
+        Rosh::Host::FileSystemObjects::RemoteBase.create('link', shell, force_type: :link).
           should eq 'the link'
       end
     end

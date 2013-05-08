@@ -66,7 +66,7 @@ class Rosh
         # @param [String] path Path to the directory to list its contents.  If no
         #   path given, lists the current working directory.
         #
-        # @return [Array<Rosh::RemoteFileSystemObject>, Rosh::ErrorENOENT] On
+        # @return [Array<Rosh::RemoteBase>, Rosh::ErrorENOENT] On
         #   success, returns an Array of Rosh::RemoteFileSystemObjects.  On fail,
         #   #last_exit_status is set to the status given by the remote host's
         #   failed 'ls' command, returns a Rosh::ErrorENOENT.
@@ -88,7 +88,7 @@ class Rosh
                 good_info entry
                 full_path = "#{base}/#{entry}"
 
-                Rosh::Host::RemoteFileSystemObject.create(full_path, self)
+                Rosh::Host::FileSystemObjects::RemoteBase.create(full_path, self)
               end
 
               [listing, 0, result.stdout, result.stderr]

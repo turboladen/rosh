@@ -12,12 +12,12 @@ describe Rosh::Host::WrapperMethods::Local do
 
     context 'path exists' do
       let(:file_system_object) do
-        double 'Rosh::LocalFileSystemObject'
+        double 'Rosh::LocalBaseObject'
       end
 
       before do
         Dir.should_receive(:entries).with(path).and_return [path]
-        Rosh::Host::LocalFileSystemObject.should_receive(:create).
+        Rosh::Host::FileSystemObjects::LocalBase.should_receive(:create).
           and_return file_system_object
       end
 

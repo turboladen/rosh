@@ -12,8 +12,8 @@ class Rosh
         # @param [String] path Path to the directory to list its contents.  If no
         #   path given, lists the current working directory.
         #
-        # @return [Array<Rosh::LocalFileSystemObject>] On success, returns an
-        #   Array of Rosh::LocalFileSystemObjects.  On fail, #last_exit_status is
+        # @return [Array<Rosh::Host::FileSystemObjects::LocalBase>] On success, returns an
+        #   Array of Rosh::Host::FileSystemObjects.  On fail, #last_exit_status is
         #   1 and returns a Errno::ENOENT or Errno::ENOTDIR.
         def ls(path=nil)
           log "ls called with arg '#{path}'"
@@ -21,7 +21,7 @@ class Rosh
 
           process(:ls, path: path) do
             if File.file? full_path
-              fso = Rosh::Host::LocalFileSystemObject.create(full_path)
+              fso = Rosh::Host::FileSystemObjects::LocalBase.create(full_path)
               good_info full_path
 
               [fso, 0]
@@ -29,7 +29,7 @@ class Rosh
               begin
                 fso_array = Dir.entries(full_path).map do |entry|
                   good_info entry
-                  Rosh::Host::LocalFileSystemObject.create("#{full_path}/#{entry}")
+                  Rosh::Host::FileSystemObjects::LocalBase.create("#{full_path}/#{entry}")
                 end
 
                 [fso_array, 0]

@@ -6,7 +6,7 @@ require 'pty'
 require 'awesome_print'
 
 require_relative 'base'
-require_relative '../local_file_system_object'
+require_relative '../file_system_objects/local_base'
 require_relative '../wrapper_methods/local'
 
 
@@ -134,7 +134,7 @@ class Rosh
         def pwd
           log 'pwd called'
 
-          process(:pwd) { [Rosh::Host::LocalDir.new(@internal_pwd), 0] }
+          process(:pwd) { [Rosh::Host::FileSystemObjects::LocalDir.new(@internal_pwd), 0] }
         end
 
         # Executes Ruby code in the context of an IRB::WorkSpace.  Thus, variables

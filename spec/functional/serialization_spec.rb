@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'rosh/host/shells/remote'
-require 'rosh/host/remote_file_system_object'
+require 'rosh/host/file_system_objects/remote_base'
 
 
 describe 'Serialization' do
@@ -40,13 +40,13 @@ options:
   describe Rosh::Host::Shells::Remote do
     subject do
       shell = Rosh::Host::Shells::Remote.new('example.com', user: 'bobo')
-      Rosh::Host::RemoteFileSystemObject.new(__FILE__, shell)
+      Rosh::Host::FileSystemObjects::RemoteBase.new(__FILE__, shell)
     end
 
     context 'YAML' do
       let(:yaml) do
         <<-FSO
---- !ruby/object:Rosh::Host::RemoteFileSystemObject
+--- !ruby/object:Rosh::Host::FileSystemObjects::RemoteBase
 path: #{__FILE__}
 shell: !ruby/object:Rosh::Host::Shells::Remote
   hostname: example.com
@@ -56,7 +56,7 @@ shell: !ruby/object:Rosh::Host::Shells::Remote
 
       it 'outputs YAML with' do
         subject.to_yaml.should == <<-FSO
---- !ruby/object:Rosh::Host::RemoteFileSystemObject
+--- !ruby/object:Rosh::Host::FileSystemObjects::RemoteBase
 path: #{__FILE__}
 shell: !ruby/object:Rosh::Host::Shells::Remote
   hostname: example.com
@@ -65,9 +65,9 @@ shell: !ruby/object:Rosh::Host::Shells::Remote
         FSO
       end
 
-      it 'imports to a Rosh::Host::RemoteFileSystemObject' do
+      it 'imports to a Rosh::Host::FileSystemObjects::RemoteBase' do
         new_fso = YAML.load(yaml)
-        new_fso.should be_a Rosh::Host::RemoteFileSystemObject
+        new_fso.should be_a Rosh::Host::FileSystemObjects::RemoteBase
         new_fso.to_path.should eq __FILE__
         shell = new_fso.instance_variable_get(:@shell)
         shell.hostname.should eq 'example.com'
