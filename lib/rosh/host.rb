@@ -2,9 +2,8 @@ require 'etc'
 require 'socket'
 require 'log_switch'
 require_relative 'host/attributes'
-require_relative 'host/local_file_system'
 Dir[File.dirname(__FILE__) + '/host/shells/*.rb'].each(&method(:require))
-require_relative 'host/remote_file_system'
+require_relative 'host/file_system'
 Dir[File.dirname(__FILE__) + '/host/service_managers/*.rb'].each(&method(:require))
 require_relative 'host/package_manager'
 require_relative 'host/group_manager'
@@ -39,9 +38,9 @@ class Rosh
       return @fs if @fs
 
       @fs = if local?
-        Rosh::Host::LocalFileSystem.new
+        Rosh::Host::FileSystem.new
       else
-        Rosh::Host::RemoteFileSystem.new(@shell)
+        Rosh::Host::FileSystem.new(@shell)
       end
     end
 
