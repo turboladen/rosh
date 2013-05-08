@@ -114,7 +114,7 @@ class Rosh
             scp(source, destination)
 
             Rosh::CommandResult.new(nil, 0)
-          rescue => ex
+          rescue StandardError => ex
             log "Exception: #{ex.class}".red
             log "Exception: #{ex.message}".red
             log "Exception: #{ex.backtrace.join("\n")}".red
