@@ -12,7 +12,7 @@ class Rosh
       end
 
       def [](path)
-        if remote
+        if @remote
           RemoteBase.create(path, @shell)
         else
           LocalBase.create(path)
@@ -20,7 +20,7 @@ class Rosh
       end
 
       def directory(path)
-        if remote
+        if @remote
           FileSystemObjects::RemoteDir.new(path, @shell)
         else
           FileSystemObjects::LocalDir.new(path)
@@ -28,7 +28,7 @@ class Rosh
       end
 
       def file(path)
-        if remote
+        if @remote
           FileSystemObjects::RemoteFile.new(path, @shell)
         else
           FileSystemObjects::LocalFile.new(path)
@@ -36,7 +36,7 @@ class Rosh
       end
 
       def link(path)
-        if remote
+        if @remote
           FileSystemObjects::RemoteLink.new(path, @shell)
         else
           FileSystemObjects::LocalLink.new(path)
