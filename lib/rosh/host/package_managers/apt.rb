@@ -48,7 +48,7 @@ class Rosh
         # @return [Boolean] +true+ if exit status was 0; +false+ if not.
         def upgrade_packages
           old_packages = installed_packages
-          output = @shell.exec 'apt-get upgrade -y'
+          output = @shell.exec 'apt-get upgrade -y DEBIAN_FRONTEND=noninteractive'
           new_package_names = extract_upgradable_packages(output)
           success = @shell.last_exit_status.zero?
 
