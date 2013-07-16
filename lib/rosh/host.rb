@@ -65,6 +65,10 @@ class Rosh
       @group_manager ||= Rosh::Host::GroupManager.new(self)
     end
 
+    # Access to the PackageManager for the Host's OS type.
+    #
+    # @return [Rosh::Host::PackageManager]
+    # @see Rosh::Host::PackageManager
     def packages
       @package_manager = case operating_system
       when :darwin
