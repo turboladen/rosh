@@ -220,10 +220,15 @@ describe Rosh::Host::FileSystemObjects::RemoteBase do
     before do
       subject.stub(:owner).and_return 'person'
       shell.stub(:last_exit_status).and_return 0
+      shell.stub(:check_state_first?).and_return false
     end
 
     context 'new_owner is the same as the old owner' do
       context 'check state first' do
+        before do
+          shell.stub(:check_state_first?).and_return true
+        end
+
         it 'does not run the command' do
           shell.should_not_receive(:exec).with 'chown person /file'
           subject.should_not_receive(:changed)
@@ -295,10 +300,15 @@ describe Rosh::Host::FileSystemObjects::RemoteBase do
     before do
       subject.stub(:group).and_return 'people'
       shell.stub(:last_exit_status).and_return 0
+      shell.stub(:check_state_first?).and_return false
     end
 
     context 'new_group is the same as the old group' do
       context 'check state first' do
+        before do
+          shell.stub(:check_state_first?).and_return true
+        end
+
         it 'does not run the command' do
           shell.should_not_receive(:exec).with 'chgrp people /file'
           subject.should_not_receive(:changed)
@@ -360,15 +370,32 @@ describe Rosh::Host::FileSystemObjects::RemoteBase do
     before do
       subject.stub(:mode).and_return 644
       shell.stub(:last_exit_status).and_return 0
+      shell.stub(:check_state_first?).and_return false
     end
 
     context 'new_mode is the same as the old mode' do
-      it 'runs the command but does not update observers' do
-        shell.should_receive(:exec).with 'chmod 644 /file'
-        subject.should_not_receive(:changed)
-        subject.should_not_receive(:notify_observers)
+      context 'check state first' do
+        before do
+          shell.stub(:check_state_first?).and_return true
+        end
 
-        subject.mode = 644
+        it 'does not run the command' do
+          shell.should_not_receive(:exec).with 'chmod 644 /file'
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.mode = 644
+        end
+      end
+
+      context 'do not check state first' do
+        it 'runs the command but does not update observers' do
+          shell.should_receive(:exec).with 'chmod 644 /file'
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.mode = 644
+        end
       end
     end
 
@@ -407,16 +434,33 @@ describe Rosh::Host::FileSystemObjects::RemoteBase do
   describe '#remove' do
     before do
       shell.stub(:last_exit_status).and_return 0
+      shell.stub(:check_state_first?).and_return false
       subject.stub(:exists?).and_return false
     end
 
     context 'object did not exist' do
-      it 'runs the command but does not update observers' do
-        shell.should_receive(:exec).with 'rm -rf /file'
-        subject.should_not_receive(:changed)
-        subject.should_not_receive(:notify_observers)
+      context 'check state first' do
+        before do
+          shell.stub(:check_state_first?).and_return true
+        end
 
-        subject.remove
+        it 'does not run the command' do
+          shell.should_not_receive(:exec).with 'rm -rf /file'
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.remove
+        end
+      end
+
+      context 'do not check state first' do
+        it 'runs the command but does not update observers' do
+          shell.should_receive(:exec).with 'rm -rf /file'
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.remove
+        end
       end
     end
 

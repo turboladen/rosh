@@ -104,6 +104,8 @@ class Rosh
         #   system object.
         def owner=(new_owner)
           old_owner = owner
+          return if @shell.check_state_first? && old_owner == new_owner
+
           cmd = "chown #{new_owner} #{@path}"
           @shell.exec(cmd)
 
@@ -131,6 +133,8 @@ class Rosh
         #   system object.
         def group=(new_group)
           old_group = group
+          return if @shell.check_state_first? && old_group == new_group
+
           cmd = "chgrp #{new_group} #{@path}"
           @shell.exec(cmd)
 
@@ -159,6 +163,8 @@ class Rosh
         #   system object.
         def mode=(new_mode)
           old_mode = mode
+          return if @shell.check_state_first? && old_mode == new_mode
+
           cmd = "chmod #{new_mode} #{@path}"
           @shell.exec(cmd)
 
@@ -183,6 +189,8 @@ class Rosh
         # actually removes the object, the observer's #update method gets called.
         def remove
           existed = exists?
+          return if @shell.check_state_first? && !existed
+
           cmd = "rm -rf #{@path}"
           @shell.exec(cmd)
 
