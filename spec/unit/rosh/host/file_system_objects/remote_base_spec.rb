@@ -2,9 +2,9 @@ require 'spec_helper'
 require 'rosh/host/file_system_objects/remote_base'
 
 
-describe Rosh::Host::FileSystemOjbects::RemoteBase do
+describe Rosh::Host::FileSystemObjects::RemoteBase do
   subject do
-    Rosh::Host::FileSystemOjbects::RemoteBase.new(path, shell)
+    Rosh::Host::FileSystemObjects::RemoteBase.new(path, shell)
   end
 
   let(:path) { '/file' }
@@ -223,12 +223,24 @@ describe Rosh::Host::FileSystemOjbects::RemoteBase do
     end
 
     context 'new_owner is the same as the old owner' do
-      it 'runs the command but does not update observers' do
-        shell.should_receive(:exec).with 'chown person /file'
-        subject.should_not_receive(:changed)
-        subject.should_not_receive(:notify_observers)
+      context 'check state first' do
+        it 'does not run the command' do
+          shell.should_not_receive(:exec).with 'chown person /file'
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
 
-        subject.owner = 'person'
+          subject.owner = 'person'
+        end
+      end
+
+      context 'do not check state first' do
+        it 'runs the command but does not update observers' do
+          shell.should_receive(:exec).with 'chown person /file'
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.owner = 'person'
+        end
       end
     end
 
@@ -286,12 +298,24 @@ describe Rosh::Host::FileSystemOjbects::RemoteBase do
     end
 
     context 'new_group is the same as the old group' do
-      it 'runs the command but does not update observers' do
-        shell.should_receive(:exec).with 'chgrp people /file'
-        subject.should_not_receive(:changed)
-        subject.should_not_receive(:notify_observers)
+      context 'check state first' do
+        it 'does not run the command' do
+          shell.should_not_receive(:exec).with 'chgrp people /file'
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
 
-        subject.group = 'people'
+          subject.group = 'people'
+        end
+      end
+
+      context 'do not check state first' do
+        it 'runs the command but does not update observers' do
+          shell.should_receive(:exec).with 'chgrp people /file'
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+
+          subject.group = 'people'
+        end
       end
     end
 
