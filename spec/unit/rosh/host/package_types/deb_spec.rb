@@ -76,7 +76,8 @@ files.",
       it 'passes the version to the command' do
         subject.should_receive(:installed?).and_return true
         subject.stub_chain(:info, :[]).and_return '0.1.2'
-        shell.should_receive(:exec).with('apt-get install thing=1.2.3')
+        shell.should_receive(:exec).
+          with('DEBIAN_FRONTEND=noninteractive apt-get install thing=1.2.3 -y')
         shell.should_receive(:last_exit_status).and_return 0
 
         subject.install(version: '1.2.3')
@@ -85,7 +86,8 @@ files.",
 
     context 'no version' do
       before do
-        shell.should_receive(:exec).with('apt-get install thing')
+        shell.should_receive(:exec).
+          with('DEBIAN_FRONTEND=noninteractive apt-get install thing -y')
       end
 
       context 'package was already installed and at latest version' do
@@ -193,7 +195,8 @@ files.",
 
   describe '#remove' do
     before do
-      shell.should_receive(:exec).with('apt-get remove thing')
+      shell.should_receive(:exec).
+        with('DEBIAN_FRONTEND=noninteractive apt-get remove thing')
       subject.stub_chain(:info, :[]).and_return '1.2.3'
     end
 

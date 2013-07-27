@@ -54,8 +54,9 @@ class Rosh
           already_installed = installed?
           old_version = info[:version] if already_installed
 
-          cmd = "apt-get install #{@name}"
+          cmd = "DEBIAN_FRONTEND=noninteractive apt-get install #{@name}"
           cmd << "=#{version}" if version
+          cmd << ' -y'
 
           @shell.exec(cmd)
           success = @shell.last_exit_status.zero?
@@ -78,7 +79,7 @@ class Rosh
           already_installed = installed?
           old_version = info[:version] if already_installed
 
-          @shell.exec "apt-get remove #{@name}"
+          @shell.exec "DEBIAN_FRONTEND=noninteractive apt-get remove #{@name}"
           success = @shell.last_exit_status.zero?
 
           if success && already_installed

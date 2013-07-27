@@ -131,7 +131,8 @@ Reading package lists... Done
 
     before do
       subject.stub(:installed_packages).and_return []
-      shell.should_receive(:exec).with('apt-get upgrade -y').and_return output
+      shell.should_receive(:exec).
+        with('apt-get upgrade -y DEBIAN_FRONTEND=noninteractive').and_return output
     end
 
     context 'no packages to upgrade' do
