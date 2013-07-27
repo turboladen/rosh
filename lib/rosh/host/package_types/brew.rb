@@ -41,6 +41,17 @@ class Rosh
           !result.match /Not installed/
         end
 
+        # @return [Array<String>] The list of versions of the current package
+        #   that are installed.
+        def installed_versions
+          result = @shell.exec "brew info #{@name}"
+
+          result.each_line.map do |line|
+            %r[.*Cellar/#{@name}/(?<version>\S+)] =~ line.strip
+            $~ ? $~[:version] : nil
+          end.compact
+        end
+
         # Installs the package using brew and notifies observers with the new
         # version.  If a version is given and that version is already installed,
         # brew switches back to use the given version.

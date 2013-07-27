@@ -78,6 +78,44 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/gdbm.rb
     end
   end
 
+  describe '#installed_versions' do
+    before do
+      subject.instance_variable_set(:@name, 'git')
+      shell.should_receive(:exec).with('brew info git').and_return output
+    end
+
+    context 'package not installed' do
+      let(:output) do
+        <<-OUTPUT
+isl: stable 0.11.2, HEAD
+http://www.kotnet.org/~skimo/isl/
+Not installed
+From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/isl.rb
+==> Dependencies
+Required: gmp
+        OUTPUT
+      end
+
+      specify { subject.installed_versions.should == [] }
+    end
+
+    context 'package installed' do
+      let(:output) do
+        <<-OUTPUT
+git: stable 1.8.3.4, HEAD
+http://git-scm.com
+/usr/local/Cellar/git/1.8.3.1 (1324 files, 28M)
+  Built from source
+/usr/local/Cellar/git/1.8.3.3 (1326 files, 29M)
+  Built from source
+From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
+        OUTPUT
+      end
+
+      specify { subject.installed_versions.should == %w[1.8.3.1 1.8.3.3] }
+    end
+  end
+
   describe '#install' do
     context 'with version' do
       before do
