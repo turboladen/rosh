@@ -16,6 +16,13 @@ class Rosh
         include LogSwitch::Mixin
 
         attr_accessor :sudo
+
+        # @param [Boolean] enable Set to +true+ to tell the shell to check the
+        #   state of the object its working on before working on it.  For
+        #   example, when enabled and running a command to create a user "joe"
+        #   will check to see if "joe" exists before creating it.  Defaults to
+        #   +false+.
+        attr_writer :check_state_first
         attr_reader :history
 
         # @param [String] output_commands Toggle for outputting all commands
@@ -25,6 +32,7 @@ class Rosh
           @output_commands = output_commands
           @history = []
           @sudo = false
+          @check_state_first = false
         end
 
         # The shell's environment.  Note this doesn't trump the Ruby process's ENV
@@ -48,6 +56,12 @@ class Rosh
           end
         end
 =end
+
+        # @return [Boolean] Returns if the shell is set to check the state of
+        #   commands to determine if the command needs to be run.
+        def check_state_first?
+          !!@check_state_first
+        end
 
         # @param [Integer] status Exit status code.
         def exit(status=0)
