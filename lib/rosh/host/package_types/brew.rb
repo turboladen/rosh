@@ -96,6 +96,11 @@ class Rosh
         # @return [Boolean] +true+ if install was successful; +false+ if not.
         def remove
           already_installed = installed?
+
+          if @shell.check_state_first? && !already_installed
+            return
+          end
+
           old_version = info[:version] if already_installed
 
           @shell.exec "brew remove #{@name}"
