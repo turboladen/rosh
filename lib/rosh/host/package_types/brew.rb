@@ -60,6 +60,11 @@ class Rosh
         # @return [Boolean] +true+ if install was successful; +false+ if not.
         def install(version: nil)
           already_installed = installed?
+
+          if @shell.check_state_first? && at_latest_version?
+            return
+          end
+
           old_version = info[:version] if already_installed
 
           if version
@@ -78,6 +83,12 @@ class Rosh
 
             success
           end
+        end
+
+        # @return [Boolean] Checks to see if the latest installed version is
+        #   the latest version available.
+        def at_latest_version?
+          info[:version] == installed_versions.last
         end
 
         # Removes the package using `brew remove ` and notifies observers.

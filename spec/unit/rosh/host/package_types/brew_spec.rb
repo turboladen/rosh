@@ -132,20 +132,23 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
 
     context 'no version' do
       before do
-        shell.should_receive(:exec).with('brew install thing')
+        shell.stub(:check_state_first?).and_return false
       end
 
       context 'package was already installed and at latest version' do
         before do
           subject.stub_chain(:info, :[]).and_return '1.2.3'
           subject.should_receive(:installed?).and_return true
+          subject.stub(:installed_versions).and_return %w[1.2.3]
         end
 
-        context 'failed install' do
-          before { shell.stub(:last_exit_status).and_return 1 }
-          specify { subject.install.should == false }
+        context 'check state first' do
+          before do
+            shell.stub(:check_state_first?).and_return true
+          end
 
-          it 'does not notify observers' do
+          it 'does not run the command' do
+            shell.should_not_receive(:exec).with('brew install thing')
             subject.should_not_receive(:changed)
             subject.should_not_receive(:notify_observers)
 
@@ -153,15 +156,37 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
           end
         end
 
-        context 'successful install' do
-          before { shell.stub(:last_exit_status).and_return 0 }
-          specify { subject.install.should == true }
+        context 'do not check state first' do
+          context 'failed install' do
+            before do
+              shell.stub(:last_exit_status).and_return 1
+              shell.should_receive(:exec).with('brew install thing')
+            end
 
-          it 'does not notify observers' do
-            subject.should_not_receive(:changed)
-            subject.should_not_receive(:notify_observers)
+            specify { subject.install.should == false }
 
-            subject.install
+            it 'does not notify observers' do
+              subject.should_not_receive(:changed)
+              subject.should_not_receive(:notify_observers)
+
+              subject.install
+            end
+          end
+
+          context 'successful install' do
+            before do
+              shell.stub(:last_exit_status).and_return 0
+              shell.should_receive(:exec).with('brew install thing')
+            end
+
+            specify { subject.install.should == true }
+
+            it 'does not notify observers' do
+              subject.should_not_receive(:changed)
+              subject.should_not_receive(:notify_observers)
+
+              subject.install
+            end
           end
         end
       end
@@ -173,7 +198,11 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
         end
 
         context 'failed install' do
-          before { shell.stub(:last_exit_status).and_return 1 }
+          before do
+            shell.stub(:last_exit_status).and_return 1
+            shell.should_receive(:exec).with('brew install thing')
+          end
+
           specify { subject.install.should == false }
 
           it 'does not notify observers' do
@@ -185,7 +214,11 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
         end
 
         context 'successful install' do
-          before { shell.stub(:last_exit_status).and_return 0 }
+          before do
+            shell.stub(:last_exit_status).and_return 0
+            shell.should_receive(:exec).with('brew install thing')
+          end
+
           specify { subject.install.should == true }
 
           it 'notifies observers' do
@@ -203,10 +236,14 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
         before do
           subject.should_receive(:installed?).and_return false
           subject.stub_chain(:info, :[]).and_return '1.2.3'
+          shell.should_receive(:exec).with('brew install thing')
         end
 
         context 'failed install' do
-          before { shell.stub(:last_exit_status).and_return 1 }
+          before do
+            shell.stub(:last_exit_status).and_return 1
+          end
+
           specify { subject.install.should == false }
 
           it 'does not notify observers' do
