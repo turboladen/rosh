@@ -137,6 +137,7 @@ class Rosh
           result, exit_status, ssh_output = block.call
 
           @history << {
+            time: Time.now.to_s,
             command: cmd,
             arguments: args,
             output: result,
