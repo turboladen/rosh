@@ -16,6 +16,9 @@ class Rosh
           end
         end
 
+        # Allows for iterating over each entry in the directory.
+        #
+        # @return [Enumerator]
         def each
           if block_given?
             entries.each { |entry| yield entry }
@@ -24,6 +27,7 @@ class Rosh
           end
         end
 
+        # Opens the directory, passes it to the block, then closes it.
         def open(&block)
           Dir.open(@path, &block)
         end
