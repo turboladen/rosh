@@ -15,6 +15,8 @@ class Rosh
         extend LogSwitch
         include LogSwitch::Mixin
 
+        # @param [Boolean] enable Set to enable/disable sudo mode.  Once enabled,
+        #   all subsequent commands will be run as sudo or until it is disabled.
         attr_accessor :sudo
 
         # @param [Boolean] enable Set to +true+ to tell the shell to check the
@@ -23,6 +25,9 @@ class Rosh
         #   will check to see if "joe" exists before creating it.  Defaults to
         #   +false+.
         attr_writer :check_state_first
+
+        # @return [Array<Hash>] The list of commands that the shell has executed
+        #   throughout its life.
         attr_reader :history
 
         # @param [String] output_commands Toggle for outputting all commands
