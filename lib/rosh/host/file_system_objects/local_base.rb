@@ -77,11 +77,11 @@ class Rosh
         #
         # @param [Hash] options
         # @option options [String] :user_name Name of the user to make owner.
-        # @option options [Fixnum] :user_uid UID of the user to make owner.
+        # @option options [Fixnum] :uid UID of the user to make owner.
         # @option options [String] :group_name Name of the group to make owner.
-        # @option options [Fixnum] :group_uid UID of the group to make owner.
-        # @return [Hash{Symbol => Struct::Passwd, Struct::Group}] The owning user
-        # and group of the file system object.
+        # @option options [Fixnum] :gid GID of the group to make owner.
+        # @return [Hash{:user => Struct::Passwd, :group => Struct::Group}] The
+        #   owning user and group of the file system object.
         def owner(**options)
           if options.empty?
             return {
@@ -90,25 +90,16 @@ class Rosh
             }
           end
 
-          user_uid = if options[:user_name]
-            user = Etc.getpwnam(options[:user_name])
-            user.uid
-          elsif options[:user_uid]
-            options[:user_uid]
-          end
+          uid = extract_uid(options)
+          gid = extract_gid(options)
 
-          group_uid = if options[:group_name]
-            group = Etc.getgrnam(options[:group_name])
-            group.gid
-          elsif options[:group_uid]
-            options[:group_uid]
-          end
-
-          if chown(user_uid, group_uid) == 1
+          if chown(uid, gid) == 1
             {
               user: Etc.getpwuid(stat.uid),
               group: Etc.getgrgid(stat.gid)
             }
+          else
+            raise "Unable to chown using uid '#{uid}' and gid '#{gid}'."
           end
         end
 
@@ -125,6 +116,36 @@ class Rosh
         # @return [String] The basename of the path.
         def to_s
           File.basename @path
+        end
+
+        private
+
+        # If :user_name is given, it gets the UID for that user, otherwise just
+        # returns :user_uid.
+        #
+        # @param [Hash] options
+        # @return [Fixnum] the UID.
+        def extract_uid(options)
+          if options[:user_name]
+            user = Etc.getpwnam(options[:user_name])
+            user.uid
+          elsif options[:uid]
+            options[:uid].to_i
+          end
+        end
+
+        # If :group_name is given, it gets the GID for that group, otherwise just
+        # returns :gid.
+        #
+        # @param [Hash] options
+        # @return [Fixnum] the GID.
+        def extract_gid(options)
+          if options[:group_name]
+            group = Etc.getgrnam(options[:group_name])
+            group.gid
+          elsif options[:gid]
+            options[:gid].to_i
+          end
         end
       end
     end
