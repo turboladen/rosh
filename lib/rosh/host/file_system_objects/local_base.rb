@@ -4,16 +4,19 @@ require 'etc'
 class Rosh
   class Host
     module FileSystemObjects
+
+      # Base class for local file system objects.  Simply, it provides for
+      # delegating to built-in Ruby Dir and File methods.
       class LocalBase
         File.singleton_methods.each do |meth|
           arg_methods = %i[
-        identical? basename expand_path link open realdirpath realpath rename
-        symlink truncate delete unlink
-      ]
+            identical? basename expand_path link open realdirpath realpath rename
+            symlink truncate delete unlink
+          ]
 
           arg_before_path_methods = %i[
-        chmod fnmatch fnmatch? lchmod
-      ]
+            chmod fnmatch fnmatch? lchmod
+          ]
 
           two_args_before_path_methods = %i[chown lchown utime]
 
@@ -44,18 +47,27 @@ class Rosh
           end
         end
 
+        # Convenience method for creating a FileSystemObject based on its
+        # actual type on-disk.
+        #
+        # @param [String] path Path to the file/dir/link on-disk.
+        # @return [FileSystemObjects::LocalDir,FileSystemObjects::LocalFile,FilesystemObjects::LocalLink,nil]
+        #   The Ruby object that represents the file system object on-disk.  If
+        #   the item does not exist on disk, returns +nil+.
         def self.create(path)
-          fso = new(path)
-
-          if fso.directory?
+          if File.directory?(path)
             Rosh::Host::FileSystemObjects::LocalDir.new(path)
-          elsif fso.file?
+          elsif File.file?(path)
             Rosh::Host::FileSystemObjects::LocalFile.new(path)
-          elsif fso.symlink?
+          elsif File.symlink?(path)
             Rosh::Host::FileSystemObjects::LocalLink.new(path)
           end
         end
 
+        # @return [String] The path that was used to initialize the object.
+        attr_reader :path
+
+        # @param [String] path Path to the item on disk.
         def initialize(path)
           @path = path
         end
@@ -100,14 +112,17 @@ class Rosh
           end
         end
 
+        # @return [String] The path used to create the object.
         def to_path
           @path
         end
 
+        # @return [Struct::Group]
         def group
           Etc.getgrgid(stat.gid)
         end
 
+        # @return [String] The basename of the path.
         def to_s
           File.basename @path
         end
