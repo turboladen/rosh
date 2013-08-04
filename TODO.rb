@@ -20,7 +20,6 @@
 
 
 # TODO: Specs & Docs
-#   * local link
 #   * remote dir
 #   * remote file
 #   * remote link

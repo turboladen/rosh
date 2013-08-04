@@ -25,8 +25,8 @@ describe Rosh::Host::FileSystemObjects::RemoteBase do
       end
 
       it 'returns a new Rosh::Host::FileSystemObjects::RemoteDir' do
-        Rosh::Host::FileSystemObjects::RemoteDir.should_receive(:new).with('dir', shell).
-          and_return 'the dir'
+        Rosh::Host::FileSystemObjects::RemoteDir.should_receive(:new).
+          with('dir', shell).and_return 'the dir'
         Rosh::Host::FileSystemObjects::RemoteBase.create('dir', shell).
           should eq 'the dir'
       end
@@ -42,8 +42,8 @@ describe Rosh::Host::FileSystemObjects::RemoteBase do
       end
 
       it 'returns a new Rosh::Host::FileSystemObjects::RemoteFile' do
-        Rosh::Host::FileSystemObjects::RemoteFile.should_receive(:new).with('file', shell).
-          and_return 'the file'
+        Rosh::Host::FileSystemObjects::RemoteFile.should_receive(:new).
+          with('file', shell).and_return 'the file'
         Rosh::Host::FileSystemObjects::RemoteBase.create('file', shell).
           should eq 'the file'
       end
@@ -60,8 +60,8 @@ describe Rosh::Host::FileSystemObjects::RemoteBase do
       end
 
       it 'returns a new Rosh::Host::FileSystemObjects::RemoteLink' do
-        Rosh::Host::FileSystemObjects::RemoteLink.should_receive(:new).with('link', shell).
-          and_return 'the link'
+        Rosh::Host::FileSystemObjects::RemoteLink.should_receive(:new).
+          with('link', shell).and_return 'the link'
         Rosh::Host::FileSystemObjects::RemoteBase.create('link', shell).
           should eq 'the link'
       end
@@ -78,10 +78,10 @@ describe Rosh::Host::FileSystemObjects::RemoteBase do
       end
 
       it 'returns a new object of force_type' do
-        Rosh::Host::FileSystemObjects::RemoteLink.should_receive(:new).with('link', shell).
-          and_return 'the link'
-        Rosh::Host::FileSystemObjects::RemoteBase.create('link', shell, force_type: :link).
-          should eq 'the link'
+        Rosh::Host::FileSystemObjects::RemoteLink.should_receive(:new).
+          with('link', shell).and_return 'the link'
+        Rosh::Host::FileSystemObjects::RemoteBase.
+          create('link', shell, force_type: :link).should eq 'the link'
       end
     end
   end
