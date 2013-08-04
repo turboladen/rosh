@@ -4,6 +4,8 @@ require_relative 'remote_base'
 class Rosh
   class Host
     module FileSystemObjects
+
+      # Object representing a directory on a remote file system.
       class RemoteDir < RemoteBase
 
         # @return [String] The owner of the remote directory.
