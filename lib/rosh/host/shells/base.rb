@@ -11,22 +11,25 @@ class Rosh
   class Host
     module Shells
 
+      # Abstract base class that actual Shells inherit from.
       class Base
         extend LogSwitch
         include LogSwitch::Mixin
 
-        # @param [Boolean] enable Set to enable/disable sudo mode.  Once enabled,
-        #   all subsequent commands will be run as sudo or until it is disabled.
+        # @!attribute sudo
+        #   @return [Boolean] Set to enable/disable sudo mode.  Once enabled, all subsequent
+        #     commands will be run as sudo or until it is disabled.
         attr_accessor :sudo
 
-        # @param [Boolean] enable Set to +true+ to tell the shell to check the
-        #   state of the object its working on before working on it.  For
-        #   example, when enabled and running a command to create a user "joe"
-        #   will check to see if "joe" exists before creating it.  Defaults to
-        #   +false+.
+        # Set to +true+ to tell the shell to check the
+        # state of the object its working on before working on it.  For
+        # example, when enabled and running a command to create a user "joe"
+        # will check to see if "joe" exists before creating it.  Defaults to
+        # +false+.
+        # @!attribute [w] check_state_first
         attr_writer :check_state_first
 
-        # @return [Array<Hash>] The list of commands that the shell has executed
+        # @return [Array<Hash>] the list of commands that the shell has executed
         #   throughout its life.
         attr_reader :history
 
@@ -73,20 +76,23 @@ class Rosh
           Kernel.exit(status)
         end
 
+        # @return [String] the output of the last command.
         def last_result
           @history.last[:output]
         end
         alias :__ :last_result
 
-        # @return [Integer] Shortcut to the result of the last command executed.
+        # @return [Integer] the exit status code of the last command executed.
         def last_exit_status
           @history.last[:exit_status]
         end
         alias :_? :last_exit_status
 
-        # @return The last exception that was raised.
+        # @return [Exception] the last exception that was raised.
         def last_exception
-          @history.reverse.find { |result| result[:output].kind_of? Exception }
+          exception = @history.reverse.find { |result| result[:output].kind_of? Exception }
+
+          exception[:output]
         end
         alias :_! :last_exception
 
@@ -94,8 +100,8 @@ class Rosh
         #
         # @return Returns whatever the +block+ returns.
         def su(&block)
-          log 'sudo enabled'
           @sudo = true
+          log 'sudo enabled'
           result = block.call
           @sudo = false
           log 'sudo disabled'

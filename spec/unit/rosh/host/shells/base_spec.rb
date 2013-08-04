@@ -8,6 +8,7 @@ describe Rosh::Host::Shells::Base do
   end
 
   its(:history) { should eq [] }
+  its(:sudo) { should be_false }
 
   describe '#check_state_first?' do
     it 'defaults to false' do
@@ -21,6 +22,76 @@ describe Rosh::Host::Shells::Base do
         subject.check_state_first = true
       }.to change { subject.check_state_first? }.
         from(false).to(true)
+    end
+  end
+
+  describe '#last_result' do
+    before do
+      subject.instance_variable_set(:@history, [1, { output: 'hi' } ])
+    end
+
+    context 'as #last_result' do
+      it 'returns the last :output item from the history' do
+        subject.last_result.should == 'hi'
+      end
+    end
+
+    context 'as #__' do
+      it 'returns the last :output item from the history' do
+        subject.__.should == 'hi'
+      end
+    end
+  end
+
+  describe '#last_exit_status' do
+    before do
+      subject.instance_variable_set(:@history, [1, { exit_status: 123 } ])
+    end
+
+    context 'as #last_exit_status' do
+      it 'returns the last :exit_status item from the history' do
+        subject.last_exit_status.should == 123
+      end
+    end
+
+    context 'as #_?' do
+      it 'returns the last :exit_status item from the history' do
+        subject._?.should == 123
+      end
+    end
+  end
+
+  describe '#last_exception' do
+    let(:exception) { Exception.new('hi') }
+
+    before do
+      subject.instance_variable_set(:@history, [1, { output: exception } ])
+    end
+
+    context 'as #last_exception' do
+      it 'returns the last :output item from the history that is an Exception' do
+        subject.last_exception.should == exception
+      end
+    end
+
+    context 'as #_!' do
+      it 'returns the last :output item from the history that is an Exception' do
+        subject._!.should == exception
+      end
+    end
+  end
+
+  describe '#su' do
+    it 'sets sudo to true, calls the block, then sets back to false' do
+      subject.su do
+        subject.instance_variable_get(:@sudo).should be_true
+      end
+
+      subject.instance_variable_get(:@sudo).should be_false
+    end
+
+    it 'returns the return value from the block' do
+      subject.su { 'hi' }.should == 'hi'
     end
   end
 
