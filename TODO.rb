@@ -1,6 +1,7 @@
 # TODO: CLI shell
 
 # TODO: check_state_first stuff for shells
+#   * local base
 #   * local dir
 #   * local file
 #   * local link
@@ -19,7 +20,6 @@
 
 
 # TODO: Specs & Docs
-#   * local file
 #   * local link
 #   * remote dir
 #   * remote file
@@ -40,4 +40,10 @@
 #   * user_manager
 
 # TODO: turn off logging in specs
+
 # TODO: improve logging
+#   * Use Shells::Base#good_info, #bad_info, #run_info
+
+# TODO: fix test that's leaving ./test around
+
+# TODO: use autoload for loading deps
