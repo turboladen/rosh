@@ -12,8 +12,8 @@ class Rosh
         # @return [Array<Rosh::LocalBase>]
         def entries
           Dir.entries(@path).map do |entry|
-            Rosh::Host::FileSystemObjects::LocalBase.create(entry)
-          end
+            Rosh::Host::FileSystemObjects::LocalBase.create("#{@path}/#{entry}")
+          end.compact
         end
 
         # Allows for iterating over each entry in the directory.
