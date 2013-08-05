@@ -5,10 +5,6 @@
 #   * local dir
 #   * local file
 #   * local link
-#   * apt
-#   * dpkg
-#   * yum
-#   * deb
 #   * rpm
 #   * init
 #   * launch_ctl

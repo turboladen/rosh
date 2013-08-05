@@ -73,19 +73,62 @@ files.",
 
   describe '#install' do
     context 'with version' do
-      it 'passes the version to the command' do
-        subject.should_receive(:installed?).and_return true
-        subject.stub_chain(:info, :[]).and_return '0.1.2'
-        shell.should_receive(:exec).
-          with('DEBIAN_FRONTEND=noninteractive apt-get install thing=1.2.3 -y')
-        shell.should_receive(:last_exit_status).and_return 0
+      context 'check_state_first? is true' do
+        before do
+          shell.stub(:check_state_first?).and_return true
+          subject.stub(:installed?).and_return true
+          subject.stub(:current_version).and_return '0.1.2'
+        end
 
-        subject.install(version: '1.2.3')
+        context 'version already installed' do
+          specify { subject.install(version: '0.1.2').should be_nil }
+        end
+
+        context 'version not already installed' do
+          before do
+            subject.stub_chain(:info, :[]).and_return '0.1.2'
+            shell.should_receive(:last_exit_status).and_return 0
+            shell.should_receive(:exec).
+              with('DEBIAN_FRONTEND=noninteractive apt-get install thing=1.2.3 -y')
+          end
+
+          specify { subject.install(version: '1.2.3').should be_true }
+        end
+      end
+
+      context 'check_state_first? is false' do
+        before do
+          shell.stub(:check_state_first?).and_return false
+          subject.stub_chain(:info, :[]).and_return '0.1.2'
+          shell.should_receive(:last_exit_status).and_return 0
+        end
+
+        context 'version already installed' do
+          before do
+            subject.stub(:installed?).and_return true
+            subject.stub(:current_version).and_return '0.1.2'
+            shell.should_receive(:exec).
+              with('DEBIAN_FRONTEND=noninteractive apt-get install thing=0.1.2 -y')
+          end
+
+          specify { subject.install(version: '0.1.2').should be_true }
+        end
+
+        context 'version not already installed' do
+          it 'passes the version to the command' do
+            subject.should_receive(:installed?).and_return true
+            shell.should_receive(:exec).
+              with('DEBIAN_FRONTEND=noninteractive apt-get install thing=1.2.3 -y')
+
+            subject.install(version: '1.2.3')
+          end
+        end
       end
     end
 
     context 'no version' do
       before do
+        shell.stub(:check_state_first?).and_return false
         shell.should_receive(:exec).
           with('DEBIAN_FRONTEND=noninteractive apt-get install thing -y')
       end
