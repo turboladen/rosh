@@ -72,6 +72,18 @@ class Rosh
           success
         end
 
+        # @return [Boolean] Checks to see if the latest installed version is
+        #   the latest version available.
+        def at_latest_version?
+          cmd = "apt-cache policy #{@name}"
+          result = @shell.exec(cmd)
+          %r[Installed: (?<current>\S+)\n\s*Candidate: (?<candidate>\S+)] =~ result
+
+          if $~
+            $~[:current] == $~[:candidate]
+          end
+        end
+
         # @return [String] The currently installed version of the package. +nil+
         #   if the package is not installed.
         def current_version
