@@ -21,9 +21,41 @@ describe Rosh::Host::FileSystemObjects::RemoteFile do
   end
 
   describe '#contents=' do
-    it 'puts the contents in memory' do
-      subject.contents = 'file contents'
-      subject.instance_variable_get(:@unwritten_contents).should == 'file contents'
+    context 'check_state_first? is true' do
+      before do
+        shell.stub(:check_state_first?).and_return true
+      end
+
+      context 'contents differ' do
+        before { subject.stub(:contents).and_return 'blskdjflksdjf' }
+
+        it 'puts the contents in memory' do
+          subject.contents = 'file contents'
+          subject.instance_variable_get(:@unwritten_contents).
+            should == 'file contents'
+        end
+      end
+
+      context 'contents match' do
+        before { subject.stub(:contents).and_return 'file contents' }
+
+        it 'puts the contents in memory' do
+          subject.contents = 'file contents'
+          subject.instance_variable_get(:@unwritten_contents).should be_nil
+        end
+      end
+    end
+
+    context 'check_state_first? is false' do
+      before do
+        shell.stub(:check_state_first?).and_return false
+      end
+
+      it 'puts the contents in memory' do
+        subject.contents = 'file contents'
+        subject.instance_variable_get(:@unwritten_contents).
+          should == 'file contents'
+      end
     end
   end
 
@@ -38,9 +70,43 @@ var: <%= var %>
       File.should_receive(:read).and_return(template)
     end
 
-    it 'renders the template and stores it in memory' do
-      subject.from_template('test', var: 'hello!')
-      subject.instance_variable_get(:@unwritten_contents).should == "var: hello!\n"
+    context 'check_state_first is true' do
+      before do
+        shell.stub(:check_state_first?).and_return true
+      end
+
+      context 'contents are the same as the rendered template' do
+        before do
+          subject.stub(:contents).and_return "var: hello!\n"
+        end
+
+        it 'returns nil' do
+          subject.from_template('test', var: 'hello!')
+          subject.instance_variable_get(:@unwritten_contents).should be_nil
+        end
+      end
+
+      context 'contents differ from the rendered template' do
+        before do
+          subject.stub(:contents).and_return "var: hi!\n"
+        end
+
+        it 'renders the template and stores it in memory' do
+          subject.from_template('test', var: 'hello!')
+          subject.instance_variable_get(:@unwritten_contents).should == "var: hello!\n"
+        end
+      end
+    end
+
+    context 'check_state_first is false' do
+      before do
+        shell.stub(:check_state_first?).and_return false
+      end
+
+      it 'renders the template and stores it in memory' do
+        subject.from_template('test', var: 'hello!')
+        subject.instance_variable_get(:@unwritten_contents).should == "var: hello!\n"
+      end
     end
   end
 
@@ -152,31 +218,84 @@ var: <%= var %>
   end
 
   describe '#create' do
-    before { shell.should_receive(:exec).with('touch /file') }
+    context 'check_state_first? is true' do
+      before { shell.stub(:check_state_first?).and_return true }
 
-    context 'command failed' do
-      before { shell.should_receive(:last_exit_status).and_return 1 }
+      context 'file already exists' do
+        before do
+          subject.stub(:exists?).and_return true
+          shell.should_not_receive(:exec)
+        end
 
-      it 'does not update observers' do
-        subject.should_not_receive(:changed)
-        subject.should_not_receive(:notify_observers)
-        subject.send(:create)
+        it 'returns nil' do
+          subject.send(:create).should be_nil
+        end
       end
 
-      specify { subject.send(:create).should == false }
+      context 'file does not exist' do
+        before do
+          subject.stub(:exists?).and_return false
+          shell.should_receive(:exec).with('touch /file')
+        end
+
+        context 'command failed' do
+          before { shell.should_receive(:last_exit_status).and_return 1 }
+
+          it 'does not update observers' do
+            subject.should_not_receive(:changed)
+            subject.should_not_receive(:notify_observers)
+            subject.send(:create)
+          end
+
+          specify { subject.send(:create).should == false }
+        end
+
+        context 'command succeeded' do
+          before { shell.should_receive(:last_exit_status).and_return 0 }
+
+          it 'updates observers' do
+            subject.should_receive(:changed)
+            subject.should_receive(:notify_observers).
+              with(subject, attribute: :path, old: nil, new: '/file', as_sudo: false)
+            subject.send(:create)
+          end
+
+          specify { subject.send(:create).should == true }
+        end
+      end
     end
 
-    context 'command succeeded' do
-      before { shell.should_receive(:last_exit_status).and_return 0 }
-
-      it 'updates observers' do
-        subject.should_receive(:changed)
-        subject.should_receive(:notify_observers).
-          with(subject, attribute: :path, old: nil, new: '/file', as_sudo: false)
-        subject.send(:create)
+    context 'check_state_first? is false' do
+      before do
+        shell.should_receive(:exec).with('touch /file')
+        shell.stub(:check_state_first?).and_return true
+        subject.stub(:exists?).and_return false
       end
 
-      specify { subject.send(:create).should == true }
+      context 'command failed' do
+        before { shell.should_receive(:last_exit_status).and_return 1 }
+
+        it 'does not update observers' do
+          subject.should_not_receive(:changed)
+          subject.should_not_receive(:notify_observers)
+          subject.send(:create)
+        end
+
+        specify { subject.send(:create).should == false }
+      end
+
+      context 'command succeeded' do
+        before { shell.should_receive(:last_exit_status).and_return 0 }
+
+        it 'updates observers' do
+          subject.should_receive(:changed)
+          subject.should_receive(:notify_observers).
+            with(subject, attribute: :path, old: nil, new: '/file', as_sudo: false)
+          subject.send(:create)
+        end
+
+        specify { subject.send(:create).should == true }
+      end
     end
   end
 

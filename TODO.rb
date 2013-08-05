@@ -21,7 +21,6 @@
 
 # TODO: Specs & Docs
 #   * remote dir
-#   * remote file
 #   * remote link
 #   * apt
 #   * dpkg

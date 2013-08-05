@@ -8,7 +8,12 @@ require_relative 'remote_base'
 class Rosh
   class Host
     module FileSystemObjects
+
+      # Object representing a file on a remote file system.
       class RemoteFile < RemoteBase
+
+        # @param [String] path
+        # @param [Rosh::Host::Shells::Remote] remote_shell
         def initialize(path, remote_shell)
           super(path, remote_shell)
 
@@ -24,6 +29,11 @@ class Rosh
         #
         # @param [String] new_contents Contents to write to the file on #save.
         def contents=(new_contents)
+          if @shell.check_state_first? && new_contents == contents
+            #log 'SKIP: check_state_first is true and file contents are identical.'
+            return
+          end
+
           @unwritten_contents = new_contents
         end
 
@@ -36,9 +46,14 @@ class Rosh
         def from_template(template_file, **template_values)
           namespace = OpenStruct.new(template_values)
           template = ERB.new(File.read(template_file))
-          @unwritten_contents = template.result(namespace.instance_eval { binding })
+          new_contents = template.result(namespace.instance_eval { binding })
 
-          @unwritten_contents
+          if @shell.check_state_first? && contents == new_contents
+            #log 'SKIP: check_state_first is true and file contents are identical to the rendered template.'
+            return
+          end
+
+          @unwritten_contents = new_contents
         end
 
         # If in-memory contents exist, writes them to the file.
@@ -62,6 +77,11 @@ class Rosh
         #
         # @return [Boolean] +true+ if creating was successful; +false+ if not.
         def create
+          if @shell.check_state_first? && exists?
+            #log 'SKIP: check_state_first is true and file already exists.'
+            return
+          end
+
           @shell.exec("touch #{@path}")
 
           success = @shell.last_exit_status.zero?
