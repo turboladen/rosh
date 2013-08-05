@@ -5,9 +5,6 @@
 #   * local dir
 #   * local file
 #   * local link
-#   * remote dir
-#   * remote file
-#   * remote link
 #   * apt
 #   * dpkg
 #   * yum
@@ -21,6 +18,7 @@
 
 # TODO: Specs & Docs
 #   * remote dir
+#   * remote file
 #   * remote link
 #   * apt
 #   * dpkg
