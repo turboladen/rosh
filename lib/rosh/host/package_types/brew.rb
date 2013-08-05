@@ -173,7 +173,6 @@ class Rosh
           @shell.exec "git checkout -- Library/Formula/#{@name}.rb"
           @shell.last_exit_status.zero?
         end
-
       end
     end
   end
