@@ -72,6 +72,20 @@ class Rosh
           success
         end
 
+        # @return [String] The currently installed version of the package. +nil+
+        #   if the package is not installed.
+        def current_version
+          cmd = "apt-cache policy #{@name}"
+          result = @shell.exec(cmd)
+          %r[Installed: (?<version>\S*)] =~ result
+
+          if $~
+            $~[:version] == '(none)' ? nil : $~[:version]
+          else
+            nil
+          end
+        end
+
         # Removes the package using apt-get and notifies observers.
         #
         # @return [Boolean] +true+ if install was successful, +false+ if not.

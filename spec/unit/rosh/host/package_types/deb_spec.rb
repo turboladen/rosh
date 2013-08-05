@@ -193,6 +193,66 @@ files.",
     end
   end
 
+  describe '#current_version' do
+    before { shell.should_receive(:exec).and_return result }
+
+    context 'when not installed' do
+      let(:result) do
+        <<-RESULT
+git:
+  Installed: (none)
+  Candidate: 1:1.7.9.5-1
+  Version table:
+     1:1.7.9.5-1 0
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
+        100 /var/lib/dpkg/status
+        RESULT
+      end
+
+      specify { subject.current_version.should be_nil }
+    end
+
+    context 'when installed' do
+      context 'and not current' do
+        let(:result) do
+          <<-RESULT
+apt:
+  Installed: 0.8.16~exp12ubuntu10
+  Candidate: 0.8.16~exp12ubuntu10.12
+  Version table:
+     0.8.16~exp12ubuntu10.12 0
+        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages
+     0.8.16~exp12ubuntu10.10 0
+        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages
+ *** 0.8.16~exp12ubuntu10 0
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
+        100 /var/lib/dpkg/status
+          RESULT
+        end
+
+        specify { subject.current_version.should == '0.8.16~exp12ubuntu10' }
+      end
+
+      context 'and current' do
+        let(:result) do
+          <<-RESULT
+curl:
+  Installed: 7.22.0-3ubuntu4.2
+  Candidate: 7.22.0-3ubuntu4.2
+  Version table:
+ *** 7.22.0-3ubuntu4.2 0
+        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages
+        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages
+        100 /var/lib/dpkg/status
+     7.22.0-3ubuntu4 0
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
+          RESULT
+        end
+
+      end
+    end
+  end
+
   describe '#remove' do
     before do
       shell.should_receive(:exec).
