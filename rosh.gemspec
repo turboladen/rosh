@@ -29,7 +29,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'bundler', '>= 1.0.1'
   s.add_development_dependency 'cucumber'
   s.add_development_dependency 'fakefs'
-  s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec', '>= 2.12.0'
   s.add_development_dependency 'simplecov'
   s.add_development_dependency 'yard', '>= 0.7.2'
