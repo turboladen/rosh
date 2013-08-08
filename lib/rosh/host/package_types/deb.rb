@@ -53,7 +53,7 @@ class Rosh
         def install(version: nil)
           already_installed = installed?
 
-          if @shell.check_state_first? && installed?
+          if @shell.check_state_first? && already_installed
             #log 'SKIP: check_state_first is true and already at latest version.'
             if version
               return if version == current_version
