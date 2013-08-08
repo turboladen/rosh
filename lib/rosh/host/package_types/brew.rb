@@ -57,15 +57,20 @@ class Rosh
         # brew switches back to use the given version.
         #
         # @param [String] version Version of the package to install.
-        # @return [Boolean] +true+ if install was successful; +false+ if not.
+        # @return [Boolean] +true+ if install was successful, +false+ if not,
+        #   +nil+ if no action was required.
         def install(version: nil)
           already_installed = installed?
 
-          if @shell.check_state_first? && at_latest_version?
-            return
+          if @shell.check_state_first? && already_installed
+            if version
+              return if version == current_version
+            else
+              return
+            end
           end
 
-          old_version = info[:version] if already_installed
+          old_version = current_version if already_installed
 
           if version
             install_and_switch_version(version)
@@ -88,7 +93,13 @@ class Rosh
         # @return [Boolean] Checks to see if the latest installed version is
         #   the latest version available.
         def at_latest_version?
-          info[:version] == installed_versions.last
+          info[:version] == current_version
+        end
+
+        # @return [String] The currently installed version of the package. +nil+
+        #   if the package is not installed.
+        def current_version
+          installed_versions.last
         end
 
         # Removes the package using `brew remove ` and notifies observers.

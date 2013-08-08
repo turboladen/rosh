@@ -117,20 +117,42 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
   end
 
   describe '#install' do
-    before do
-      shell.stub(:check_state_first?).and_return false
-    end
-
     context 'with version' do
       before do
-        subject.should_receive(:installed?).and_return true
-        subject.stub_chain(:info, :[]).and_return '0.1.2'
+        subject.stub(:current_version).and_return '0.1.2'
+        subject.stub(:installed_versions).and_return %w[0.1.1 0.1.2]
       end
 
-      it 'calls #install_and_switch_version' do
-        subject.should_receive(:install_and_switch_version).with '1.2.3'
+      context 'check_state_first? is true' do
+        before do
+          shell.stub(:check_state_first?).and_return true
+          subject.stub(:installed?).and_return true
+        end
 
-        subject.install version: '1.2.3'
+        context 'version already installed' do
+          specify { subject.install(version: '0.1.2').should be_nil }
+        end
+
+        context 'version not already installed' do
+          it 'calls #install_and_switch_version' do
+            subject.should_receive(:install_and_switch_version).with('1.2.3')
+
+            subject.install(version: '1.2.3')
+          end
+        end
+      end
+
+      context 'check_state_first? is false' do
+        before do
+          shell.stub(:check_state_first?).and_return false
+          subject.should_receive(:installed?).and_return true
+        end
+
+        it 'calls #install_and_switch_version' do
+          subject.should_receive(:install_and_switch_version).with '1.2.3'
+
+          subject.install version: '1.2.3'
+        end
       end
     end
 
@@ -142,7 +164,7 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
           subject.stub(:installed_versions).and_return %w[1.2.3]
         end
 
-        context 'check state first' do
+        context 'check_state_first? is true' do
           before do
             shell.stub(:check_state_first?).and_return true
           end
@@ -156,7 +178,11 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
           end
         end
 
-        context 'do not check state first' do
+        context 'check_state_first? is false' do
+          before do
+            shell.stub(:check_state_first?).and_return false
+          end
+
           context 'failed install' do
             before do
               shell.stub(:last_exit_status).and_return 1
@@ -193,8 +219,10 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
 
       context 'package was already installed but at older version' do
         before do
+          shell.stub(:check_state_first?).and_return false
           subject.should_receive(:installed?).and_return true
-          subject.stub_chain(:info, :[]).and_return '0.1.2', '1.2.3'
+          subject.stub(:current_version).and_return '0.1.2'
+          subject.stub(:info).and_return version: '1.2.3'
         end
 
         context 'failed install' do
@@ -234,6 +262,7 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
 
       context 'package not yet installed' do
         before do
+          shell.stub(:check_state_first?).and_return false
           subject.should_receive(:installed?).and_return false
           subject.stub_chain(:info, :[]).and_return '1.2.3'
           shell.should_receive(:exec).with('brew install thing')
