@@ -31,6 +31,13 @@
 #   * user
 #   * user_manager
 
+# TODO: API specs
+#   * package managers
+#   * package types
+#   * service managers
+#   * service types
+#   * shells
+
 # TODO: turn off logging in specs
 
 # TODO: improve logging
