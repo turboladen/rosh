@@ -60,24 +60,16 @@ class Rosh
         # @return [Boolean] +true+ if install was successful, +false+ if not,
         #   +nil+ if no action was required.
         def install(version: nil)
-          already_installed = installed?
+          return if skip_install?(version)
 
-          if @shell.check_state_first? && already_installed
-            if version
-              return if version == current_version
-            else
-              return
-            end
-          end
-
-          old_version = current_version if already_installed
+          old_version = current_version
 
           if version
             install_and_switch_version(version)
           else
             @shell.exec "brew install #{@name}"
             success = @shell.last_exit_status.zero?
-            new_version = info[:version]
+            new_version = current_version
 
             if success && old_version != new_version
               changed

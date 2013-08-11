@@ -118,19 +118,23 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
 
   describe '#install' do
     context 'with version' do
-      before do
-        subject.stub(:current_version).and_return '0.1.2'
-        subject.stub(:installed_versions).and_return %w[0.1.1 0.1.2]
+      context 'skip_install? is true' do
+        before { subject.stub(:skip_install?).and_return true }
+        specify { subject.install(version: '0.1.2').should be_nil }
       end
 
-      context 'check_state_first? is true' do
+      context 'skip_install? is false' do
         before do
-          shell.stub(:check_state_first?).and_return true
-          subject.stub(:installed?).and_return true
+          subject.stub(:skip_install?).and_return false
+          subject.stub(:current_version).and_return '0.1.2'
         end
 
         context 'version already installed' do
-          specify { subject.install(version: '0.1.2').should be_nil }
+          it 'calls #install_and_switch_version' do
+            subject.should_receive(:install_and_switch_version).with('0.1.2')
+
+            subject.install(version: '0.1.2')
+          end
         end
 
         context 'version not already installed' do
@@ -141,46 +145,20 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
           end
         end
       end
-
-      context 'check_state_first? is false' do
-        before do
-          shell.stub(:check_state_first?).and_return false
-          subject.should_receive(:installed?).and_return true
-        end
-
-        it 'calls #install_and_switch_version' do
-          subject.should_receive(:install_and_switch_version).with '1.2.3'
-
-          subject.install version: '1.2.3'
-        end
-      end
     end
 
     context 'no version' do
-      context 'package was already installed and at latest version' do
-        before do
-          subject.stub_chain(:info, :[]).and_return '1.2.3'
-          subject.should_receive(:installed?).and_return true
-          subject.stub(:installed_versions).and_return %w[1.2.3]
-        end
+      context 'skip_install? is true' do
+        before { subject.stub(:skip_install?).and_return true }
+        specify { subject.install.should be_nil }
+      end
 
-        context 'check_state_first? is true' do
+      context 'skip_install? is false' do
+        before { subject.stub(:skip_install?).and_return false }
+
+        context 'package was already installed and at latest version' do
           before do
-            shell.stub(:check_state_first?).and_return true
-          end
-
-          it 'does not run the command' do
-            shell.should_not_receive(:exec).with('brew install thing')
-            subject.should_not_receive(:changed)
-            subject.should_not_receive(:notify_observers)
-
-            subject.install
-          end
-        end
-
-        context 'check_state_first? is false' do
-          before do
-            shell.stub(:check_state_first?).and_return false
+            subject.stub(:current_version).and_return('1.2.3', '1.2.3')
           end
 
           context 'failed install' do
@@ -215,89 +193,77 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
             end
           end
         end
-      end
 
-      context 'package was already installed but at older version' do
-        before do
-          shell.stub(:check_state_first?).and_return false
-          subject.should_receive(:installed?).and_return true
-          subject.stub(:current_version).and_return '0.1.2'
-          subject.stub(:info).and_return version: '1.2.3'
+        context 'package was already installed but at older version' do
+          before do
+            subject.stub(:current_version).and_return('0.1.2', '1.2.3')
+          end
+
+          context 'failed install' do
+            before do
+              shell.stub(:last_exit_status).and_return 1
+              shell.should_receive(:exec).with('brew install thing')
+            end
+
+            specify { subject.install.should == false }
+
+            it 'does not notify observers' do
+              subject.should_not_receive(:changed)
+              subject.should_not_receive(:notify_observers)
+
+              subject.install
+            end
+          end
+
+          context 'successful install' do
+            before do
+              shell.stub(:last_exit_status).and_return 0
+              shell.should_receive(:exec).with('brew install thing')
+            end
+
+            specify { subject.install.should == true }
+
+            it 'notifies observers' do
+              subject.should_receive(:changed)
+              subject.should_receive(:notify_observers).
+                with(subject, attribute: :version, old: '0.1.2', new: '1.2.3',
+                as_sudo: false)
+
+              subject.install
+            end
+          end
         end
 
-        context 'failed install' do
+        context 'package not yet installed' do
           before do
-            shell.stub(:last_exit_status).and_return 1
+            subject.stub(:current_version).and_return(nil, '1.2.3')
             shell.should_receive(:exec).with('brew install thing')
           end
 
-          specify { subject.install.should == false }
+          context 'failed install' do
+            before { shell.stub(:last_exit_status).and_return 1 }
+            specify { subject.install.should == false }
 
-          it 'does not notify observers' do
-            subject.should_not_receive(:changed)
-            subject.should_not_receive(:notify_observers)
+            it 'does not notify observers' do
+              subject.should_not_receive(:changed)
+              subject.should_not_receive(:notify_observers)
 
-            subject.install
-          end
-        end
-
-        context 'successful install' do
-          before do
-            shell.stub(:last_exit_status).and_return 0
-            shell.should_receive(:exec).with('brew install thing')
+              subject.install
+            end
           end
 
-          specify { subject.install.should == true }
+          context 'successful install' do
+            before { shell.stub(:last_exit_status).and_return 0 }
+            specify { subject.install.should == true }
 
-          it 'notifies observers' do
-            subject.should_receive(:changed)
-            subject.should_receive(:notify_observers).
-              with(subject, attribute: :version, old: '0.1.2', new: '1.2.3',
-              as_sudo: false)
+            it 'notifies observers' do
+              subject.should_receive(:changed)
+              subject.should_receive(:notify_observers).
+                with(subject, attribute: :version, old: nil, new: '1.2.3',
+                as_sudo: false)
 
-            subject.install
-          end
-        end
-      end
-
-      context 'package not yet installed' do
-        before do
-          shell.stub(:check_state_first?).and_return false
-          subject.should_receive(:installed?).and_return false
-          subject.stub_chain(:info, :[]).and_return '1.2.3'
-          shell.should_receive(:exec).with('brew install thing')
-        end
-
-        context 'failed install' do
-          before do
-            shell.stub(:last_exit_status).and_return 1
-          end
-
-          specify { subject.install.should == false }
-
-          it 'does not notify observers' do
-            subject.should_not_receive(:changed)
-            subject.should_not_receive(:notify_observers)
-
-            subject.install
-          end
-        end
-
-        context 'successful install' do
-          before do
-            shell.stub(:last_exit_status).and_return 0
-            subject.stub_chain(:info, :[]).and_return '1.2.3'
-          end
-
-          specify { subject.install.should == true }
-
-          it 'notifies observers' do
-            subject.should_receive(:changed)
-            subject.should_receive(:notify_observers).
-              with(subject, attribute: :version, old: nil, new: '1.2.3',
-              as_sudo: false)
-
-            subject.install
+              subject.install
+            end
           end
         end
       end
