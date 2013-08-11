@@ -94,6 +94,21 @@ class Rosh
           end
         end
 
+        # @return [String] The currently installed version of the package. +nil+
+        #   if the package is not installed.
+        def current_version
+          cmd = "rpm -qa #{@name}"
+          result = @shell.exec(cmd)
+
+          if result.empty?
+            nil
+          else
+            %r[#{name}-(?<version>\d\S*)] =~ result
+
+            $~[:version] if $~
+          end
+        end
+
         # Removes the package using yum and notifies observers.
         #
         # @return [Boolean] +true+ if install was successful, +false+ if not.

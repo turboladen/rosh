@@ -262,6 +262,26 @@ Description: GNU Wget is a file retrieval utility which can use either the HTTP 
     end
   end
 
+  describe '#current_version' do
+    context 'not a package or not installed' do
+      before do
+        shell.should_receive(:exec).with('rpm -qa thing').and_return result
+      end
+
+      let(:result) { '' }
+      specify { subject.current_version.should be_nil }
+    end
+
+    context 'installed' do
+      before do
+        shell.should_receive(:exec).with('rpm -qa thing').and_return result
+      end
+
+      let(:result) { 'thing-1.11.4-3.el5_8.2' }
+      specify { subject.current_version.should == '1.11.4-3.el5_8.2' }
+    end
+  end
+
   describe '#remove' do
     before do
       shell.should_receive(:exec).with('yum remove -y thing')
