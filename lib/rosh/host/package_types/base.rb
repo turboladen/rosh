@@ -24,6 +24,24 @@ class Rosh
           @status = status
           @architecture = architecture
         end
+
+        protected
+
+        # Checks to see if installing the package should be skipped based on the
+        # shell settings, if the package is installed, and which version the
+        # package is at.
+        def skip_install?(version=nil)
+          if @shell.check_state_first? && installed?
+            #log 'SKIP: check_state_first is true and already at latest version.'
+            if version
+              true if version == current_version
+            else
+              true
+            end
+          else
+            false
+          end
+        end
       end
     end
   end

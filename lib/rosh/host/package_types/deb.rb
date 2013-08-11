@@ -51,18 +51,9 @@ class Rosh
         # @param [String] version Version of the package to install.
         # @return [Boolean] +true+ if install was successful, +false+ if not.
         def install(version: nil)
-          already_installed = installed?
+          return if skip_install?(version)
 
-          if @shell.check_state_first? && already_installed
-            #log 'SKIP: check_state_first is true and already at latest version.'
-            if version
-              return if version == current_version
-            else
-              return
-            end
-          end
-
-          old_version = info[:version] if already_installed
+          old_version = current_version
 
           cmd = "DEBIAN_FRONTEND=noninteractive apt-get install #{@name}"
           cmd << "=#{version}" if version
@@ -70,7 +61,7 @@ class Rosh
 
           @shell.exec(cmd)
           success = @shell.last_exit_status.zero?
-          new_version = info[:version]
+          new_version = current_version
 
           if success && old_version != new_version
             changed
