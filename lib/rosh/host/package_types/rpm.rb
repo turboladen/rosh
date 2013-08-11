@@ -116,7 +116,7 @@ class Rosh
         # @return [Boolean] +true+ if install was successful, +false+ if not.
         def remove
           already_installed = installed?
-          old_version = info[:version] if already_installed
+          old_version = current_version
 
           @shell.exec "yum remove -y #{@name}"
           success = @shell.last_exit_status.zero?
@@ -136,7 +136,7 @@ class Rosh
         # @return [Boolean] +true+ if install was successful, +false+ if not.
         def upgrade
           already_installed = installed?
-          old_version = info[:version] if already_installed
+          old_version = current_version
 
           output = @shell.exec "yum upgrade -y #{@name}"
           success = @shell.last_exit_status.zero?
@@ -145,7 +145,7 @@ class Rosh
           return false if output.match(/No Packages marked for Update/m)
 
           if success && already_installed
-            new_version = info[:version]
+            new_version = current_version
             changed
             notify_observers(self,
               attribute: :version, old: old_version, new: new_version,

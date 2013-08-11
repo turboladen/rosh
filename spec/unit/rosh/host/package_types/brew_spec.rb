@@ -273,7 +273,7 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
   describe '#remove' do
     before do
       shell.stub(:check_state_first?).and_return false
-      subject.stub_chain(:info, :[]).and_return '1.2.3'
+      subject.stub(:current_version).and_return '1.2.3'
     end
 
     context 'package is installed' do
@@ -348,7 +348,7 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
         before do
           shell.stub(:last_exit_status).and_return 0
           shell.should_receive(:exec).with 'brew remove thing'
-          subject.stub_chain(:info, :[]).and_return '1.2.3'
+          subject.stub(:current_version).and_return '1.2.3'
         end
 
         specify { subject.remove.should == true}
@@ -365,7 +365,7 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
 
   describe '#upgrade' do
     before do
-      subject.stub_chain(:info, :[]).and_return '1.2.3'
+      subject.stub(:current_version).and_return '1.2.3'
       shell.should_receive(:exec).with('brew upgrade thing')
     end
 
@@ -394,7 +394,7 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
     context 'package installed and outdated' do
       before do
         shell.should_receive(:last_exit_status).and_return 0
-        subject.stub_chain(:info, :[]).and_return '0.1.2', '1.2.3'
+        subject.stub(:current_version).and_return '0.1.2', '1.2.3'
       end
 
       it 'returns true and updates observers' do

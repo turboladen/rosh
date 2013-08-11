@@ -343,7 +343,7 @@ Description: GNU Wget is a file retrieval utility which can use either the HTTP 
   describe '#remove' do
     before do
       shell.should_receive(:exec).with('yum remove -y thing')
-      subject.stub_chain(:info, :[]).and_return '1.2.3'
+      subject.stub(:current_version).and_return '1.2.3'
     end
 
     context 'package was already installed' do
@@ -398,7 +398,7 @@ Description: GNU Wget is a file retrieval utility which can use either the HTTP 
       context 'successful removal' do
         before do
           shell.stub(:last_exit_status).and_return 0
-          subject.stub_chain(:info, :[]).and_return '1.2.3'
+          subject.stub(:current_version).and_return '1.2.3'
         end
 
         specify { subject.remove.should == true}
@@ -434,6 +434,7 @@ No Packages marked for Update
 
       before do
         subject.should_receive(:installed?).and_return false
+        subject.stub(:current_version).and_return(nil, '1.2.3')
         shell.should_receive(:exec).with('yum upgrade -y thing').and_return output
         shell.should_receive(:last_exit_status).and_return 0
       end
@@ -461,7 +462,7 @@ No Packages marked for Update
 
       before do
         subject.should_receive(:installed?).and_return true
-        subject.stub_chain(:info, :[])
+        subject.stub(:current_version)
         shell.should_receive(:exec).with('yum upgrade -y thing').and_return output
         shell.should_receive(:last_exit_status).and_return 0
       end
@@ -545,7 +546,7 @@ Complete!
 
       before do
         subject.should_receive(:installed?).and_return true
-        subject.stub_chain(:info, :[]).and_return '0.1.2', '1.2.3'
+        subject.stub(:current_version).and_return '0.1.2', '1.2.3'
         shell.should_receive(:exec).with('yum upgrade -y thing').and_return output
         shell.should_receive(:last_exit_status).and_return 0
       end

@@ -104,7 +104,7 @@ class Rosh
             return
           end
 
-          old_version = info[:version] if already_installed
+          old_version = current_version if already_installed
 
           @shell.exec "brew remove #{@name}"
           success = @shell.last_exit_status.zero?
@@ -124,13 +124,13 @@ class Rosh
         #
         # @return [Boolean] +true+ if upgrade was successful, +false+ if not.
         def upgrade
-          old_version = info[:version]
+          old_version = current_version
 
           @shell.exec "brew upgrade #{@name}"
           success = @shell.last_exit_status.zero?
 
           if success
-            new_version = info[:version]
+            new_version = current_version
 
             if old_version != new_version
               changed
