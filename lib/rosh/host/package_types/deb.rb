@@ -58,8 +58,8 @@ class Rosh
           cmd = "DEBIAN_FRONTEND=noninteractive apt-get install #{@name}"
           cmd << "=#{version}" if version
           cmd << ' -y'
-
           @shell.exec(cmd)
+
           success = @shell.last_exit_status.zero?
           new_version = current_version
 
