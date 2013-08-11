@@ -78,82 +78,140 @@ Description: The zsh shell is a command interpreter usable as an interactive log
 
   describe '#install' do
     context 'with version' do
-      it 'passes the version to the command' do
-        subject.should_receive(:installed?).and_return true
-        shell.should_receive(:exec).with('yum install -y thing-1.2.3')
-        shell.should_receive(:last_exit_status).and_return 0
+      context 'skip_install? is true' do
+        before { subject.stub(:skip_install?).and_return true }
+        specify { subject.install(version: '0.1.2').should be_nil }
+      end
 
-        subject.install(version: '1.2.3')
+      context 'skip_install? is false' do
+        before do
+          subject.stub(:skip_install?).and_return false
+          shell.should_receive(:last_exit_status).and_return 0
+        end
+
+        context 'version already installed' do
+          before do
+            subject.stub(:current_version).and_return('0.1.2', '0.1.2')
+            shell.should_receive(:exec).with('yum install -y thing-0.1.2')
+          end
+
+          specify { subject.install(version: '0.1.2').should be_true }
+        end
+
+        context 'version not already installed' do
+          before do
+            subject.stub(:current_version).and_return('0.1.2', '1.2.3')
+            shell.should_receive(:exec).with('yum install -y thing-1.2.3')
+          end
+
+          specify { subject.install(version: '1.2.3').should be_true }
+        end
       end
     end
 
     context 'no version' do
-      before do
-        shell.should_receive(:exec).with('yum install -y thing')
+      context 'skip_install? is true' do
+        before { subject.stub(:skip_install?).and_return true }
+        specify { subject.install(version: '0.1.2').should be_nil }
       end
 
-      context 'package was already installed' do
+      context 'skip_install? is false' do
         before do
-          subject.should_receive(:installed?).and_return true
+          subject.stub(:skip_install?).and_return false
+          shell.should_receive(:exec).with('yum install -y thing')
         end
 
-        context 'failed install' do
-          before { shell.stub(:last_exit_status).and_return 1 }
-          specify { subject.install.should == false }
-
-          it 'does not notify observers' do
-            subject.should_not_receive(:changed)
-            subject.should_not_receive(:notify_observers)
-
-            subject.install
-          end
-        end
-
-        context 'successful install' do
-          before { shell.stub(:last_exit_status).and_return 0 }
-          specify { subject.install.should == true }
-
-          it 'does not notify observers' do
-            subject.should_not_receive(:changed)
-            subject.should_not_receive(:notify_observers)
-
-            subject.install
-          end
-        end
-      end
-
-      context 'package not yet installed' do
-        before do
-          subject.should_receive(:installed?).and_return false
-        end
-
-        context 'failed install' do
-          before { shell.stub(:last_exit_status).and_return 1 }
-          specify { subject.install.should == false }
-
-          it 'does not notify observers' do
-            subject.should_not_receive(:changed)
-            subject.should_not_receive(:notify_observers)
-
-            subject.install
-          end
-        end
-
-        context 'successful install' do
+        context 'package was already installed and at latest version' do
           before do
-            shell.stub(:last_exit_status).and_return 0
-            subject.stub_chain(:info, :[]).and_return '1.2.3'
+            subject.stub(:current_version).and_return('1.2.3', '1.2.3')
           end
 
-          specify { subject.install.should == true }
+          context 'failed install' do
+            before { shell.stub(:last_exit_status).and_return 1 }
+            specify { subject.install.should == false }
 
-          it 'notifies observers' do
-            subject.should_receive(:changed)
-            subject.should_receive(:notify_observers).
-              with(subject, attribute: :version, old: nil, new: '1.2.3',
-              as_sudo: false)
+            it 'does not notify observers' do
+              subject.should_not_receive(:changed)
+              subject.should_not_receive(:notify_observers)
 
-            subject.install
+              subject.install
+            end
+          end
+
+          context 'successful install' do
+            before { shell.stub(:last_exit_status).and_return 0 }
+            specify { subject.install.should == true }
+
+            it 'does not notify observers' do
+              subject.should_not_receive(:changed)
+              subject.should_not_receive(:notify_observers)
+
+              subject.install
+            end
+          end
+        end
+
+        context 'package was already installed but at older version' do
+          before do
+            subject.stub(:current_version).and_return('0.1.2', '1.2.3')
+          end
+
+          context 'failed install' do
+            before { shell.stub(:last_exit_status).and_return 1 }
+            specify { subject.install.should == false }
+
+            it 'does not notify observers' do
+              subject.should_not_receive(:changed)
+              subject.should_not_receive(:notify_observers)
+
+              subject.install
+            end
+          end
+
+          context 'successful install' do
+            before { shell.stub(:last_exit_status).and_return 0 }
+            specify { subject.install.should == true }
+
+            it 'notifies observers' do
+              subject.should_receive(:changed)
+              subject.should_receive(:notify_observers).
+                with(subject, attribute: :version, old: '0.1.2', new: '1.2.3',
+                as_sudo: false)
+
+              subject.install
+            end
+          end
+        end
+
+        context 'package not yet installed' do
+          before do
+            subject.stub(:current_version).and_return(nil, '1.2.3')
+          end
+
+          context 'failed install' do
+            before { shell.stub(:last_exit_status).and_return 1 }
+            specify { subject.install.should == false }
+
+            it 'does not notify observers' do
+              subject.should_not_receive(:changed)
+              subject.should_not_receive(:notify_observers)
+
+              subject.install
+            end
+          end
+
+          context 'successful install' do
+            before { shell.stub(:last_exit_status).and_return 0 }
+            specify { subject.install.should == true }
+
+            it 'notifies observers' do
+              subject.should_receive(:changed)
+              subject.should_receive(:notify_observers).
+                with(subject, attribute: :version, old: nil, new: '1.2.3',
+                as_sudo: false)
+
+              subject.install
+            end
           end
         end
       end

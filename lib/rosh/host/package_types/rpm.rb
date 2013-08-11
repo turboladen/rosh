@@ -49,19 +49,21 @@ class Rosh
         # @param [String] version Version of the package to install.
         # @return [Boolean] +true+ if install was successful, +false+ if not.
         def install(version: nil)
-          already_installed = installed?
+          return if skip_install?(version)
+
+          old_version = current_version
 
           cmd = "yum install -y #{@name}"
           cmd << "-#{version}" if version
-
           @shell.exec(cmd)
 
           success = @shell.last_exit_status.zero?
+          new_version = current_version
 
-          if success && !already_installed
+          if success && old_version != new_version
             changed
             notify_observers(self,
-              attribute: :version, old: nil, new: info[:version],
+              attribute: :version, old: old_version, new: new_version,
               as_sudo: @shell.su?)
           end
 
