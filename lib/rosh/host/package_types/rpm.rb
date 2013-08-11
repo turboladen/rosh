@@ -68,6 +68,32 @@ class Rosh
           success
         end
 
+        # @return [Boolean] Checks to see if the latest installed version is
+        #   the latest version available.
+        def at_latest_version?
+          cmd = "yum list updates #{@name}"
+          result = @shell.exec(cmd)
+
+          # Could be that: a) not a package, b) the package is not installed, c)
+          # the package is at the latest.
+          if result =~ /No matching Packages to list/
+            cmd = "yum info #{@name}"
+            result = @shell.exec(cmd)
+
+            if result =~ /Available Packages/m
+              false
+            elsif result =~ %r[Installed Packages]
+              true
+            else
+              nil
+            end
+          else
+            if result =~ /updates/m
+              false
+            end
+          end
+        end
+
         # Removes the package using yum and notifies observers.
         #
         # @return [Boolean] +true+ if install was successful, +false+ if not.

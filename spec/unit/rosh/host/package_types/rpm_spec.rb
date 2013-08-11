@@ -160,6 +160,108 @@ Description: The zsh shell is a command interpreter usable as an interactive log
     end
   end
 
+  describe '#at_latest_version?' do
+    before { shell.stub(:exec).and_return(result1, result2) }
+
+    context 'not a package' do
+      let(:result1) do
+        <<-RESULT
+Loaded plugins: fastestmirror
+Error: No matching Packages to list
+        RESULT
+      end
+
+      let(:result2) do
+        <<-RESULT
+Loaded plugins: fastestmirror
+Error: No matching Packages to list
+        RESULT
+      end
+
+      specify { subject.at_latest_version?.should be_nil }
+    end
+
+    context 'not installed' do
+      let(:result1) do
+        <<-RESULT
+Loaded plugins: fastestmirror
+Error: No matching Packages to list
+        RESULT
+      end
+
+      let(:result2) do
+        <<-RESULT
+Loaded plugins: fastestmirror
+Available Packages
+Name       : zope
+Arch       : x86_64
+Version    : 2.10.9
+Release    : 1.el5
+Size       : 14 M
+Repo       : epel
+Summary    : Web application server for flexible content management applications
+URL        : http://www.zope.org/
+License    : ZPL
+Description: Zope is an application server framework that enables developers to quickly
+           : build web applications such as intranets, portals, and content management
+           : systems.
+           :
+           : Zope, by default, will listen on port 8080.
+        RESULT
+      end
+
+      specify { subject.at_latest_version?.should be_false }
+    end
+
+    context 'installed but not latest' do
+      let(:result1) do
+        <<-RESULT
+Loaded plugins: fastestmirror
+Updated Packages
+curl.i386              7.15.5-17.el5_9                updates
+curl.x86_64            7.15.5-17.el5_9                updates
+        RESULT
+      end
+
+      let(:result2) {}
+
+      specify { subject.at_latest_version?.should be_false }
+    end
+
+    context 'installed and latest' do
+      let(:result1) do
+        <<-RESULT
+Loaded plugins: fastestmirror
+Error: No matching Packages to list
+        RESULT
+      end
+
+      let(:result2) do
+        <<-RESULT
+Loaded plugins: fastestmirror
+Installed Packages
+Name       : wget
+Arch       : x86_64
+Version    : 1.11.4
+Release    : 3.el5_8.2
+Size       : 1.4 M
+Repo       : installed
+Summary    : A utility for retrieving files using the HTTP or FTP protocols.
+URL        : http://wget.sunsite.dk/
+License    : GPL
+Description: GNU Wget is a file retrieval utility which can use either the HTTP or
+           : FTP protocols. Wget features include the ability to work in the
+           : background while you are logged out, recursive retrieval of
+           : directories, file name wildcard matching, remote file timestamp
+           : storage and comparison, use of Rest with FTP servers and Range with
+           : HTTP servers to retrieve files over slow or unstab
+        RESULT
+      end
+
+      specify { subject.at_latest_version?.should be_true }
+    end
+  end
+
   describe '#remove' do
     before do
       shell.should_receive(:exec).with('yum remove -y thing')
