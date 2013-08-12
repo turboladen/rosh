@@ -29,22 +29,22 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
     end
 
     before do
-      shell.should_receive(:exec).with('brew info thing').and_return output
+      expect(shell).to receive(:exec).with('brew info thing') { output }
     end
 
     it 'parses each field and value to a Hash' do
-      subject.info.should == {
+      expect(subject.info).to eq({
         package: 'thing',
         spec: 'stable',
         version: '2.0.21, HEAD',
         homepage: 'http://www.monkey.org/~provos/libevent/'
-      }
+      })
     end
   end
 
   describe 'installed?' do
     before do
-      shell.should_receive(:exec).with('brew info thing').and_return output
+      expect(shell).to receive(:exec).with('brew info thing') { output }
     end
 
     context 'is not installed' do
@@ -58,7 +58,7 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/yaz.rb
         OUTPUT
       end
 
-      specify { subject.should_not be_installed }
+      specify { expect(subject).to_not be_installed }
     end
 
     context 'is installed' do
@@ -74,14 +74,14 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/gdbm.rb
         OUTPUT
       end
 
-      specify { subject.should be_installed }
+      specify { expect(subject).to be_installed }
     end
   end
 
   describe '#installed_versions' do
     before do
-      subject.instance_variable_set(:@name, 'git')
-      shell.should_receive(:exec).with('brew info git').and_return output
+      subject.instance_variable_set(:@package_name, 'git')
+      expect(shell).to receive(:exec).with('brew info git') { output }
     end
 
     context 'package not installed' do
@@ -96,7 +96,7 @@ Required: gmp
         OUTPUT
       end
 
-      specify { subject.installed_versions.should == [] }
+      specify { expect(subject.installed_versions).to eq [] }
     end
 
     context 'package installed' do
@@ -112,299 +112,69 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
         OUTPUT
       end
 
-      specify { subject.installed_versions.should == %w[1.8.3.1 1.8.3.3] }
+      specify { expect(subject.installed_versions).to eq %w[1.8.3.1 1.8.3.3] }
     end
   end
 
   describe '#install' do
     context 'with version' do
-      context 'skip_install? is true' do
-        before { subject.stub(:skip_install?).and_return true }
-        specify { subject.install(version: '0.1.2').should be_nil }
-      end
+      it 'calls #install_and_switch_version' do
+        expect(subject).to receive(:install_and_switch_version).with('0.1.2')
 
-      context 'skip_install? is false' do
-        before do
-          subject.stub(:skip_install?).and_return false
-          subject.stub(:current_version).and_return '0.1.2'
-        end
-
-        context 'version already installed' do
-          it 'calls #install_and_switch_version' do
-            subject.should_receive(:install_and_switch_version).with('0.1.2')
-
-            subject.install(version: '0.1.2')
-          end
-        end
-
-        context 'version not already installed' do
-          it 'calls #install_and_switch_version' do
-            subject.should_receive(:install_and_switch_version).with('1.2.3')
-
-            subject.install(version: '1.2.3')
-          end
-        end
+        subject.install('0.1.2')
       end
     end
 
     context 'no version' do
-      context 'skip_install? is true' do
-        before { subject.stub(:skip_install?).and_return true }
-        specify { subject.install.should be_nil }
+      context 'failed install' do
+        before do
+          allow(shell).to receive(:last_exit_status) { 1 }
+          expect(shell).to receive(:exec).with('brew install thing')
+        end
+
+        specify { expect(subject.install).to eq false }
       end
 
-      context 'skip_install? is false' do
-        before { subject.stub(:skip_install?).and_return false }
-
-        context 'package was already installed and at latest version' do
-          before do
-            subject.stub(:current_version).and_return('1.2.3', '1.2.3')
-          end
-
-          context 'failed install' do
-            before do
-              shell.stub(:last_exit_status).and_return 1
-              shell.should_receive(:exec).with('brew install thing')
-            end
-
-            specify { subject.install.should == false }
-
-            it 'does not notify observers' do
-              subject.should_not_receive(:changed)
-              subject.should_not_receive(:notify_observers)
-
-              subject.install
-            end
-          end
-
-          context 'successful install' do
-            before do
-              shell.stub(:last_exit_status).and_return 0
-              shell.should_receive(:exec).with('brew install thing')
-            end
-
-            specify { subject.install.should == true }
-
-            it 'does not notify observers' do
-              subject.should_not_receive(:changed)
-              subject.should_not_receive(:notify_observers)
-
-              subject.install
-            end
-          end
+      context 'successful install' do
+        before do
+          allow(shell).to receive(:last_exit_status) { 0 }
+          expect(shell).to receive(:exec).with('brew install thing')
         end
 
-        context 'package was already installed but at older version' do
-          before do
-            subject.stub(:current_version).and_return('0.1.2', '1.2.3')
-          end
-
-          context 'failed install' do
-            before do
-              shell.stub(:last_exit_status).and_return 1
-              shell.should_receive(:exec).with('brew install thing')
-            end
-
-            specify { subject.install.should == false }
-
-            it 'does not notify observers' do
-              subject.should_not_receive(:changed)
-              subject.should_not_receive(:notify_observers)
-
-              subject.install
-            end
-          end
-
-          context 'successful install' do
-            before do
-              shell.stub(:last_exit_status).and_return 0
-              shell.should_receive(:exec).with('brew install thing')
-            end
-
-            specify { subject.install.should == true }
-
-            it 'notifies observers' do
-              subject.should_receive(:changed)
-              subject.should_receive(:notify_observers).
-                with(subject, attribute: :version, old: '0.1.2', new: '1.2.3',
-                as_sudo: false)
-
-              subject.install
-            end
-          end
-        end
-
-        context 'package not yet installed' do
-          before do
-            subject.stub(:current_version).and_return(nil, '1.2.3')
-            shell.should_receive(:exec).with('brew install thing')
-          end
-
-          context 'failed install' do
-            before { shell.stub(:last_exit_status).and_return 1 }
-            specify { subject.install.should == false }
-
-            it 'does not notify observers' do
-              subject.should_not_receive(:changed)
-              subject.should_not_receive(:notify_observers)
-
-              subject.install
-            end
-          end
-
-          context 'successful install' do
-            before { shell.stub(:last_exit_status).and_return 0 }
-            specify { subject.install.should == true }
-
-            it 'notifies observers' do
-              subject.should_receive(:changed)
-              subject.should_receive(:notify_observers).
-                with(subject, attribute: :version, old: nil, new: '1.2.3',
-                as_sudo: false)
-
-              subject.install
-            end
-          end
-        end
+        specify { expect(subject.install).to eq true }
       end
     end
   end
 
   describe '#remove' do
     before do
-      shell.stub(:check_state_first?).and_return false
-      subject.stub(:current_version).and_return '1.2.3'
+      expect(shell).to receive(:exec).with('brew remove thing')
     end
 
-    context 'package is installed' do
-      before do
-        shell.should_receive(:exec).with('brew remove thing')
-        subject.should_receive(:installed?).and_return true
-      end
-
-      context 'failed removal' do
-        before { shell.stub(:last_exit_status).and_return 1 }
-        specify { subject.remove.should == false }
-
-        it 'does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.remove
-        end
-      end
-
-      context 'successful removal' do
-        before { shell.stub(:last_exit_status).and_return 0 }
-        specify { subject.remove.should == true }
-
-        it 'notifies observers' do
-          subject.should_receive(:changed)
-          subject.should_receive(:notify_observers).
-            with(subject, attribute: :version, old: '1.2.3', new: nil,
-            as_sudo: false)
-
-          subject.remove
-        end
-      end
+    context 'failed removal' do
+      before { allow(shell).to receive(:last_exit_status) { 1 } }
+      specify { expect(subject.remove).to eq false }
     end
 
-    context 'package is not installed' do
-      before do
-        subject.should_receive(:installed?).and_return false
-      end
-
-      context 'check state first' do
-        before do
-          shell.stub(:check_state_first?).and_return true
-        end
-
-        it 'does not run the remove command' do
-          shell.should_not_receive(:exec).with 'brew remove thing'
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.remove
-        end
-      end
-
-      context 'failed removal' do
-        before do
-          shell.stub(:last_exit_status).and_return 1
-          shell.should_receive(:exec).with 'brew remove thing'
-        end
-
-        specify { subject.remove.should == false }
-
-        it 'does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.remove
-        end
-      end
-
-      context 'successful removal' do
-        before do
-          shell.stub(:last_exit_status).and_return 0
-          shell.should_receive(:exec).with 'brew remove thing'
-          subject.stub(:current_version).and_return '1.2.3'
-        end
-
-        specify { subject.remove.should == true}
-
-        it 'does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.remove
-        end
-      end
+    context 'successful removal' do
+      before { allow(shell).to receive(:last_exit_status) { 0 } }
+      specify { expect(subject.remove).to eq true }
     end
   end
 
   describe '#upgrade' do
     before do
-      subject.stub(:current_version).and_return '1.2.3'
-      shell.should_receive(:exec).with('brew upgrade thing')
+      expect(shell).to receive(:exec).with('brew upgrade thing')
     end
 
-    context 'package not already installed' do
-      before { shell.should_receive(:last_exit_status).and_return 1 }
-
-      it 'returns false and does not update observers' do
-        subject.should_not_receive(:changed)
-        subject.should_not_receive(:notify_observers)
-
-        subject.upgrade.should == false
-      end
+    context 'failed upgrade' do
+      before { allow(shell).to receive(:last_exit_status) { 1 } }
+      specify { expect(subject.upgrade).to eq false }
     end
 
-    context 'package installed but latest' do
-      before { shell.should_receive(:last_exit_status).and_return 1 }
-
-      it 'returns false and does not update observers' do
-        subject.should_not_receive(:changed)
-        subject.should_not_receive(:notify_observers)
-
-        subject.upgrade.should == false
-      end
-    end
-
-    context 'package installed and outdated' do
-      before do
-        shell.should_receive(:last_exit_status).and_return 0
-        subject.stub(:current_version).and_return '0.1.2', '1.2.3'
-      end
-
-      it 'returns true and updates observers' do
-        subject.should_receive(:changed)
-        subject.should_receive(:notify_observers).
-          with(subject, attribute: :version, old: '0.1.2', new: '1.2.3',
-          as_sudo: false)
-
-        subject.upgrade.should == true
-      end
+    context 'successful upgrade' do
+      before { allow(shell).to receive(:last_exit_status) { 0 } }
+      specify { expect(subject.upgrade).to eq true }
     end
   end
 
@@ -418,32 +188,32 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
 
     context 'version does not exist' do
       it 'returns false' do
-        shell.should_receive(:exec).with('brew versions thing | grep asdf').
-          and_return ''
+        expect(shell).to receive(:exec).
+          with('brew versions thing | grep asdf') { '' }
 
-        subject.send(:install_and_switch_version, 'asdf').should == false
+        expect(subject.send(:install_and_switch_version, 'asdf')).to eq false
       end
     end
 
     context 'version exists' do
       it 'passes the version to the command' do
-        shell.should_receive(:exec).with('brew versions thing | grep 1.2.3').
+        expect(shell).to receive(:exec).with('brew versions thing | grep 1.2.3').
           and_return version_output
-        shell.should_receive(:exec ).with('brew --prefix').and_return '/usr/local'
-        shell.should_receive(:cd).with('/usr/local')
+        expect(shell).to receive(:exec ).with('brew --prefix') { '/usr/local' }
+        expect(shell).to receive(:cd).with('/usr/local')
 
-        shell.should_receive(:exec).with('git checkout 1234567 Library/Formula/thing.rb')
-        shell.should_receive(:last_exit_status).and_return 0
-        shell.should_receive(:exec).with('brew unlink thing')
-        shell.should_receive(:last_exit_status).and_return 0
-        shell.should_receive(:exec).with('brew install thing')
-        shell.should_receive(:last_exit_status).and_return 0
-        shell.should_receive(:exec).with('brew switch thing 1.2.3')
-        shell.should_receive(:last_exit_status).and_return 0
-        shell.should_receive(:exec).with('git checkout -- Library/Formula/thing.rb')
-        shell.should_receive(:last_exit_status).and_return 0
+        expect(shell).to receive(:exec).with('git checkout 1234567 Library/Formula/thing.rb')
+        expect(shell).to receive(:last_exit_status).and_return 0
+        expect(shell).to receive(:exec).with('brew unlink thing')
+        expect(shell).to receive(:last_exit_status).and_return 0
+        expect(shell).to receive(:exec).with('brew install thing')
+        expect(shell).to receive(:last_exit_status).and_return 0
+        expect(shell).to receive(:exec).with('brew switch thing 1.2.3')
+        expect(shell).to receive(:last_exit_status).and_return 0
+        expect(shell).to receive(:exec).with('git checkout -- Library/Formula/thing.rb')
+        expect(shell).to receive(:last_exit_status).and_return 0
 
-        subject.send(:install_and_switch_version, '1.2.3').should == true
+        expect(subject.send(:install_and_switch_version, '1.2.3')).to eq true
       end
     end
   end
