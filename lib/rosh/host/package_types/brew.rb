@@ -18,7 +18,11 @@ class Rosh
         def installed?
           result = @shell.exec "brew info #{@package_name}"
 
-          !result.match %r[Not installed]
+          if @shell.last_exit_status.zero?
+            !result.match %r[Not installed]
+          else
+            false
+          end
         end
 
         def upgrade

@@ -95,6 +95,20 @@ Description: The zsh shell is a command interpreter usable as an interactive log
     end
   end
 
+  describe '#installed?' do
+    before { expect(shell).to receive(:exec).with('yum info thing') }
+
+    context 'failed install' do
+      before { allow(shell).to receive(:last_exit_status) { 1 } }
+      specify { expect(subject).to_not be_installed }
+    end
+
+    context 'successful install' do
+      before { allow(shell).to receive(:last_exit_status) { 0 } }
+      specify { expect(subject).to be_installed }
+    end
+  end
+
   describe '#at_latest_version?' do
     before { allow(shell).to receive(:exec).and_return(result1, result2) }
 

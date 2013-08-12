@@ -42,42 +42,6 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
     end
   end
 
-  describe 'installed?' do
-    before do
-      expect(shell).to receive(:exec).with('brew info thing') { output }
-    end
-
-    context 'is not installed' do
-      let(:output) do
-        <<-OUTPUT
-yaz: stable 4.2.56
-http://www.indexdata.com/yaz
-Depends on: pkg-config
-Not installed
-https://github.com/mxcl/homebrew/commits/master/Library/Formula/yaz.rb
-        OUTPUT
-      end
-
-      specify { expect(subject).to_not be_installed }
-    end
-
-    context 'is installed' do
-      let(:output) do
-        <<-OUTPUT
-gdbm: stable 1.10
-http://www.gnu.org/software/gdbm/
-/usr/local/Cellar/gdbm/1.10 (10 files, 228K) *
-https://github.com/mxcl/homebrew/commits/master/Library/Formula/gdbm.rb
-==> Options
---universal
-	Build a universal binary
-        OUTPUT
-      end
-
-      specify { expect(subject).to be_installed }
-    end
-  end
-
   describe '#installed_versions' do
     before do
       subject.instance_variable_set(:@package_name, 'git')
@@ -143,6 +107,69 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
 
         specify { expect(subject.install).to eq true }
       end
+    end
+  end
+
+  describe '#installed?' do
+    context 'not a package' do
+      before do
+        allow(shell).to receive(:last_exit_status) { 1 }
+        expect(shell).to receive(:exec).with('brew info thing') {
+          'Error: No available formula for thing'
+        }
+      end
+
+      specify { expect(subject).to_not be_installed }
+    end
+
+    context 'not installed' do
+      before do
+        allow(shell).to receive(:last_exit_status) { 0 }
+        expect(shell).to receive(:exec).with('brew info thing') {
+          %[garmintools: stable 0.10
+http://code.google.com/p/garmintools/
+Not installed
+From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/garmintools.rb
+==> Dependencies
+Required: libusb-compat]
+        }
+      end
+
+      specify { expect(subject).to_not be_installed }
+    end
+
+    context 'installed' do
+      before do
+        allow(shell).to receive(:last_exit_status) { 0 }
+        expect(shell).to receive(:exec).with('brew info thing') {
+          %[git: stable 1.8.3.4, HEAD
+http://git-scm.com
+/usr/local/Cellar/git/1.8.3.1 (1324 files, 28M)
+  Built from source
+/usr/local/Cellar/git/1.8.3.3 (1326 files, 29M)
+  Built from source
+From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
+==> Dependencies
+Optional: pcre, gettext
+==> Options
+--with-blk-sha1
+	Compile with the block-optimized SHA1 implementation
+--with-gettext
+	Build with gettext support
+--with-pcre
+	Build with pcre support
+--without-completions
+	Disable bash/zsh completions from "contrib" directory
+==> Caveats
+The OS X keychain credential helper has been installed to:
+  /usr/local/bin/git-credential-osxkeychain
+
+The 'contrib' directory has been installed to:
+  /usr/local/share/git-core/contrib]
+        }
+      end
+
+      specify { expect(subject).to be_installed }
     end
   end
 
