@@ -4,7 +4,15 @@ require_relative 'base'
 class Rosh
   class Host
     module PackageTypes
+
+      # Represents a package in the {http://brew.sh homebrew} package manager.
       class Brew < Base
+
+        # Install the package.  If no +version+ is given, uses the latest in
+        # Brew's repo.
+        #
+        # @param [String] version
+        # @return [Boolean] +true+ if successful, +false+ if not.
         def install(version=nil)
           if version
             install_and_switch_version(version)
@@ -15,6 +23,10 @@ class Rosh
           end
         end
 
+        # Uses <tt>brew info [pkg]</tt> to see if the package is installed or
+        # not.
+        #
+        # @return [Boolean] +true+ if installed, +false+ if not.
         def installed?
           result = @shell.exec "brew info #{@package_name}"
 
@@ -25,19 +37,25 @@ class Rosh
           end
         end
 
+        # Uses <tt>brew upgrade [pkg]</tt> to upgrade the package.
+        #
+        # @return [Boolean] +true+ if successful, +false+ if not.
         def upgrade
           @shell.exec "brew upgrade #{@package_name}"
 
           @shell.last_exit_status.zero?
         end
 
+        # Uses <tt>brew remove [pkg]</tt> to remove the package.
+        #
+        # @return [Boolean] +true+ if successful, +false+ if not.
         def remove
           @shell.exec "brew remove #{@package_name}"
 
           @shell.last_exit_status.zero?
         end
 
-        # Partial result of `brew info ` as a Hash.
+        # Partial result of <tt>brew info [pkg]</tt> as a Hash.
         #
         # @return [Hash]
         def info

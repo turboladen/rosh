@@ -21,7 +21,7 @@
 #   * package_managers/dpkg
 #   * package_managers/yum
 #   x package_types/base
-#   * package_types/brew
+#   x package_types/brew
 #   * package_types/deb
 #   * package_types/rpm
 #   * service_*/base
