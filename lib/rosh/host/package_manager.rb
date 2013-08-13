@@ -21,7 +21,7 @@ class Rosh
     class PackageManager
       include Observable
 
-      # @param [Rosh::Shell] shell
+      # @param [Rosh::Host::Shells::*] shell
       # @param [Symbol] manager_types The PackageManager types to delegate to.
       #   Look at the list of PackageManagers.
       def initialize(shell, *manager_types)
@@ -36,7 +36,7 @@ class Rosh
       # Use for managing a single package.
       #
       # @param [String] package_name The package name to manage.
-      # @return [Rosh::PackageType]
+      # @return [Rosh::Host::PackageTypes::*]
       def [](package_name)
         create(package_name)
       end
