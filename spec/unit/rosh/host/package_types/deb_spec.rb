@@ -245,7 +245,6 @@ curl:
     end
   end
 
-
   describe '#remove' do
     before do
       expect(shell).to receive(:exec).

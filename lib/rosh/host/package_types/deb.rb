@@ -20,6 +20,13 @@ class Rosh
           @shell.last_exit_status.zero?
         end
 
+        # Upgrades the package, using `apt-get install`.
+        #
+        # @return [Boolean] +true+ if install was successful, +false+ if not.
+        def upgrade
+          install
+        end
+
         def remove
           @shell.exec "DEBIAN_FRONTEND=noninteractive apt-get remove #{@package_name}"
 
@@ -71,13 +78,6 @@ class Rosh
           else
             nil
           end
-        end
-
-        # Upgrades the package, using `apt-get install`.
-        #
-        # @return [Boolean] +true+ if install was successful, +false+ if not.
-        def upgrade
-          install
         end
       end
     end

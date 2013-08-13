@@ -20,6 +20,19 @@ class Rosh
           @shell.last_exit_status.zero?
         end
 
+        # Upgrades the package, using `yum upgrade`.
+        #
+        # @return [Boolean] +true+ if install was successful, +false+ if not.
+        def upgrade
+          output = @shell.exec "yum upgrade -y #{@package_name}"
+          success = @shell.last_exit_status.zero?
+
+          return false if output.match(/#{@package_name} available, but not installed/m)
+          return false if output.match(/No Packages marked for Update/m)
+
+          success
+        end
+
         def remove
           @shell.exec "yum remove -y #{@package_name}"
 
@@ -86,19 +99,6 @@ class Rosh
 
             $~[:version] if $~
           end
-        end
-
-        # Upgrades the package, using `yum upgrade`.
-        #
-        # @return [Boolean] +true+ if install was successful, +false+ if not.
-        def upgrade
-          output = @shell.exec "yum upgrade -y #{@package_name}"
-          success = @shell.last_exit_status.zero?
-
-          return false if output.match(/#{@package_name} available, but not installed/m)
-          return false if output.match(/No Packages marked for Update/m)
-
-          success
         end
       end
     end
