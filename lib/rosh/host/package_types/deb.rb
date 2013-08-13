@@ -4,7 +4,17 @@ require_relative 'base'
 class Rosh
   class Host
     module PackageTypes
+
+      # Represents a {https://wiki.debian.org/DebianPackage Debian package}.
+      # Managed using {https://wiki.debian.org/Apt Apt} and
+      # {https://wiki.debian.org/dpkg dpkg}.
       class Deb < Base
+
+        # Install the package.  If no +version+ is given, uses the latest in
+        # Apt's cache.
+        #
+        # @param [String] version
+        # @return [Boolean] +true+ if successful, +false+ if not.
         def install(version=nil)
           cmd = "DEBIAN_FRONTEND=noninteractive apt-get install #{@package_name}"
           cmd << "=#{version}" if version
@@ -14,6 +24,10 @@ class Rosh
           @shell.last_exit_status.zero?
         end
 
+        # Uses <tt>dpkg --status [pkg]</tt> to see if the package is installed
+        # or not.
+        #
+        # @return [Boolean] +true+ if installed, +false+ if not.
         def installed?
           @shell.exec "dpkg --status #{@package_name}"
 
@@ -27,6 +41,9 @@ class Rosh
           install
         end
 
+        # Uses <tt>apt-get remove [pkg]</tt> to remove the package.
+        #
+        # @return [Boolean] +true+ if successful, +false+ if not.
         def remove
           @shell.exec "DEBIAN_FRONTEND=noninteractive apt-get remove #{@package_name}"
 

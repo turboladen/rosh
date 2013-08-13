@@ -22,13 +22,15 @@
 #   * package_managers/yum
 #   x package_types/base
 #   x package_types/brew
-#   * package_types/deb
+#   x package_types/deb
 #   * package_types/rpm
 #   * service_*/base
 #   * service_*/init
 #   * service_*/launch_ctl
 #   * attributes
 #   * file_system
+#   * package
+#   * package_manager
 #   * group
 #   * group_manager
 #   * user
