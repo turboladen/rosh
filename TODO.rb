@@ -16,14 +16,17 @@
 #   * remote dir
 #   * remote file
 #   * remote link
-#   * apt
-#   * dpkg
-#   * yum
-#   * deb
-#   * rpm
-#   * base
-#   * init
-#   * launch_ctl
+#   * package_managers/apt
+#   * package_managers/brew
+#   * package_managers/dpkg
+#   * package_managers/yum
+#   x package_types/base
+#   * package_types/brew
+#   * package_types/deb
+#   * package_types/rpm
+#   * service_*/base
+#   * service_*/init
+#   * service_*/launch_ctl
 #   * attributes
 #   * file_system
 #   * group
@@ -33,7 +36,6 @@
 
 # TODO: API specs
 #   * package managers
-#   * package types
 #   * service managers
 #   * service types
 #   * shells
@@ -46,3 +48,6 @@
 # TODO: fix test that's leaving ./test around
 
 # TODO: use autoload for loading deps
+
+# TODO: Remove +status+ from PackageTypes::Base (check with screenplay first).
+# TODO: Remove +architecture+ from PackageTypes::Base (check with screenplay first).
