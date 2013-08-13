@@ -23,7 +23,7 @@
 #   x package_types/base
 #   x package_types/brew
 #   x package_types/deb
-#   * package_types/rpm
+#   x package_types/rpm
 #   * service_*/base
 #   * service_*/init
 #   * service_*/launch_ctl

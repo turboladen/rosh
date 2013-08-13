@@ -4,8 +4,16 @@ require_relative 'base'
 class Rosh
   class Host
     module PackageTypes
+
+      # Represents a {http://www.rpm.org RPM package}.  Managed here using
+      # {http://yum.baseurl.org Yum} and RPM commands.
       class Rpm < Base
 
+        # Install the package.  If no +version+ is given, uses the latest in
+        # Yum's cache.
+        #
+        # @param [String] version
+        # @return [Boolean] +true+ if successful, +false+ if not.
         def install(version=nil)
           cmd = "yum install -y #{@package_name}"
           cmd << "-#{version}" if version
@@ -14,13 +22,17 @@ class Rosh
           @shell.last_exit_status.zero?
         end
 
+        # Uses <tt>yum info [pkg]</tt> to see if the package is installed
+        # or not.
+        #
+        # @return [Boolean] +true+ if installed, +false+ if not.
         def installed?
           @shell.exec "yum info #{@package_name}"
 
           @shell.last_exit_status.zero?
         end
 
-        # Upgrades the package, using `yum upgrade`.
+        # Upgrades the package, using <tt>yum upgrade [pkg]</tt>.
         #
         # @return [Boolean] +true+ if install was successful, +false+ if not.
         def upgrade
@@ -33,13 +45,16 @@ class Rosh
           success
         end
 
+        # Uses <tt>yum remove [pkg]</tt> to remove the package.
+        #
+        # @return [Boolean] +true+ if successful, +false+ if not.
         def remove
           @shell.exec "yum remove -y #{@package_name}"
 
           @shell.last_exit_status.zero?
         end
 
-        # Result of `yum info ` as a Hash.
+        # Result of <tt>yum info [pkg]</tt> as a Hash.
         #
         # @return [Hash]
         def info
