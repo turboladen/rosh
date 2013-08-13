@@ -7,7 +7,7 @@ require 'rosh/host/package_types/rpm'
 describe 'Package type API' do
   shared_examples_for 'a package' do
     ATTRIBUTES =
-      %i[name version status]
+      %i[package_name version status]
 
     INSTANCE_METHODS =
       %i[info installed? install at_latest_version? current_version remove upgrade]
