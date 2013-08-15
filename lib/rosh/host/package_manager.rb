@@ -42,8 +42,25 @@ class Rosh
         adapter.update_index
       end
 
+      # Upgrades outdated packages.  Notifies observers with packages that were
+      # updated.  The list of packages in the update notification is an Array
+      # of Rosh::Host::PackageTypes that are managed by the PackageManager.
+      #
+      # @return [Boolean] +true+ if exit status was 0; +false+ if not.
       def upgrade_packages
-        adapter.upgrade_packages
+        old_packages = adapter.installed_packages
+        output = adapter.upgrade_packages
+        new_packages = adapter.extract_upgraded_packages(output)
+        success = @shell.last_exit_status.zero?
+
+        if success && !new_packages.empty?
+          adapter.changed
+          adapter.notify_observers(adapter,
+            attribute: :installed_packages, old: old_packages,
+            new: new_packages, as_sudo: @shell.su?)
+        end
+
+        success
       end
 
       #-------------------------------------------------------------------------

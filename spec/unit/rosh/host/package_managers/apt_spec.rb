@@ -20,9 +20,7 @@ describe Rosh::Host::PackageManagers::Apt do
     o
   end
 
-  subject do
-    Rosh::Host::PackageManagers::Apt.new(shell)
-  end
+  subject { Rosh::Host::PackageManagers::Apt.new(shell) }
 
   before do
     subject.instance_variable_set(:@shell, shell)
@@ -127,86 +125,14 @@ Reading package lists... Done
   end
 
   describe '#upgrade_packages' do
-    let(:output) { 'some output' }
-
-    before do
-      subject.stub(:installed_packages).and_return []
+    it 'runs apt-get upgrade -y' do
       shell.should_receive(:exec).
-        with('apt-get upgrade -y DEBIAN_FRONTEND=noninteractive').and_return output
-    end
-
-    context 'no packages to upgrade' do
-      before do
-        subject.should_receive(:extract_upgradable_packages).and_return []
-      end
-
-      context 'successful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 0
-        end
-
-        it 'returns true but does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.upgrade_packages.should == true
-        end
-      end
-
-      context 'unsuccessful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 1
-        end
-
-        it 'returns false and does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.upgrade_packages.should == false
-        end
-      end
-    end
-
-    context 'packages to upgrade' do
-      before do
-        subject.should_receive(:extract_upgradable_packages).
-          and_return %w[upgrade_me]
-      end
-
-      context 'successful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 0
-        end
-
-        let(:deb_package) { double 'Rosh::Host::PackageTypes::Deb' }
-
-        it 'returns true and notifies observers' do
-          subject.should_receive(:create_package).and_return deb_package
-          subject.should_receive(:changed)
-          subject.should_receive(:notify_observers).
-            with(subject, attribute: :installed_packages, old: [],
-            new: [deb_package], as_sudo: false)
-
-          subject.upgrade_packages.should == true
-        end
-      end
-
-      context 'unsuccessful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 1
-        end
-
-        it 'returns false and does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.upgrade_packages.should == false
-        end
-      end
+        with('apt-get upgrade -y DEBIAN_FRONTEND=noninteractive')
+      subject.upgrade_packages
     end
   end
 
-  describe '#extract_upgradable_packages' do
+  describe '#extract_upgraded_packages' do
     let(:output) do
        <<-EOF
 The following packages will be upgraded:
@@ -217,8 +143,8 @@ The following packages will be upgraded:
     end
 
     it 'returns an array of new Deb packages' do
-      result = subject.send(:extract_upgradable_packages, output)
-      result.should  eq %w[accountsservice apparmor base-files bash]
+      result = subject.extract_upgraded_packages(output)
+      result.all? { |r| expect(r).to be_a Rosh::Host::PackageTypes::Deb }
     end
   end
 end

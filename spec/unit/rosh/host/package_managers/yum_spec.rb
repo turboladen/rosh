@@ -153,83 +153,13 @@ updates/primary_db                                                | 376 kB     0
   end
 
   describe '#upgrade_packages' do
-    before do
-      subject.stub(:installed_packages).and_return []
+    it 'runs yum update -y' do
       shell.should_receive(:exec).with('yum update -y')
-    end
-
-    context 'no packages to upgrade' do
-      let(:output) { 'some output' }
-
-      before do
-        subject.should_receive(:extract_upgradable_packages).and_return []
-      end
-
-      context 'successful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 0
-        end
-
-        it 'returns true but does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.upgrade_packages.should == true
-        end
-      end
-
-      context 'unsuccessful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 1
-        end
-
-        it 'returns false and does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.upgrade_packages.should == false
-        end
-      end
-    end
-
-    context 'packages to upgrade' do
-      context 'successful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 0
-          subject.should_receive(:extract_upgradable_packages).
-            and_return [rpm_package]
-        end
-
-        let(:rpm_package) { double 'Rosh::Host::PackageTypes::Rpm' }
-
-        it 'returns true and notifies observers' do
-          subject.should_receive(:changed)
-          subject.should_receive(:notify_observers).
-            with(subject, attribute: :installed_packages, old: [],
-            new: [rpm_package], as_sudo: false)
-
-          subject.upgrade_packages.should == true
-        end
-      end
-
-      context 'unsuccessful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 1
-          subject.should_receive(:extract_upgradable_packages).
-            and_return []
-        end
-
-        it 'returns false and does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.upgrade_packages.should == false
-        end
-      end
+      subject.upgrade_packages
     end
   end
 
-  describe '#extract_upgradable_packages' do
+  describe '#extract_upgraded_packages' do
     context 'nothing to upgrade' do
       let(:output) do
         <<-EOF
@@ -244,7 +174,7 @@ No Packages marked for Update
       end
 
       it 'returns an empty array' do
-        subject.send(:extract_upgradable_packages, output).should == []
+        subject.send(:extract_upgraded_packages, output).should == []
       end
     end
 
@@ -362,7 +292,7 @@ Complete!
         subject.should_receive(:create_package).with('kernel-headers',
           version: '0:2.6.18-348.4.1.el5', architecture: 'x86_64').and_return 9
 
-        result = subject.send(:extract_upgradable_packages, output)
+        result = subject.send(:extract_upgraded_packages, output)
         result.should eq [1, 2, 3, 4, 5, 6, 7, 8, 9]
       end
     end

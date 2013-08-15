@@ -41,27 +41,11 @@ class Rosh
           success
         end
 
-        # Upgrades outdated packages using `apt-get upgrade -y`.  Notifies
-        # observers with packages that were updated.  The list of packages in
-        # the update notification is an Array of Rosh::Host::PackageTypes::Deb
-        # objects.
+        # Upgrades outdated packages using `apt-get upgrade -y`.
         #
-        # @return [Boolean] +true+ if exit status was 0; +false+ if not.
+        # @return [String] Output of the upgrade command.
         def upgrade_packages
-          old_packages = installed_packages
-          output = @shell.exec 'apt-get upgrade -y DEBIAN_FRONTEND=noninteractive'
-          new_package_names = extract_upgradable_packages(output)
-          success = @shell.last_exit_status.zero?
-
-          if success && !new_package_names.empty?
-            new_packages = new_package_names.map(&method(:create_package))
-            changed
-            notify_observers(self,
-              attribute: :installed_packages, old: old_packages,
-              new: new_packages, as_sudo: @shell.su?)
-          end
-
-          success
+          @shell.exec 'apt-get upgrade -y DEBIAN_FRONTEND=noninteractive'
         end
 
         # Creates a new Apt package by name.
@@ -73,14 +57,12 @@ class Rosh
           Rosh::Host::PackageTypes::Deb.new(name, @shell, **options)
         end
 
-        private
-
         # Extracts Deb package names for #upgrade_packages from the command
         # output.
         #
         # @param [String] output Output from the apt-get upgrade command.
         # @return [Array<String>]
-        def extract_upgradable_packages(output)
+        def extract_upgraded_packages(output)
           new_packages = []
 
           output.each_line do |line|
@@ -88,7 +70,7 @@ class Rosh
             break if line.match(/\d+ upgraded, \d+ newly installed/)
 
             line.split.each do |pkg|
-              new_packages << pkg
+              new_packages << create_package(pkg)
             end
           end
 

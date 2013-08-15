@@ -14,11 +14,8 @@ describe Rosh::Host::PackageManagers::Brew do
     o
   end
 
+  subject { Rosh::Host::PackageManagers::Brew.new(shell) }
   before { subject.instance_variable_set(:@shell, shell) }
-
-  subject do
-    Rosh::Host::PackageManagers::Brew.new(shell)
-  end
 
   describe '#installed_packages' do
     let(:output) do
@@ -134,85 +131,13 @@ wp-cli
   end
 
   describe '#upgrade_packages' do
-    let(:output) { 'some output' }
-
-    before do
-      subject.stub(:installed_packages).and_return []
-      shell.should_receive(:exec).with('brew upgrade').and_return output
-    end
-
-    context 'no packages to upgrade' do
-      before do
-        subject.should_receive(:extract_upgradable_packages).and_return []
-      end
-
-      context 'successful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 0
-        end
-
-        it 'returns true but does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.upgrade_packages.should == true
-        end
-      end
-
-      context 'unsuccessful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 1
-        end
-
-        it 'returns false and does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.upgrade_packages.should == false
-        end
-      end
-    end
-
-    context 'packages to upgrade' do
-      before do
-        subject.should_receive(:extract_upgradable_packages).
-          and_return %w[upgrade_me]
-      end
-
-      context 'successful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 0
-        end
-
-        let(:brew_package) { double 'Rosh::Host::PackageTypes::Brew' }
-
-        it 'returns true and notifies observers' do
-          subject.should_receive(:create_package).and_return brew_package
-          subject.should_receive(:changed)
-          subject.should_receive(:notify_observers).
-            with(subject, attribute: :installed_packages, old: [],
-            new: [brew_package], as_sudo: false)
-
-          subject.upgrade_packages.should == true
-        end
-      end
-
-      context 'unsuccessful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 1
-        end
-
-        it 'returns false and does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.upgrade_packages.should == false
-        end
-      end
+    it 'runs `brew upgrade`' do
+      shell.should_receive(:exec).with('brew upgrade')
+      subject.upgrade_packages
     end
   end
 
-  describe '#extract_upgradable_packages' do
+  describe '#extract_upgraded_packages' do
     let(:output) do
       <<-EOF
       ==> Upgrading 17 outdated packages, with result:
@@ -221,7 +146,7 @@ atk 2.8.0, gmp 5.1.1, gtk+ 2.24.17, hub 1.10.6
     end
 
     it 'returns an array of new Brew packages' do
-      result = subject.send(:extract_upgradable_packages, output)
+      result = subject.send(:extract_upgraded_packages, output)
       result.should  eq %w[atk gmp gtk+ hub]
     end
   end
