@@ -99,6 +99,8 @@ class Rosh
       private
 
       # Creates the adapter if it's not yet been set.
+      #
+      # @return [Rosh::Host::PackageTypes::*]
       def adapter
         @adapter ||= create_adapter(@type, @package_name, @shell)
       end
