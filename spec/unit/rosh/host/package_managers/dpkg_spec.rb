@@ -7,10 +7,7 @@ describe Rosh::Host::PackageManagers::Dpkg do
   before { subject.instance_variable_set(:@shell, shell) }
 
   subject do
-    o = Object.new
-    o.extend Rosh::Host::PackageManagers::Dpkg
-
-    o
+    Rosh::Host::PackageManagers::Dpkg.new(shell)
   end
 
   describe '#installed_packages' do
@@ -32,13 +29,13 @@ ii  apparmor                                     2.7.102-0ubuntu3.7             
     end
 
     it 'creates a Deb package object for each package listed' do
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('accountsservice', version: '0.6.15-2ubuntu9.6', status: 'ii').
         and_return 'first package'
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('adduser', version: '3.113ubuntu2', status: 'ii').
         and_return 'second package'
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('apparmor', version: '2.7.102-0ubuntu3.7', status: 'ii').
         and_return 'third package'
 

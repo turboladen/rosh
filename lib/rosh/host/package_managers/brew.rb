@@ -1,10 +1,11 @@
+require_relative 'base'
 require_relative '../package_types/brew'
 
 
 class Rosh
   class Host
     module PackageManagers
-      module Brew
+      class Brew < Base
 
         # Lists all installed Brew packages.
         #
@@ -13,7 +14,7 @@ class Rosh
           output = @shell.exec 'brew list'
 
           output.split(/\s+/).map do |pkg|
-            create(pkg)
+            create_package(pkg)
           end
         end
 
@@ -64,7 +65,7 @@ class Rosh
           success = @shell.last_exit_status.zero?
 
           if success && !new_package_names.empty?
-            new_packages = new_package_names.map(&method(:create))
+            new_packages = new_package_names.map(&method(:create_package))
             changed
             notify_observers(self,
               attribute: :installed_packages, old: old_packages,
@@ -72,6 +73,10 @@ class Rosh
           end
 
           success
+        end
+
+        def create_package(name, **options)
+          Rosh::Host::PackageTypes::Brew.new(name, @shell, **options)
         end
 
         private
@@ -90,10 +95,6 @@ class Rosh
 
             name
           end
-        end
-
-        def create(name, **options)
-          Rosh::Host::PackageTypes::Brew.new(name, @shell, **options)
         end
       end
     end

@@ -1,10 +1,11 @@
+require_relative 'base'
 require_relative '../package_types/rpm'
 
 
 class Rosh
   class Host
     module PackageManagers
-      module Yum
+      class Yum < Base
 
         # Lists all installed Rpm packages.
         #
@@ -17,7 +18,7 @@ class Rosh
             puts "name: #{name}"
             next unless name
 
-            create(name, architecture: arch, version: version, status: status)
+            create_package(name, architecture: arch, version: version, status: status)
           end
         end
 
@@ -68,6 +69,10 @@ class Rosh
           success
         end
 
+        def create_package(name, **options)
+          Rosh::Host::PackageTypes::Rpm.new(name, @shell, **options)
+        end
+
         private
 
         # Extracts Rpm packagesnames for #upgrade_packages from the command
@@ -81,12 +86,8 @@ class Rosh
             next unless name
             puts "name: #{name}"
 
-            create(name, version: version, architecture: arch)
+            create_package(name, version: version, architecture: arch)
           end.compact
-        end
-
-        def create(name, **options)
-          Rosh::Host::PackageTypes::Rpm.new(name, @shell, **options)
         end
       end
     end

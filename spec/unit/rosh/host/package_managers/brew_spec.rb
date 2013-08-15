@@ -17,10 +17,7 @@ describe Rosh::Host::PackageManagers::Brew do
   before { subject.instance_variable_set(:@shell, shell) }
 
   subject do
-    o = Object.new
-    o.extend Rosh::Host::PackageManagers::Brew
-
-    o
+    Rosh::Host::PackageManagers::Brew.new(shell)
   end
 
   describe '#installed_packages' do
@@ -36,12 +33,12 @@ atk				freetype			intltool
     end
 
     it 'creates a Brew package object for each package' do
-      subject.should_receive(:create).with('apple-gcc42')
-      subject.should_receive(:create).with('ffmpeg')
-      subject.should_receive(:create).with('imagemagick')
-      subject.should_receive(:create).with('atk')
-      subject.should_receive(:create).with('freetype')
-      subject.should_receive(:create).with('intltool')
+      subject.should_receive(:create_package).with('apple-gcc42')
+      subject.should_receive(:create_package).with('ffmpeg')
+      subject.should_receive(:create_package).with('imagemagick')
+      subject.should_receive(:create_package).with('atk')
+      subject.should_receive(:create_package).with('freetype')
+      subject.should_receive(:create_package).with('intltool')
 
       subject.installed_packages
     end
@@ -190,7 +187,7 @@ wp-cli
         let(:brew_package) { double 'Rosh::Host::PackageTypes::Brew' }
 
         it 'returns true and notifies observers' do
-          subject.should_receive(:create).and_return brew_package
+          subject.should_receive(:create_package).and_return brew_package
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
             with(subject, attribute: :installed_packages, old: [],

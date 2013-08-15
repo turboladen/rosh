@@ -1,12 +1,13 @@
+require_relative 'base'
 require_relative '../package_types/deb'
 
 
 class Rosh
   class Host
     module PackageManagers
-      module Apt
+      class Apt < Base
 
-        # Updates APT's package index using `apt-get update`.  Notifies
+        # Updates Apt's package index using `apt-get update`.  Notifies
         # observers with Arrays of old sources (that weren't updated) and
         # updated sources.
         #
@@ -53,7 +54,7 @@ class Rosh
           success = @shell.last_exit_status.zero?
 
           if success && !new_package_names.empty?
-            new_packages = new_package_names.map(&method(:create))
+            new_packages = new_package_names.map(&method(:create_package))
             changed
             notify_observers(self,
               attribute: :installed_packages, old: old_packages,
@@ -61,6 +62,15 @@ class Rosh
           end
 
           success
+        end
+
+        # Creates a new Apt package by name.
+        #
+        # @param [String] name
+        #
+        # @return [Rosh::Host::PackageTypes::Deb]
+        def create_package(name, **options)
+          Rosh::Host::PackageTypes::Deb.new(name, @shell, **options)
         end
 
         private
@@ -83,15 +93,6 @@ class Rosh
           end
 
           new_packages
-        end
-
-        # Creates a new Apt package by name.
-        #
-        # @param [String] name
-        #
-        # @return [Rosh::Host::PackageTypes::Deb]
-        def create(name, **options)
-          Rosh::Host::PackageTypes::Deb.new(name, @shell, **options)
         end
       end
     end

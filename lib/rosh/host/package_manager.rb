@@ -1,4 +1,3 @@
-require 'observer'
 Dir[File.dirname(__FILE__) + '/package_managers/*.rb'].each(&method(:require))
 
 
@@ -19,18 +18,16 @@ class Rosh
     #   pm['curl'].install
     #
     class PackageManager
-      include Observable
 
-      # @param [Rosh::Host::Shells::*] shell
-      # @param [Symbol] manager_types The PackageManager types to delegate to.
+      # @param [Symbol] manager_type The PackageManager types to delegate to.
       #   Look at the list of PackageManagers.
-      def initialize(shell, *manager_types)
+      # @param [Symbol] package_type The PackageType to delegate to.
+      #   Look at the list of PackageTypes.
+      # @param [Rosh::Host::Shells::*] shell
+      def initialize(manager_type, package_type, shell)
         @shell = shell
-
-        manager_types.each do |type|
-          self.class.
-            send(:prepend, Rosh::Host::PackageManagers.const_get(type.to_s.capitalize.to_sym))
-        end
+        @manager_type = manager_type
+        @package_type = package_type
       end
 
       # Use for managing a single package.
@@ -38,7 +35,42 @@ class Rosh
       # @param [String] package_name The package name to manage.
       # @return [Rosh::Host::PackageTypes::*]
       def [](package_name)
-        create(package_name)
+        adapter.create_package(package_name)
+      end
+
+      def update_index
+        adapter.update_index
+      end
+
+      def upgrade_packages
+        adapter.upgrade_packages
+      end
+
+      #-------------------------------------------------------------------------
+      # PRIVATES
+      #-------------------------------------------------------------------------
+      private
+
+      # Creates the adapter if it's not yet been set.
+      #
+      # @return [Rosh::Host::PackageManagers::*]
+      def adapter
+        @adapter ||= create_adapter(@manager_type, @shell)
+      end
+
+      # Creates the adapter object based on the given +manager_type+.
+      #
+      # @param [Symbol, String] manager_type
+      # @param [Rosh::Host::Shells::*] shell
+      #
+      # @return [Rosh::Host::PackageManagers::*]
+      def create_adapter(manager_type, shell)
+        require_relative "package_managers/#{manager_type}"
+
+        package_manager_klass =
+          Rosh::Host::PackageManagers.const_get(manager_type.to_s.capitalize.to_sym)
+
+        package_manager_klass.new(shell)
       end
     end
   end

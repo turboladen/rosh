@@ -21,7 +21,7 @@ describe Rosh::Host::PackageManagers::Apt do
   end
 
   subject do
-    Object.send(:include, Rosh::Host::PackageManagers::Apt)
+    Rosh::Host::PackageManagers::Apt.new(shell)
   end
 
   before do
@@ -181,7 +181,7 @@ Reading package lists... Done
         let(:deb_package) { double 'Rosh::Host::PackageTypes::Deb' }
 
         it 'returns true and notifies observers' do
-          subject.should_receive(:create).and_return deb_package
+          subject.should_receive(:create_package).and_return deb_package
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
             with(subject, attribute: :installed_packages, old: [],

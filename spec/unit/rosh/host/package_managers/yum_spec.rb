@@ -17,10 +17,7 @@ describe Rosh::Host::PackageManagers::Yum do
   before { subject.instance_variable_set(:@shell, shell) }
 
   subject do
-    o = Object.new
-    o.extend Rosh::Host::PackageManagers::Yum
-
-    o
+    Rosh::Host::PackageManagers::Yum.new(shell)
   end
 
   describe '#installed_packages' do
@@ -46,21 +43,21 @@ ORBit2.x86_64                            2.14.3-5.el5          installed
     end
 
     it 'creates a Rpm package object for each package' do
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('MAKEDEV', architecture: 'x86_64',version: '3.23-1.2', status: 'installed')
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('NetworkManager', architecture: 'i386', version: '1:0.7.0-13.el5',
         status: 'installed')
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('NetworkManager', architecture: 'x86_64', version: '1:0.7.0-13.el5',
         status: 'installed')
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('NetworkManager-glib', architecture: 'i386', version: '1:0.7.0-13.el5',
         status: 'installed')
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('NetworkManager-glib', architecture: 'x86_64', version: '1:0.7.0-13.el5',
         status: 'installed')
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('ORBit2', architecture: 'x86_64',version: '2.14.3-5.el5',
         status: 'installed')
 
@@ -346,23 +343,23 @@ Complete!
       end
 
       it 'returns an array of new Brew packages' do
-        subject.should_receive(:create).with('device-mapper-multipath',
+        subject.should_receive(:create_package).with('device-mapper-multipath',
           version: '0:0.4.7-54.el5_9.2', architecture: 'x86_64').and_return 1
-        subject.should_receive(:create).with('glibc',
+        subject.should_receive(:create_package).with('glibc',
           version: '0:2.5-107.el5_9.4', architecture: 'i686').and_return 2
-        subject.should_receive(:create).with('glibc',
+        subject.should_receive(:create_package).with('glibc',
           version: '0:2.5-107.el5_9.4', architecture: 'x86_64').and_return 3
-        subject.should_receive(:create).with('glibc-common',
+        subject.should_receive(:create_package).with('glibc-common',
           version: '0:2.5-107.el5_9.4', architecture: 'x86_64').and_return 4
-        subject.should_receive(:create).with('glibc-devel',
+        subject.should_receive(:create_package).with('glibc-devel',
           version: '0:2.5-107.el5_9.4', architecture: 'x86_64').and_return 5
-        subject.should_receive(:create).with('glibc-headers',
+        subject.should_receive(:create_package).with('glibc-headers',
           version: '0:2.5-107.el5_9.4', architecture: 'x86_64').and_return 6
-        subject.should_receive(:create).with('kernel',
+        subject.should_receive(:create_package).with('kernel',
           version: '0:2.6.18-348.4.1.el5', architecture: 'x86_64').and_return 7
-        subject.should_receive(:create).with('kernel-devel',
+        subject.should_receive(:create_package).with('kernel-devel',
           version: '0:2.6.18-348.4.1.el5', architecture: 'x86_64').and_return 8
-        subject.should_receive(:create).with('kernel-headers',
+        subject.should_receive(:create_package).with('kernel-headers',
           version: '0:2.6.18-348.4.1.el5', architecture: 'x86_64').and_return 9
 
         result = subject.send(:extract_upgradable_packages, output)

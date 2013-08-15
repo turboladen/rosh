@@ -1,10 +1,11 @@
+require_relative 'base'
 require_relative '../package_types/deb'
 
 
 class Rosh
   class Host
     module PackageManagers
-      module Dpkg
+      class Dpkg < Base
 
         # @return [Array<Rosh::Host::PackageTypes::Deb>]
         def installed_packages
@@ -15,7 +16,7 @@ class Rosh
               %r[(?<status>[\w]{1,3})\s+(?<name>\S+)\s+(?<version>\S+)\s+(?<description>[^\n]+)] =~
                 pkg
 
-              create(name, version: version, status: status)
+              create_package(name, version: version, status: status)
             end
           end.compact
         end
@@ -24,7 +25,7 @@ class Rosh
 
         # @param [String] name
         # @param [Hash] options
-        def create(name, **options)
+        def create_package(name, **options)
           Rosh::Host::PackageTypes::Deb.new(name, @shell, **options)
         end
       end
