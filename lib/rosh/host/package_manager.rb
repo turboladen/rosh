@@ -38,6 +38,20 @@ class Rosh
         adapter.create_package(package_name)
       end
 
+      # The directory the package manager's executable is in.
+      #
+      # @return [String]
+      def bin_path
+        adapter.bin_path
+      end
+
+      # Set the directory the package manager's executable is in.
+      #
+      # @param [String] new_path
+      def bin_path=(new_path)
+        adapter.bin_path = new_path
+      end
+
       def update_index
         adapter.update_index
       end

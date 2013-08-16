@@ -23,6 +23,22 @@ describe Rosh::Host::PackageManager do
     end
   end
 
+  describe '#bin_path' do
+    it 'calls #bin_path on the adapter' do
+      expect(adapter).to receive(:bin_path)
+
+      subject.bin_path
+    end
+  end
+
+  describe '#bin_path=' do
+    it 'calls #bin_path= on the adapter' do
+      expect(adapter).to receive(:bin_path=).with 'blah'
+
+      subject.bin_path = 'blah'
+    end
+  end
+
   describe '#upgrade_packages' do
     context 'no packages upgraded' do
       before do
