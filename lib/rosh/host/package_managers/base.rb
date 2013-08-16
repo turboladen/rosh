@@ -6,6 +6,8 @@ class Rosh
       class Base
         include Observable
 
+        attr_writer :bin_path
+
         def initialize(shell)
           @shell = shell
         end

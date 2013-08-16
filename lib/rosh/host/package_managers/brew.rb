@@ -6,12 +6,17 @@ class Rosh
   class Host
     module PackageManagers
       class Brew < Base
+        DEFAULT_BIN_PATH = '/usr/local/bin'
+
+        def bin_path
+          @bin_path ||= DEFAULT_BIN_PATH
+        end
 
         # Lists all installed Brew packages.
         #
         # @return [Array<Rosh::Host::PackageTypes::Brew>]
         def installed_packages
-          output = @shell.exec 'brew list'
+          output = @shell.exec("#{bin_path}/brew list")
 
           output.split(/\s+/).map do |pkg|
             create_package(pkg)
@@ -24,7 +29,8 @@ class Rosh
         #
         # @return [Boolean] +true+ if exit status was 0; +false+ if not.
         def update_index
-          output = @shell.exec 'brew update'
+          output = @shell.exec("#{bin_path}/brew update")
+          return false unless output.is_a? String
 
           /==> New Formulae\n(?<new_formulae>[^=>]*)/m =~ output
           /==> Updated Formulae\n(?<updated_formulae>[^=>]*)/m =~ output
@@ -56,7 +62,7 @@ class Rosh
         #
         # @return [String] Output of the upgrade command.
         def upgrade_packages
-          @shell.exec 'brew upgrade'
+          @shell.exec("#{bin_path}/brew upgrade")
         end
 
         def create_package(name, **options)

@@ -17,6 +17,20 @@ describe Rosh::Host::PackageManagers::Brew do
   subject { Rosh::Host::PackageManagers::Brew.new(shell) }
   before { subject.instance_variable_set(:@shell, shell) }
 
+  describe '#bin_path' do
+    context 'default' do
+      specify { expect(subject.bin_path).to eq '/usr/local/bin' }
+    end
+  end
+
+  describe '#bin_path=' do
+    it 'sets the new bin_path' do
+      subject.bin_path = 'stuff'
+
+      expect(subject.bin_path).to eq 'stuff'
+    end
+  end
+
   describe '#installed_packages' do
     let(:output) do
       <<-OUTPUT
@@ -26,7 +40,7 @@ atk				freetype			intltool
     end
 
     before do
-      shell.should_receive(:exec).with('brew list').and_return output
+      shell.should_receive(:exec).with('/usr/local/bin/brew list').and_return output
     end
 
     it 'creates a Brew package object for each package' do
@@ -43,7 +57,8 @@ atk				freetype			intltool
 
   describe '#update_index' do
     before do
-      shell.should_receive(:exec).with('brew update').and_return output
+      shell.should_receive(:exec).with('/usr/local/bin/brew update').
+        and_return output
     end
 
     context 'index does not change during update' do
@@ -132,7 +147,7 @@ wp-cli
 
   describe '#upgrade_packages' do
     it 'runs `brew upgrade`' do
-      shell.should_receive(:exec).with('brew upgrade')
+      shell.should_receive(:exec).with('/usr/local/bin/brew upgrade')
       subject.upgrade_packages
     end
   end
