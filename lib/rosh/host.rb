@@ -18,6 +18,7 @@ class Rosh
     attr_reader :hostname
     attr_reader :shell
     attr_reader :user
+    attr_reader :package_manager
 
     def initialize(hostname,  **ssh_options)
       @hostname = hostname
@@ -70,6 +71,8 @@ class Rosh
     # @return [Rosh::Host::PackageManager]
     # @see Rosh::Host::PackageManager
     def packages
+      return @package_manager if @package_manager
+
       @package_manager = case operating_system
       when :darwin
         Rosh::Host::PackageManager.new(:brew, :brew, @shell)
