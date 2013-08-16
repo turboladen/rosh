@@ -1,3 +1,5 @@
+# TODO: Convert FSOs to follow Package/PackageTypes design.
+
 # TODO: CLI shell
 
 # TODO: check_state_first stuff for shells
@@ -16,10 +18,10 @@
 #   * remote dir
 #   * remote file
 #   * remote link
-#   * package_managers/apt
-#   * package_managers/brew
-#   * package_managers/dpkg
-#   * package_managers/yum
+#   x package_managers/apt
+#   x package_managers/brew
+#   x package_managers/dpkg
+#   x package_managers/yum
 #   x package_types/base
 #   x package_types/brew
 #   x package_types/deb
@@ -48,8 +50,6 @@
 #   * Use Shells::Base#good_info, #bad_info, #run_info
 
 # TODO: fix test that's leaving ./test around
-
-# TODO: use autoload for loading deps
 
 # TODO: Remove +status+ from PackageTypes::Base (check with screenplay first).
 # TODO: Remove +architecture+ from PackageTypes::Base (check with screenplay first).
