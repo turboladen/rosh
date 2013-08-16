@@ -7,6 +7,11 @@ class Rosh
 
       # Represents a package in the {http://brew.sh homebrew} package manager.
       class Brew < Base
+        DEFAULT_BIN_PATH = '/usr/local/bin'
+
+        def bin_path
+          @bin_path ||= DEFAULT_BIN_PATH
+        end
 
         # Install the package.  If no +version+ is given, uses the latest in
         # Brew's repo.
@@ -17,7 +22,7 @@ class Rosh
           if version
             install_and_switch_version(version)
           else
-            @shell.exec "brew install #{@package_name}"
+            @shell.exec "#{bin_path}/brew install #{@package_name}"
 
             @shell.last_exit_status.zero?
           end
@@ -28,7 +33,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if installed, +false+ if not.
         def installed?
-          result = @shell.exec "brew info #{@package_name}"
+          result = @shell.exec "#{bin_path}/brew info #{@package_name}"
 
           if @shell.last_exit_status.zero?
             !result.match %r[Not installed]
@@ -41,7 +46,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def upgrade
-          @shell.exec "brew upgrade #{@package_name}"
+          @shell.exec "#{bin_path}/brew upgrade #{@package_name}"
 
           @shell.last_exit_status.zero?
         end
@@ -50,7 +55,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def remove
-          @shell.exec "brew remove #{@package_name}"
+          @shell.exec "#{bin_path}/brew remove #{@package_name}"
 
           @shell.last_exit_status.zero?
         end
@@ -59,7 +64,7 @@ class Rosh
         #
         # @return [Hash]
         def info
-          output = @shell.exec "brew info #{@package_name}"
+          output = @shell.exec "#{bin_path}/brew info #{@package_name}"
           info_hash = {}
 
           /^\s*#{@package_name}: (?<spec>\w+) (?<version>[^\n]+)
@@ -70,13 +75,19 @@ class Rosh
           info_hash[:version] = $~[:version].strip
           info_hash[:homepage] = $~[:home].strip
 
+          info_hash[:status] = if output.match(/Not installed/m)
+            :not_installed
+          else
+            :installed
+          end
+
           info_hash
         end
 
         # @return [Array<String>] The list of versions of the current package
         #   that are installed.
         def installed_versions
-          result = @shell.exec "brew info #{@package_name}"
+          result = @shell.exec "#{bin_path}/brew info #{@package_name}"
 
           result.each_line.map do |line|
             %r[.*Cellar/#{@package_name}/(?<version>\S+)] =~ line.strip
@@ -105,25 +116,25 @@ class Rosh
         # @param [String] version The version to install/switch to.
         # @return [Boolean] +true+ if install was successful; +false+ if not.
         def install_and_switch_version(version)
-          version_line = @shell.exec("brew versions #{@package_name} | grep #{version}").
+          version_line = @shell.exec("#{bin_path}/brew versions #{@package_name} | grep #{version}").
             split("\n").last
           return false unless version_line
 
           %r[git checkout (?<hash>\w+)] =~ version_line
 
-          prefix = @shell.exec 'brew --prefix'
+          prefix = @shell.exec "#{bin_path}/brew --prefix"
           @shell.cd(prefix)
 
           @shell.exec "git checkout #{hash} Library/Formula/#{@package_name}.rb"
           return false unless @shell.last_exit_status.zero?
 
-          @shell.exec "brew unlink #{@package_name}"
+          @shell.exec "#{bin_path}/brew unlink #{@package_name}"
           return false unless @shell.last_exit_status.zero?
 
-          @shell.exec "brew install #{@package_name}"
+          @shell.exec "#{bin_path}/brew install #{@package_name}"
           return false unless @shell.last_exit_status.zero?
 
-          @shell.exec "brew switch #{@package_name} #{version}"
+          @shell.exec "#{bin_path}/brew switch #{@package_name} #{version}"
           return false unless @shell.last_exit_status.zero?
 
           @shell.exec "git checkout -- Library/Formula/#{@package_name}.rb"

@@ -10,8 +10,13 @@ describe Rosh::Host::PackageTypes::Brew do
   end
 
   describe '#info' do
-    let(:output) do
-      <<-OUTPUT
+    before do
+      expect(shell).to receive(:exec).with('/usr/local/bin/brew info thing') { output }
+    end
+
+    context 'installed' do
+      let(:output) do
+        <<-OUTPUT
 thing: stable 2.0.21, HEAD
 http://www.monkey.org/~provos/libevent/
 /usr/local/Cellar/libevent/2.0.16 (48 files, 1.9M)
@@ -25,27 +30,51 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
 	Install the libevent manpages (requires doxygen)
 --universal
 	Build a universal binary
-      OUTPUT
+        OUTPUT
+      end
+
+      it 'parses each field and value to a Hash' do
+        expect(subject.info).to eq({
+          package: 'thing',
+          spec: 'stable',
+          version: '2.0.21, HEAD',
+          status: :installed,
+          homepage: 'http://www.monkey.org/~provos/libevent/'
+        })
+      end
     end
 
-    before do
-      expect(shell).to receive(:exec).with('brew info thing') { output }
-    end
+    context 'not installed' do
+      let(:output) do
+        <<-OUTPUT
+thing: stable 2.0.21, HEAD
+http://www.monkey.org/~provos/libevent/
+Not installed
+https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
+==> Options
+--enable-manpages
+	Install the libevent manpages (requires doxygen)
+--universal
+	Build a universal binary
+        OUTPUT
+      end
 
-    it 'parses each field and value to a Hash' do
-      expect(subject.info).to eq({
-        package: 'thing',
-        spec: 'stable',
-        version: '2.0.21, HEAD',
-        homepage: 'http://www.monkey.org/~provos/libevent/'
-      })
+      it 'parses each field and value to a Hash' do
+        expect(subject.info).to eq({
+          package: 'thing',
+          spec: 'stable',
+          version: '2.0.21, HEAD',
+          status: :not_installed,
+          homepage: 'http://www.monkey.org/~provos/libevent/'
+        })
+      end
     end
   end
 
   describe '#installed_versions' do
     before do
       subject.instance_variable_set(:@package_name, 'git')
-      expect(shell).to receive(:exec).with('brew info git') { output }
+      expect(shell).to receive(:exec).with('/usr/local/bin/brew info git') { output }
     end
 
     context 'package not installed' do
@@ -93,7 +122,7 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
       context 'failed install' do
         before do
           allow(shell).to receive(:last_exit_status) { 1 }
-          expect(shell).to receive(:exec).with('brew install thing')
+          expect(shell).to receive(:exec).with('/usr/local/bin/brew install thing')
         end
 
         specify { expect(subject.install).to eq false }
@@ -102,7 +131,7 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
       context 'successful install' do
         before do
           allow(shell).to receive(:last_exit_status) { 0 }
-          expect(shell).to receive(:exec).with('brew install thing')
+          expect(shell).to receive(:exec).with('/usr/local/bin/brew install thing')
         end
 
         specify { expect(subject.install).to eq true }
@@ -114,7 +143,7 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
     context 'not a package' do
       before do
         allow(shell).to receive(:last_exit_status) { 1 }
-        expect(shell).to receive(:exec).with('brew info thing') {
+        expect(shell).to receive(:exec).with('/usr/local/bin/brew info thing') {
           'Error: No available formula for thing'
         }
       end
@@ -125,7 +154,7 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
     context 'not installed' do
       before do
         allow(shell).to receive(:last_exit_status) { 0 }
-        expect(shell).to receive(:exec).with('brew info thing') {
+        expect(shell).to receive(:exec).with('/usr/local/bin/brew info thing') {
           %[garmintools: stable 0.10
 http://code.google.com/p/garmintools/
 Not installed
@@ -141,7 +170,7 @@ Required: libusb-compat]
     context 'installed' do
       before do
         allow(shell).to receive(:last_exit_status) { 0 }
-        expect(shell).to receive(:exec).with('brew info thing') {
+        expect(shell).to receive(:exec).with('/usr/local/bin/brew info thing') {
           %[git: stable 1.8.3.4, HEAD
 http://git-scm.com
 /usr/local/Cellar/git/1.8.3.1 (1324 files, 28M)
@@ -175,7 +204,7 @@ The 'contrib' directory has been installed to:
 
   describe '#remove' do
     before do
-      expect(shell).to receive(:exec).with('brew remove thing')
+      expect(shell).to receive(:exec).with('/usr/local/bin/brew remove thing')
     end
 
     context 'failed removal' do
@@ -191,7 +220,7 @@ The 'contrib' directory has been installed to:
 
   describe '#upgrade' do
     before do
-      expect(shell).to receive(:exec).with('brew upgrade thing')
+      expect(shell).to receive(:exec).with('/usr/local/bin/brew upgrade thing')
     end
 
     context 'failed upgrade' do
@@ -216,7 +245,7 @@ The 'contrib' directory has been installed to:
     context 'version does not exist' do
       it 'returns false' do
         expect(shell).to receive(:exec).
-          with('brew versions thing | grep asdf') { '' }
+          with('/usr/local/bin/brew versions thing | grep asdf') { '' }
 
         expect(subject.send(:install_and_switch_version, 'asdf')).to eq false
       end
@@ -224,18 +253,18 @@ The 'contrib' directory has been installed to:
 
     context 'version exists' do
       it 'passes the version to the command' do
-        expect(shell).to receive(:exec).with('brew versions thing | grep 1.2.3').
+        expect(shell).to receive(:exec).with('/usr/local/bin/brew versions thing | grep 1.2.3').
           and_return version_output
-        expect(shell).to receive(:exec ).with('brew --prefix') { '/usr/local' }
+        expect(shell).to receive(:exec ).with('/usr/local/bin/brew --prefix') { '/usr/local' }
         expect(shell).to receive(:cd).with('/usr/local')
 
         expect(shell).to receive(:exec).with('git checkout 1234567 Library/Formula/thing.rb')
         expect(shell).to receive(:last_exit_status).and_return 0
-        expect(shell).to receive(:exec).with('brew unlink thing')
+        expect(shell).to receive(:exec).with('/usr/local/bin/brew unlink thing')
         expect(shell).to receive(:last_exit_status).and_return 0
-        expect(shell).to receive(:exec).with('brew install thing')
+        expect(shell).to receive(:exec).with('/usr/local/bin/brew install thing')
         expect(shell).to receive(:last_exit_status).and_return 0
-        expect(shell).to receive(:exec).with('brew switch thing 1.2.3')
+        expect(shell).to receive(:exec).with('/usr/local/bin/brew switch thing 1.2.3')
         expect(shell).to receive(:last_exit_status).and_return 0
         expect(shell).to receive(:exec).with('git checkout -- Library/Formula/thing.rb')
         expect(shell).to receive(:last_exit_status).and_return 0

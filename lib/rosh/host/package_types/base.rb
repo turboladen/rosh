@@ -32,18 +32,24 @@ class Rosh
         #   Architecture of the OS package, if any.  Defaults to +nil+.
         #   @return [Symbol]
 
+        attr_writer :bin_path
+
         # @param [String] name Name of the package.
         # @param [Rosh::Host::Shells::*] shell
         #   Shell for the OS that's being managed.
         # @param [String] version
         # @param [Symbol] status
         # @param [String] architecture
-        def initialize(name, shell, version: nil, status: nil, architecture: nil)
+        def initialize(name, shell,
+          version: nil, status: nil, architecture: nil,
+          bin_path: nil
+        )
           @package_name = name
           @shell = shell
           @version = version
           @status = status
           @architecture = architecture
+          @bin_path = bin_path
         end
       end
     end
