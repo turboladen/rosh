@@ -5,6 +5,7 @@ require_relative '../package_types/deb'
 class Rosh
   class Host
     module PackageManagers
+      # TODO: Figure out if this should go in Apt.
       class Dpkg < Base
 
         # @return [Array<Rosh::Host::PackageTypes::Deb>]
@@ -19,14 +20,6 @@ class Rosh
               create_package(name, version: version, status: status)
             end
           end.compact
-        end
-
-        private
-
-        # @param [String] name
-        # @param [Hash] options
-        def create_package(name, **options)
-          Rosh::Host::PackageTypes::Deb.new(name, @shell, **options)
         end
       end
     end
