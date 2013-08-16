@@ -4,22 +4,61 @@ require_relative 'base'
 class Rosh
   class Host
     module PackageTypes
+
+      # Represents a {http://www.rpm.org RPM package}.  Managed here using
+      # {http://yum.baseurl.org Yum} and RPM commands.
       class Rpm < Base
 
-        # @param [String] name Name of the package.
-        # @param [Rosh::Host::Shells::Local,Rosh::Host::Shells::Remote] shell
-        #   Shell for the OS that's being managed.
+        # Install the package.  If no +version+ is given, uses the latest in
+        # Yum's cache.
+        #
         # @param [String] version
-        # @param [Status] status
-        def initialize(name, shell, version: nil, status: nil, architecture: nil)
-          super(name, shell, version: version, status: status, architecture: architecture)
+        # @return [Boolean] +true+ if successful, +false+ if not.
+        def install(version=nil)
+          cmd = "yum install -y #{@package_name}"
+          cmd << "-#{version}" if version
+          @shell.exec(cmd)
+
+          @shell.last_exit_status.zero?
         end
 
-        # Result of `yum info ` as a Hash.
+        # Uses <tt>yum info [pkg]</tt> to see if the package is installed
+        # or not.
+        #
+        # @return [Boolean] +true+ if installed, +false+ if not.
+        def installed?
+          @shell.exec "yum info #{@package_name}"
+
+          @shell.last_exit_status.zero?
+        end
+
+        # Upgrades the package, using <tt>yum upgrade [pkg]</tt>.
+        #
+        # @return [Boolean] +true+ if install was successful, +false+ if not.
+        def upgrade
+          output = @shell.exec "yum upgrade -y #{@package_name}"
+          success = @shell.last_exit_status.zero?
+
+          return false if output.match(/#{@package_name} available, but not installed/m)
+          return false if output.match(/No Packages marked for Update/m)
+
+          success
+        end
+
+        # Uses <tt>yum remove [pkg]</tt> to remove the package.
+        #
+        # @return [Boolean] +true+ if successful, +false+ if not.
+        def remove
+          @shell.exec "yum remove -y #{@package_name}"
+
+          @shell.last_exit_status.zero?
+        end
+
+        # Result of <tt>yum info [pkg]</tt> as a Hash.
         #
         # @return [Hash]
         def info
-          output = @shell.exec "yum info #{@name}"
+          output = @shell.exec "yum info #{@package_name}"
           info_hash = {}
 
           output.each_line do |line|
@@ -36,50 +75,16 @@ class Rosh
           info_hash
         end
 
-        # @return [Boolean] +true+ if installed; +false+ if not.
-        def installed?
-          @shell.exec "yum info #{@name}"
-
-          @shell.last_exit_status.zero?
-        end
-
-        # Installs the package using yum and notifies observers with the new
-        # version.
-        #
-        # @param [String] version Version of the package to install.
-        # @return [Boolean] +true+ if install was successful, +false+ if not.
-        def install(version: nil)
-          return if skip_install?(version)
-
-          old_version = current_version
-
-          cmd = "yum install -y #{@name}"
-          cmd << "-#{version}" if version
-          @shell.exec(cmd)
-
-          success = @shell.last_exit_status.zero?
-          new_version = current_version
-
-          if success && old_version != new_version
-            changed
-            notify_observers(self,
-              attribute: :version, old: old_version, new: new_version,
-              as_sudo: @shell.su?)
-          end
-
-          success
-        end
-
         # @return [Boolean] Checks to see if the latest installed version is
         #   the latest version available.
         def at_latest_version?
-          cmd = "yum list updates #{@name}"
+          cmd = "yum list updates #{@package_name}"
           result = @shell.exec(cmd)
 
           # Could be that: a) not a package, b) the package is not installed, c)
           # the package is at the latest.
           if result =~ /No matching Packages to list/
-            cmd = "yum info #{@name}"
+            cmd = "yum info #{@package_name}"
             result = @shell.exec(cmd)
 
             if result =~ /Available Packages/m
@@ -99,60 +104,16 @@ class Rosh
         # @return [String] The currently installed version of the package. +nil+
         #   if the package is not installed.
         def current_version
-          cmd = "rpm -qa #{@name}"
+          cmd = "rpm -qa #{@package_name}"
           result = @shell.exec(cmd)
 
           if result.empty?
             nil
           else
-            %r[#{name}-(?<version>\d\S*)] =~ result
+            %r[#{@package_name}-(?<version>\d\S*)] =~ result
 
             $~[:version] if $~
           end
-        end
-
-        # Removes the package using yum and notifies observers.
-        #
-        # @return [Boolean] +true+ if install was successful, +false+ if not.
-        def remove
-          already_installed = installed?
-          old_version = current_version
-
-          @shell.exec "yum remove -y #{@name}"
-          success = @shell.last_exit_status.zero?
-
-          if success && already_installed
-            changed
-            notify_observers(self,
-              attribute: :version, old: old_version, new: nil,
-              as_sudo: @shell.su?)
-          end
-
-          success
-        end
-
-        # Upgrades the package, using `yum upgrade`.
-        #
-        # @return [Boolean] +true+ if install was successful, +false+ if not.
-        def upgrade
-          already_installed = installed?
-          old_version = current_version
-
-          output = @shell.exec "yum upgrade -y #{@name}"
-          success = @shell.last_exit_status.zero?
-
-          return false if output.match(/#{@name} available, but not installed/m)
-          return false if output.match(/No Packages marked for Update/m)
-
-          if success && already_installed
-            new_version = current_version
-            changed
-            notify_observers(self,
-              attribute: :version, old: old_version, new: new_version,
-              as_sudo: @shell.su?)
-          end
-
-          success
         end
       end
     end

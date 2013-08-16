@@ -1,10 +1,11 @@
+require_relative 'base'
 require_relative '../package_types/rpm'
 
 
 class Rosh
   class Host
     module PackageManagers
-      module Yum
+      class Yum < Base
 
         # Lists all installed Rpm packages.
         #
@@ -17,76 +18,60 @@ class Rosh
             puts "name: #{name}"
             next unless name
 
-            create(name, architecture: arch, version: version, status: status)
+            create_package(name, architecture: arch, version: version, status: status)
           end
         end
 
-        # Updates Yum's package index using `yum check-update`.  Notifies
-        # observers with updated sources.
+        # Updates Yum's package index using `yum check-update`.
         #
-        # @return [Boolean] +true+ if exit status was 0; +false+ if not.
-        def update_index
-          output = @shell.exec 'yum check-update'
-
-          updated = output.each_line.map do |line|
-            /^(?<yum_source>\S+)\s+\|\s+\d/ =~ line
-            next unless yum_source
-
-            yum_source
-          end.compact
-
-          success = @shell.last_exit_status.zero?
-
-          if success && !updated.empty?
-            changed
-            notify_observers(self,
-              attribute: :index, old: [], new: updated, as_sudo: @shell.su?)
-          end
-
-          success
+        # @return [String] output from the shell command.
+        def update_definitions
+          @shell.exec 'yum check-update'
         end
 
-        # Upgrades outdated packages using `yum update -y`.  Notifies
-        # observers with packages that were updated.  The list of packages in
-        # the update notification is an Array of Rosh::Host::PackageTypes::Rpm
-        # objects.
+        # Extracts the list of updated package definitions from the output of
+        # a #update_definitions call.
         #
-        # @return [Boolean] +true+ if exit status was 0; +false+ if not.
+        # @param [String] output from the #update_defintions call.
+        # @return [Array<Hash{package: String, architecture: String, version: String, repository: String}>]
+        # TODO: How to deal with output being an Exception?
+        def extract_updated_definitions(output)
+          return [] unless output.is_a? String
+          return [] unless output.match(/\n\n/)
+
+          _, packages = output.split("\n\n")
+
+          packages.each_line.map do |line|
+            /^(?<pkg>[^\.]+)\.(?<arch>\S+)\s+(?<version>\S+)\s+(?<repo>\S+)/ =~ line
+
+            { package: pkg, architecture: arch, version: version, repository: repo }
+          end
+        end
+
+        # Upgrades outdated packages using `yum update -y`.
+        #
+        # @return [String] Output of the upgrade command.
         def upgrade_packages
-          old_packages = installed_packages
-          output = @shell.exec 'yum update -y'
-          new_packages = extract_upgradable_packages(output)
-          success = @shell.last_exit_status.zero?
-
-          if success && !new_packages.empty?
-            changed
-            notify_observers(self,
-              attribute: :installed_packages, old: old_packages,
-              new: new_packages, as_sudo: @shell.su?)
-          end
-
-          success
+          @shell.exec 'yum update -y'
         end
 
-        private
+        def create_package(name, **options)
+          Rosh::Host::PackageTypes::Rpm.new(name, @shell, **options)
+        end
 
         # Extracts Rpm packagesnames for #upgrade_packages from the command
         # output.
         #
         # @param [String] output Output from the yum update command.
         # @return [Array<Rosh::Host::PackageTypes::Rpm>]
-        def extract_upgradable_packages(output)
+        def extract_upgraded_packages(output)
           output.each_line.map do |line|
             /Package (?<name>\S+)\.(?<arch>\S+)\s+(?<version>\S+).*to be / =~ line
             next unless name
             puts "name: #{name}"
 
-            create(name, version: version, architecture: arch)
+            create_package(name, version: version, architecture: arch)
           end.compact
-        end
-
-        def create(name, **options)
-          Rosh::Host::PackageTypes::Rpm.new(name, @shell, **options)
         end
       end
     end

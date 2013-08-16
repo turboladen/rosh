@@ -5,42 +5,51 @@ require_relative '../string_refinements'
 class Rosh
   class Host
     module PackageTypes
+
+      # Class containing the base attributes for other PackageTypes object.
       class Base
         include Observable
 
-        attr_reader :name
+        attr_reader :package_name
+        # @!attribute [r] package_name
+        #   Name of the OS package this represents.
+        #   @return [String]
+
         attr_reader :version
+        # @!attribute [r] version
+        #   Version of the OS package this represents, if any.  Defaults to
+        #   +nil+.
+        #   @return [String]
+
         attr_reader :status
+        # @!attribute [r] status
+        #   Status that the OS package should be in, if any.  Defaults to
+        #   +nil+.
+        #   @return [Symbol]
+
+        attr_reader :architecture
+        # @!attribute [r] architecture
+        #   Architecture of the OS package, if any.  Defaults to +nil+.
+        #   @return [Symbol]
+
+        attr_writer :bin_path
 
         # @param [String] name Name of the package.
-        # @param [Rosh::Host::Shells::Local,Rosh::Host::Shells::Remote] shell
+        # @param [Rosh::Host::Shells::*] shell
         #   Shell for the OS that's being managed.
         # @param [String] version
-        # @param [Status] status
-        def initialize(name, shell, version: nil, status: nil, architecture: nil)
-          @name = name
+        # @param [Symbol] status
+        # @param [String] architecture
+        def initialize(name, shell,
+          version: nil, status: nil, architecture: nil,
+          bin_path: nil
+        )
+          @package_name = name
           @shell = shell
           @version = version
           @status = status
           @architecture = architecture
-        end
-
-        protected
-
-        # Checks to see if installing the package should be skipped based on the
-        # shell settings, if the package is installed, and which version the
-        # package is at.
-        def skip_install?(version=nil)
-          if @shell.check_state_first? && installed?
-            #log 'SKIP: check_state_first is true and already at latest version.'
-            if version
-              true if version == current_version
-            else
-              true
-            end
-          else
-            false
-          end
+          @bin_path = bin_path
         end
       end
     end

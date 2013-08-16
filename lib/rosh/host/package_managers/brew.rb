@@ -1,29 +1,43 @@
+require_relative 'base'
 require_relative '../package_types/brew'
 
 
 class Rosh
   class Host
     module PackageManagers
-      module Brew
+      class Brew < Base
+        DEFAULT_BIN_PATH = '/usr/local/bin'
+
+        def bin_path
+          @bin_path ||= DEFAULT_BIN_PATH
+        end
 
         # Lists all installed Brew packages.
         #
         # @return [Array<Rosh::Host::PackageTypes::Brew>]
         def installed_packages
-          output = @shell.exec 'brew list'
+          output = @shell.exec("#{bin_path}/brew list")
 
           output.split(/\s+/).map do |pkg|
-            create(pkg)
+            create_package(pkg)
           end
         end
 
-        # Updates homebrew's package index using `brew update`.  Notifies
-        # observers with lists of new, updated, and deleted packages from the
-        # index.
+        # Updates homebrew's formula index using `brew update`.
         #
-        # @return [Boolean] +true+ if exit status was 0; +false+ if not.
-        def update_index
-          output = @shell.exec 'brew update'
+        # @return [String] Output from the shell command.
+        def update_definitions
+          @shell.exec("#{bin_path}/brew update")
+        end
+
+        # Extracts the list of updated package definitions from the output of
+        # a #update_definitions call.
+        #
+        # @param [String] output from the #update_defintions call.
+        # @return [Array<Hash{new_formulae: Array, updated_formulae: Array, deleted_formulae: Array}>]
+        # TODO: How to deal with output being an Exception?
+        def extract_updated_definitions(output)
+          return [] unless output.is_a? String
 
           /==> New Formulae\n(?<new_formulae>[^=>]*)/m =~ output
           /==> Updated Formulae\n(?<updated_formulae>[^=>]*)/m =~ output
@@ -40,48 +54,26 @@ class Rosh
             updated << { deleted_formulae: deleted_formulae.split }
           end
 
-          success = @shell.last_exit_status.zero?
-
-          if success && !updated.empty?
-            changed
-            notify_observers(self,
-              attribute: :index, old: [], new: updated, as_sudo: @shell.su?)
-          end
-
-          success
+          updated
         end
 
-        # Upgrades outdated packages using `brew upgrade`.  Notifies
-        # observers with packages that were updated.  The list of packages in
-        # the update notification is an Array of Rosh::Host::PackageTypes::Brew
-        # objects.
+        # Upgrades outdated packages using `brew upgrade`.
         #
-        # @return [Boolean] +true+ if exit status was 0; +false+ if not.
+        # @return [String] Output of the upgrade command.
         def upgrade_packages
-          old_packages = installed_packages
-          output = @shell.exec 'brew upgrade'
-          new_package_names = extract_upgradable_packages(output)
-          success = @shell.last_exit_status.zero?
-
-          if success && !new_package_names.empty?
-            new_packages = new_package_names.map(&method(:create))
-            changed
-            notify_observers(self,
-              attribute: :installed_packages, old: old_packages,
-              new: new_packages, as_sudo: @shell.su?)
-          end
-
-          success
+          @shell.exec("#{bin_path}/brew upgrade")
         end
 
-        private
+        def create_package(name, **options)
+          Rosh::Host::PackageTypes::Brew.new(name, @shell, **options)
+        end
 
         # Extracts Brew package names for #upgrade_packages from the command
         # output.
         #
         # @param [String] output Output from the brew upgrade command.
         # @return [Array<String>]
-        def extract_upgradable_packages(output)
+        def extract_upgraded_packages(output)
           /Upgrading \d+ outdated packages, with result:\n(?<list>[^=>]+)/ =~ output
 
           name_and_version = list.split(', ')
@@ -90,10 +82,6 @@ class Rosh
 
             name
           end
-        end
-
-        def create(name, **options)
-          Rosh::Host::PackageTypes::Brew.new(name, @shell, **options)
         end
       end
     end

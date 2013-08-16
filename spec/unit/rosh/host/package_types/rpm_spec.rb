@@ -32,7 +32,7 @@ Description: The zsh shell is a command interpreter usable as an interactive log
     end
 
     before do
-      shell.should_receive(:exec).with('yum info thing').and_return output
+      expect(shell).to receive(:exec).with('yum info thing') { output }
     end
 
     it 'parses each field and value to a Hash' do
@@ -57,169 +57,60 @@ Description: The zsh shell is a command interpreter usable as an interactive log
   end
 
   describe 'installed?' do
-    context 'is not installed' do
-      before do
-        shell.should_receive(:exec).with('yum info thing')
-        shell.stub(:last_exit_status).and_return 1
-      end
+    before { expect(shell).to receive(:exec).with('yum info thing') }
 
-      specify { subject.should_not be_installed }
+    context 'is not installed' do
+      before { allow(shell).to receive(:last_exit_status) { 1 } }
+      specify { expect(subject).to_not be_installed }
     end
 
     context 'is installed' do
-      before do
-        shell.should_receive(:exec).with('yum info thing')
-        shell.stub(:last_exit_status).and_return 0
-      end
-
-      specify { subject.should be_installed }
+      before { allow(shell).to receive(:last_exit_status) { 0 } }
+      specify { expect(subject).to be_installed }
     end
   end
 
   describe '#install' do
     context 'with version' do
-      context 'skip_install? is true' do
-        before { subject.stub(:skip_install?).and_return true }
-        specify { subject.install(version: '0.1.2').should be_nil }
-      end
+      it 'adds -version to the install command' do
+        allow(shell).to receive(:last_exit_status) { 0 }
+        expect(shell).to receive(:exec).with('yum install -y thing-0.1.2')
 
-      context 'skip_install? is false' do
-        before do
-          subject.stub(:skip_install?).and_return false
-          shell.should_receive(:last_exit_status).and_return 0
-        end
-
-        context 'version already installed' do
-          before do
-            subject.stub(:current_version).and_return('0.1.2', '0.1.2')
-            shell.should_receive(:exec).with('yum install -y thing-0.1.2')
-          end
-
-          specify { subject.install(version: '0.1.2').should be_true }
-        end
-
-        context 'version not already installed' do
-          before do
-            subject.stub(:current_version).and_return('0.1.2', '1.2.3')
-            shell.should_receive(:exec).with('yum install -y thing-1.2.3')
-          end
-
-          specify { subject.install(version: '1.2.3').should be_true }
-        end
+        subject.install('0.1.2')
       end
     end
 
     context 'no version' do
-      context 'skip_install? is true' do
-        before { subject.stub(:skip_install?).and_return true }
-        specify { subject.install(version: '0.1.2').should be_nil }
+      before { expect(shell).to receive(:exec).with('yum install -y thing') }
+
+      context 'failed install' do
+        before { allow(shell).to receive(:last_exit_status) { 1 } }
+        specify { expect(subject.install).to eq false }
       end
 
-      context 'skip_install? is false' do
-        before do
-          subject.stub(:skip_install?).and_return false
-          shell.should_receive(:exec).with('yum install -y thing')
-        end
-
-        context 'package was already installed and at latest version' do
-          before do
-            subject.stub(:current_version).and_return('1.2.3', '1.2.3')
-          end
-
-          context 'failed install' do
-            before { shell.stub(:last_exit_status).and_return 1 }
-            specify { subject.install.should == false }
-
-            it 'does not notify observers' do
-              subject.should_not_receive(:changed)
-              subject.should_not_receive(:notify_observers)
-
-              subject.install
-            end
-          end
-
-          context 'successful install' do
-            before { shell.stub(:last_exit_status).and_return 0 }
-            specify { subject.install.should == true }
-
-            it 'does not notify observers' do
-              subject.should_not_receive(:changed)
-              subject.should_not_receive(:notify_observers)
-
-              subject.install
-            end
-          end
-        end
-
-        context 'package was already installed but at older version' do
-          before do
-            subject.stub(:current_version).and_return('0.1.2', '1.2.3')
-          end
-
-          context 'failed install' do
-            before { shell.stub(:last_exit_status).and_return 1 }
-            specify { subject.install.should == false }
-
-            it 'does not notify observers' do
-              subject.should_not_receive(:changed)
-              subject.should_not_receive(:notify_observers)
-
-              subject.install
-            end
-          end
-
-          context 'successful install' do
-            before { shell.stub(:last_exit_status).and_return 0 }
-            specify { subject.install.should == true }
-
-            it 'notifies observers' do
-              subject.should_receive(:changed)
-              subject.should_receive(:notify_observers).
-                with(subject, attribute: :version, old: '0.1.2', new: '1.2.3',
-                as_sudo: false)
-
-              subject.install
-            end
-          end
-        end
-
-        context 'package not yet installed' do
-          before do
-            subject.stub(:current_version).and_return(nil, '1.2.3')
-          end
-
-          context 'failed install' do
-            before { shell.stub(:last_exit_status).and_return 1 }
-            specify { subject.install.should == false }
-
-            it 'does not notify observers' do
-              subject.should_not_receive(:changed)
-              subject.should_not_receive(:notify_observers)
-
-              subject.install
-            end
-          end
-
-          context 'successful install' do
-            before { shell.stub(:last_exit_status).and_return 0 }
-            specify { subject.install.should == true }
-
-            it 'notifies observers' do
-              subject.should_receive(:changed)
-              subject.should_receive(:notify_observers).
-                with(subject, attribute: :version, old: nil, new: '1.2.3',
-                as_sudo: false)
-
-              subject.install
-            end
-          end
-        end
+      context 'successful install' do
+        before { allow(shell).to receive(:last_exit_status) { 0 } }
+        specify { expect(subject.install).to eq true }
       end
     end
   end
 
+  describe '#installed?' do
+    before { expect(shell).to receive(:exec).with('yum info thing') }
+
+    context 'failed install' do
+      before { allow(shell).to receive(:last_exit_status) { 1 } }
+      specify { expect(subject).to_not be_installed }
+    end
+
+    context 'successful install' do
+      before { allow(shell).to receive(:last_exit_status) { 0 } }
+      specify { expect(subject).to be_installed }
+    end
+  end
+
   describe '#at_latest_version?' do
-    before { shell.stub(:exec).and_return(result1, result2) }
+    before { allow(shell).to receive(:exec).and_return(result1, result2) }
 
     context 'not a package' do
       let(:result1) do
@@ -236,7 +127,7 @@ Error: No matching Packages to list
         RESULT
       end
 
-      specify { subject.at_latest_version?.should be_nil }
+      specify { expect(subject.at_latest_version?).to be_nil }
     end
 
     context 'not installed' do
@@ -268,7 +159,7 @@ Description: Zope is an application server framework that enables developers to 
         RESULT
       end
 
-      specify { subject.at_latest_version?.should be_false }
+      specify { expect(subject).to_not be_at_latest_version }
     end
 
     context 'installed but not latest' do
@@ -282,8 +173,7 @@ curl.x86_64            7.15.5-17.el5_9                updates
       end
 
       let(:result2) {}
-
-      specify { subject.at_latest_version?.should be_false }
+      specify { expect(subject).to_not be_at_latest_version }
     end
 
     context 'installed and latest' do
@@ -316,104 +206,46 @@ Description: GNU Wget is a file retrieval utility which can use either the HTTP 
         RESULT
       end
 
-      specify { subject.at_latest_version?.should be_true }
+      specify { expect(subject).to be_at_latest_version }
     end
   end
 
   describe '#current_version' do
-    context 'not a package or not installed' do
-      before do
-        shell.should_receive(:exec).with('rpm -qa thing').and_return result
-      end
+    before do
+      expect(shell).to receive(:exec).with('rpm -qa thing') { result }
+    end
 
+    context 'not a package or not installed' do
       let(:result) { '' }
-      specify { subject.current_version.should be_nil }
+      specify { expect(subject.current_version).to be_nil }
     end
 
     context 'installed' do
-      before do
-        shell.should_receive(:exec).with('rpm -qa thing').and_return result
-      end
-
       let(:result) { 'thing-1.11.4-3.el5_8.2' }
-      specify { subject.current_version.should == '1.11.4-3.el5_8.2' }
+      specify { expect(subject.current_version).to eq '1.11.4-3.el5_8.2' }
     end
   end
 
   describe '#remove' do
-    before do
-      shell.should_receive(:exec).with('yum remove -y thing')
-      subject.stub(:current_version).and_return '1.2.3'
+    before { expect(shell).to receive(:exec).with('yum remove -y thing') }
+
+    context 'failed removal' do
+      before { allow(shell).to receive(:last_exit_status) { 1 } }
+      specify { expect(subject.remove).to eq false }
     end
 
-    context 'package was already installed' do
-      before do
-        subject.should_receive(:installed?).and_return true
-      end
-
-      context 'failed removal' do
-        before { shell.stub(:last_exit_status).and_return 1 }
-        specify { subject.remove.should == false }
-
-        it 'does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.remove
-        end
-      end
-
-      context 'successful removal' do
-        before { shell.stub(:last_exit_status).and_return 0 }
-        specify { subject.remove.should == true }
-
-        it 'notifies observers' do
-          subject.should_receive(:changed)
-          subject.should_receive(:notify_observers).
-            with(subject, attribute: :version, old: '1.2.3', new: nil,
-            as_sudo: false)
-
-          subject.remove
-        end
-      end
-    end
-
-    context 'package not yet installed' do
-      before do
-        subject.should_receive(:installed?).and_return false
-      end
-
-      context 'failed removal' do
-        before { shell.stub(:last_exit_status).and_return 1 }
-        specify { subject.remove.should == false }
-
-        it 'does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.remove
-        end
-      end
-
-      context 'successful removal' do
-        before do
-          shell.stub(:last_exit_status).and_return 0
-          subject.stub(:current_version).and_return '1.2.3'
-        end
-
-        specify { subject.remove.should == true}
-
-        it 'does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.remove
-        end
-      end
+    context 'successful removal' do
+      before { allow(shell).to receive(:last_exit_status) { 0 } }
+      specify { expect(subject.remove).to eq true }
     end
   end
 
   describe '#upgrade' do
+    before do
+      expect(shell).to receive(:exec).with('yum upgrade -y thing') { output }
+      expect(shell).to receive(:last_exit_status) { 0 }
+    end
+
     context 'not yet installed' do
       let(:output) do
         <<-OUTPUT
@@ -432,19 +264,7 @@ No Packages marked for Update
         OUTPUT
       end
 
-      before do
-        subject.should_receive(:installed?).and_return false
-        subject.stub(:current_version).and_return(nil, '1.2.3')
-        shell.should_receive(:exec).with('yum upgrade -y thing').and_return output
-        shell.should_receive(:last_exit_status).and_return 0
-      end
-
-      it 'returns false and does not notify observers' do
-        subject.should_not_receive(:update)
-        subject.should_not_receive(:notify_observers)
-
-        subject.upgrade.should == false
-      end
+      specify { expect(subject.upgrade).to eq false }
     end
 
     context 'already at latest version' do
@@ -460,19 +280,7 @@ No Packages marked for Update
         OUTPUT
       end
 
-      before do
-        subject.should_receive(:installed?).and_return true
-        subject.stub(:current_version)
-        shell.should_receive(:exec).with('yum upgrade -y thing').and_return output
-        shell.should_receive(:last_exit_status).and_return 0
-      end
-
-      it 'returns false and does not notify observers' do
-        subject.should_not_receive(:update)
-        subject.should_not_receive(:notify_observers)
-
-        subject.upgrade.should == false
-      end
+      specify { expect(subject.upgrade).to eq false }
     end
 
     context 'installed but not at latest version' do
@@ -544,21 +352,7 @@ Complete!
         OUTPUT
       end
 
-      before do
-        subject.should_receive(:installed?).and_return true
-        subject.stub(:current_version).and_return '0.1.2', '1.2.3'
-        shell.should_receive(:exec).with('yum upgrade -y thing').and_return output
-        shell.should_receive(:last_exit_status).and_return 0
-      end
-
-      it 'returns true and notifies observers' do
-        subject.should_receive(:changed)
-        subject.should_receive(:notify_observers).
-          with(subject, attribute: :version, old: '0.1.2', new: '1.2.3',
-          as_sudo: false)
-
-        subject.upgrade.should == true
-      end
+      specify { expect(subject.upgrade).to eq true }
     end
   end
 end

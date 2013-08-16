@@ -23,3 +23,6 @@ rosh*.gem
 atlassian-ide-plugin.xml
 
 .vagrant
+
+# guard
+tmp/

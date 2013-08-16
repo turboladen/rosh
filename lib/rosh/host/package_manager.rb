@@ -1,4 +1,3 @@
-require 'observer'
 Dir[File.dirname(__FILE__) + '/package_managers/*.rb'].each(&method(:require))
 
 
@@ -19,26 +18,101 @@ class Rosh
     #   pm['curl'].install
     #
     class PackageManager
-      include Observable
 
-      # @param [Rosh::Shell] shell
-      # @param [Symbol] manager_types The PackageManager types to delegate to.
+      # @param [Symbol] manager_type The PackageManager types to delegate to.
       #   Look at the list of PackageManagers.
-      def initialize(shell, *manager_types)
+      # @param [Symbol] package_type The PackageType to delegate to.
+      #   Look at the list of PackageTypes.
+      # @param [Rosh::Host::Shells::*] shell
+      def initialize(manager_type, package_type, shell)
         @shell = shell
-
-        manager_types.each do |type|
-          self.class.
-            send(:prepend, Rosh::Host::PackageManagers.const_get(type.to_s.capitalize.to_sym))
-        end
+        @manager_type = manager_type
+        @package_type = package_type
       end
 
       # Use for managing a single package.
       #
       # @param [String] package_name The package name to manage.
-      # @return [Rosh::PackageType]
+      # @return [Rosh::Host::PackageTypes::*]
       def [](package_name)
-        create(package_name)
+        adapter.create_package(package_name)
+      end
+
+      # The directory the package manager's executable is in.
+      #
+      # @return [String]
+      def bin_path
+        adapter.bin_path
+      end
+
+      # Set the directory the package manager's executable is in.
+      #
+      # @param [String] new_path
+      def bin_path=(new_path)
+        adapter.bin_path = new_path
+      end
+
+      def update_definitions
+        output = adapter.update_definitions
+        updated = adapter.extract_updated_definitions(output)
+        success = @shell.last_exit_status.zero?
+
+        if success && !updated.empty?
+          adapter.changed
+          adapter.notify_observers(adapter,
+            attribute: :package_definitions,
+            old: [], new: updated, as_sudo: @shell.su?)
+        end
+
+        success
+      end
+
+      # Upgrades outdated packages.  Notifies observers with packages that were
+      # updated.  The list of packages in the update notification is an Array
+      # of Rosh::Host::PackageTypes that are managed by the PackageManager.
+      #
+      # @return [Boolean] +true+ if exit status was 0; +false+ if not.
+      def upgrade_packages
+        old_packages = adapter.installed_packages
+        output = adapter.upgrade_packages
+        new_packages = adapter.extract_upgraded_packages(output)
+        success = @shell.last_exit_status.zero?
+
+        if success && !new_packages.empty?
+          adapter.changed
+          adapter.notify_observers(adapter,
+            attribute: :installed_packages, old: old_packages,
+            new: new_packages, as_sudo: @shell.su?)
+        end
+
+        success
+      end
+
+      #-------------------------------------------------------------------------
+      # PRIVATES
+      #-------------------------------------------------------------------------
+      private
+
+      # Creates the adapter if it's not yet been set.
+      #
+      # @return [Rosh::Host::PackageManagers::*]
+      def adapter
+        @adapter ||= create_adapter(@manager_type, @shell)
+      end
+
+      # Creates the adapter object based on the given +manager_type+.
+      #
+      # @param [Symbol, String] manager_type
+      # @param [Rosh::Host::Shells::*] shell
+      #
+      # @return [Rosh::Host::PackageManagers::*]
+      def create_adapter(manager_type, shell)
+        require_relative "package_managers/#{manager_type}"
+
+        package_manager_klass =
+          Rosh::Host::PackageManagers.const_get(manager_type.to_s.capitalize.to_sym)
+
+        package_manager_klass.new(shell)
       end
     end
   end

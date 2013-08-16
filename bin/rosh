@@ -9,6 +9,8 @@ if arg == '--irb'
   require_relative '../lib/rosh'
   IRB.setup '../lib/rosh'
 
+  Rosh.add_host('192.168.1.160', host_alias: :jenkins, user: 'admin')
+
   Rosh.add_host('192.168.33.100', host_alias: :centos5, user: 'vagrant',
     keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
 

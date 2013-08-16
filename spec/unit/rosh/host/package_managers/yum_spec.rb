@@ -17,10 +17,7 @@ describe Rosh::Host::PackageManagers::Yum do
   before { subject.instance_variable_set(:@shell, shell) }
 
   subject do
-    o = Object.new
-    o.extend Rosh::Host::PackageManagers::Yum
-
-    o
+    Rosh::Host::PackageManagers::Yum.new(shell)
   end
 
   describe '#installed_packages' do
@@ -46,21 +43,21 @@ ORBit2.x86_64                            2.14.3-5.el5          installed
     end
 
     it 'creates a Rpm package object for each package' do
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('MAKEDEV', architecture: 'x86_64',version: '3.23-1.2', status: 'installed')
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('NetworkManager', architecture: 'i386', version: '1:0.7.0-13.el5',
         status: 'installed')
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('NetworkManager', architecture: 'x86_64', version: '1:0.7.0-13.el5',
         status: 'installed')
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('NetworkManager-glib', architecture: 'i386', version: '1:0.7.0-13.el5',
         status: 'installed')
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('NetworkManager-glib', architecture: 'x86_64', version: '1:0.7.0-13.el5',
         status: 'installed')
-      subject.should_receive(:create).
+      subject.should_receive(:create_package).
         with('ORBit2', architecture: 'x86_64',version: '2.14.3-5.el5',
         status: 'installed')
 
@@ -68,46 +65,15 @@ ORBit2.x86_64                            2.14.3-5.el5          installed
     end
   end
 
-  describe '#update_index' do
-    before do
-      shell.should_receive(:exec).with('yum check-update').and_return output
+  describe '#update_definitions' do
+    it 'calls `yum check-update`' do
+      expect(shell).to receive(:exec).with 'yum check-update'
+      subject.update_definitions
     end
+  end
 
+  describe '#extract_update_definitions' do
     context 'index does not change during update' do
-      let(:output) do
-        <<-OUTPUT
-Loaded plugins: fastestmirror
-Loading mirror speeds from cached hostfile
- * base: yum.phx.singlehop.com
- * extras: mirror.cisp.com
- * updates: mirror.umd.edu
-        OUTPUT
-      end
-
-      context 'successful command' do
-        before { shell.stub(:last_exit_status).and_return 0 }
-
-        it 'returns true and does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.update_index.should == true
-        end
-      end
-
-      context 'unsuccessful command' do
-        before { shell.stub(:last_exit_status).and_return 1 }
-
-        it 'returns false and does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.update_index.should == false
-        end
-      end
-    end
-
-    context 'index changes after update' do
       let(:output) do
         <<-OUTPUT
 Loaded plugins: fastestmirror
@@ -125,114 +91,64 @@ updates/primary_db                                                | 376 kB     0
         OUTPUT
       end
 
-      context 'successful command' do
-        before { shell.stub(:last_exit_status).and_return 0 }
+      it 'returns an empty Array' do
+        expect(subject.extract_updated_definitions(output)).to eq []
+      end
+    end
 
-        let(:updated) do
-          %w[base base/primary extras extras/primary_db updates updates/primary_db]
-        end
+    context 'index changes after update' do
+      let(:output) do
+        <<-OUTPUT
+Loaded plugins: fastestmirror
+Determining fastest mirrors
+ * base: mirror.spro.net
+ * extras: mirror.umd.edu
+ * updates: mirrors-pa.sioru.com
+base                                          | 1.1 kB     00:00
+base/primary                                  | 1.2 MB     00:00
+base                                                       3641/3641
+extras                                        | 2.1 kB     00:00
+extras/primary_db                             | 188 kB     00:00
+updates                                       | 1.9 kB     00:00
+updates/primary_db                            | 376 kB     00:01
 
-        it 'returns true and notifies observers' do
-          subject.should_receive(:changed)
-          subject.should_receive(:notify_observers).
-            with(subject, attribute: :index, old: [], new: updated,
-            as_sudo: false)
-
-          subject.update_index.should == true
-        end
+augeas-libs.x86_64             1.0.0-1.el5                         epel
+bash.x86_64                    3.2-32.el5_9.1                      updates
+binutils.x86_64                2.17.50.0.6-20.el5_8.3              base
+        OUTPUT
       end
 
-      context 'unsuccessful command' do
-        before { shell.stub(:last_exit_status).and_return 1 }
-
-        it 'returns false and does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.update_index.should == false
-        end
+      it 'returns an Array of Hashes containing the updated package defs' do
+        expect(subject.extract_updated_definitions(output)).to eq [
+          {
+            package: 'augeas-libs',
+            architecture: 'x86_64',
+            version: '1.0.0-1.el5',
+            repository: 'epel'
+          }, {
+            package: 'bash',
+            architecture: 'x86_64',
+            version: '3.2-32.el5_9.1',
+            repository: 'updates'
+          }, {
+            package: 'binutils',
+            architecture: 'x86_64',
+            version: '2.17.50.0.6-20.el5_8.3',
+            repository: 'base'
+          }
+        ]
       end
     end
   end
 
   describe '#upgrade_packages' do
-    before do
-      subject.stub(:installed_packages).and_return []
+    it 'runs yum update -y' do
       shell.should_receive(:exec).with('yum update -y')
-    end
-
-    context 'no packages to upgrade' do
-      let(:output) { 'some output' }
-
-      before do
-        subject.should_receive(:extract_upgradable_packages).and_return []
-      end
-
-      context 'successful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 0
-        end
-
-        it 'returns true but does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.upgrade_packages.should == true
-        end
-      end
-
-      context 'unsuccessful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 1
-        end
-
-        it 'returns false and does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.upgrade_packages.should == false
-        end
-      end
-    end
-
-    context 'packages to upgrade' do
-      context 'successful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 0
-          subject.should_receive(:extract_upgradable_packages).
-            and_return [rpm_package]
-        end
-
-        let(:rpm_package) { double 'Rosh::Host::PackageTypes::Rpm' }
-
-        it 'returns true and notifies observers' do
-          subject.should_receive(:changed)
-          subject.should_receive(:notify_observers).
-            with(subject, attribute: :installed_packages, old: [],
-            new: [rpm_package], as_sudo: false)
-
-          subject.upgrade_packages.should == true
-        end
-      end
-
-      context 'unsuccessful command' do
-        before do
-          shell.should_receive(:last_exit_status).and_return 1
-          subject.should_receive(:extract_upgradable_packages).
-            and_return []
-        end
-
-        it 'returns false and does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.upgrade_packages.should == false
-        end
-      end
+      subject.upgrade_packages
     end
   end
 
-  describe '#extract_upgradable_packages' do
+  describe '#extract_upgraded_packages' do
     context 'nothing to upgrade' do
       let(:output) do
         <<-EOF
@@ -247,7 +163,7 @@ No Packages marked for Update
       end
 
       it 'returns an empty array' do
-        subject.send(:extract_upgradable_packages, output).should == []
+        subject.send(:extract_upgraded_packages, output).should == []
       end
     end
 
@@ -346,26 +262,26 @@ Complete!
       end
 
       it 'returns an array of new Brew packages' do
-        subject.should_receive(:create).with('device-mapper-multipath',
+        subject.should_receive(:create_package).with('device-mapper-multipath',
           version: '0:0.4.7-54.el5_9.2', architecture: 'x86_64').and_return 1
-        subject.should_receive(:create).with('glibc',
+        subject.should_receive(:create_package).with('glibc',
           version: '0:2.5-107.el5_9.4', architecture: 'i686').and_return 2
-        subject.should_receive(:create).with('glibc',
+        subject.should_receive(:create_package).with('glibc',
           version: '0:2.5-107.el5_9.4', architecture: 'x86_64').and_return 3
-        subject.should_receive(:create).with('glibc-common',
+        subject.should_receive(:create_package).with('glibc-common',
           version: '0:2.5-107.el5_9.4', architecture: 'x86_64').and_return 4
-        subject.should_receive(:create).with('glibc-devel',
+        subject.should_receive(:create_package).with('glibc-devel',
           version: '0:2.5-107.el5_9.4', architecture: 'x86_64').and_return 5
-        subject.should_receive(:create).with('glibc-headers',
+        subject.should_receive(:create_package).with('glibc-headers',
           version: '0:2.5-107.el5_9.4', architecture: 'x86_64').and_return 6
-        subject.should_receive(:create).with('kernel',
+        subject.should_receive(:create_package).with('kernel',
           version: '0:2.6.18-348.4.1.el5', architecture: 'x86_64').and_return 7
-        subject.should_receive(:create).with('kernel-devel',
+        subject.should_receive(:create_package).with('kernel-devel',
           version: '0:2.6.18-348.4.1.el5', architecture: 'x86_64').and_return 8
-        subject.should_receive(:create).with('kernel-headers',
+        subject.should_receive(:create_package).with('kernel-headers',
           version: '0:2.6.18-348.4.1.el5', architecture: 'x86_64').and_return 9
 
-        result = subject.send(:extract_upgradable_packages, output)
+        result = subject.send(:extract_upgraded_packages, output)
         result.should eq [1, 2, 3, 4, 5, 6, 7, 8, 9]
       end
     end
