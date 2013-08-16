@@ -52,8 +52,19 @@ class Rosh
         adapter.bin_path = new_path
       end
 
-      def update_index
-        adapter.update_index
+      def update_definitions
+        output = adapter.update_definitions
+        updated = adapter.extract_updated_definitions(output)
+        success = @shell.last_exit_status.zero?
+
+        if success && !updated.empty?
+          adapter.changed
+          adapter.notify_observers(adapter,
+            attribute: :package_definitions,
+            old: [], new: updated, as_sudo: @shell.su?)
+        end
+
+        success
       end
 
       # Upgrades outdated packages.  Notifies observers with packages that were

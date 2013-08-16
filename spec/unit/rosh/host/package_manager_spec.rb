@@ -39,6 +39,78 @@ describe Rosh::Host::PackageManager do
     end
   end
 
+  describe '#update_definitions' do
+    context 'no definitions updated' do
+      before do
+        allow(adapter).to receive(:update_definitions) { '' }
+        allow(adapter).to receive(:extract_updated_definitions) { [] }
+      end
+
+      context 'failed command' do
+        before { allow(shell).to receive(:last_exit_status) { 1 } }
+
+        it 'does not notify observers' do
+          expect(adapter).to_not receive(:changed)
+          expect(adapter).to_not receive(:notify_observers)
+
+          subject.update_definitions
+        end
+      end
+
+      context 'successful command' do
+        before { allow(shell).to receive(:last_exit_status) { 0 } }
+
+        it 'does not notify observers' do
+          expect(adapter).to_not receive(:changed)
+          expect(adapter).to_not receive(:notify_observers)
+
+          subject.update_definitions
+        end
+      end
+    end
+
+    context 'definitions updated' do
+      let(:updated_definition) { double 'updated definition' }
+      let(:command_output) { double 'command output' }
+
+      before do
+        allow(adapter).to receive(:update_definitions) { command_output }
+        allow(adapter).to receive(:extract_updated_definitions) { [updated_definition] }
+      end
+
+      context 'failed command' do
+        before { allow(shell).to receive(:last_exit_status) { 1 } }
+
+        it 'does not notify observers' do
+          expect(adapter).to_not receive(:changed)
+          expect(adapter).to_not receive(:notify_observers)
+
+          subject.update_definitions
+        end
+      end
+
+      context 'successful command' do
+        before do
+          allow(shell).to receive(:last_exit_status) { 0 }
+          expect(shell).to receive(:su?) { false }
+        end
+
+        it 'notifies observers' do
+          expect(adapter).to receive(:changed)
+          expect(adapter).to receive(:notify_observers).
+            with(adapter,
+            attribute: :package_definitions,
+            old: [],
+            new: [updated_definition],
+            as_sudo: false
+          )
+
+          subject.update_definitions
+        end
+      end
+    end
+  end
+
   describe '#upgrade_packages' do
     context 'no packages upgraded' do
       before do

@@ -65,46 +65,15 @@ ORBit2.x86_64                            2.14.3-5.el5          installed
     end
   end
 
-  describe '#update_index' do
-    before do
-      shell.should_receive(:exec).with('yum check-update').and_return output
+  describe '#update_definitions' do
+    it 'calls `yum check-update`' do
+      expect(shell).to receive(:exec).with 'yum check-update'
+      subject.update_definitions
     end
+  end
 
+  describe '#extract_update_definitions' do
     context 'index does not change during update' do
-      let(:output) do
-        <<-OUTPUT
-Loaded plugins: fastestmirror
-Loading mirror speeds from cached hostfile
- * base: yum.phx.singlehop.com
- * extras: mirror.cisp.com
- * updates: mirror.umd.edu
-        OUTPUT
-      end
-
-      context 'successful command' do
-        before { shell.stub(:last_exit_status).and_return 0 }
-
-        it 'returns true and does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.update_index.should == true
-        end
-      end
-
-      context 'unsuccessful command' do
-        before { shell.stub(:last_exit_status).and_return 1 }
-
-        it 'returns false and does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.update_index.should == false
-        end
-      end
-    end
-
-    context 'index changes after update' do
       let(:output) do
         <<-OUTPUT
 Loaded plugins: fastestmirror
@@ -122,32 +91,52 @@ updates/primary_db                                                | 376 kB     0
         OUTPUT
       end
 
-      context 'successful command' do
-        before { shell.stub(:last_exit_status).and_return 0 }
+      it 'returns an empty Array' do
+        expect(subject.extract_updated_definitions(output)).to eq []
+      end
+    end
 
-        let(:updated) do
-          %w[base base/primary extras extras/primary_db updates updates/primary_db]
-        end
+    context 'index changes after update' do
+      let(:output) do
+        <<-OUTPUT
+Loaded plugins: fastestmirror
+Determining fastest mirrors
+ * base: mirror.spro.net
+ * extras: mirror.umd.edu
+ * updates: mirrors-pa.sioru.com
+base                                          | 1.1 kB     00:00
+base/primary                                  | 1.2 MB     00:00
+base                                                       3641/3641
+extras                                        | 2.1 kB     00:00
+extras/primary_db                             | 188 kB     00:00
+updates                                       | 1.9 kB     00:00
+updates/primary_db                            | 376 kB     00:01
 
-        it 'returns true and notifies observers' do
-          subject.should_receive(:changed)
-          subject.should_receive(:notify_observers).
-            with(subject, attribute: :index, old: [], new: updated,
-            as_sudo: false)
-
-          subject.update_index.should == true
-        end
+augeas-libs.x86_64             1.0.0-1.el5                         epel
+bash.x86_64                    3.2-32.el5_9.1                      updates
+binutils.x86_64                2.17.50.0.6-20.el5_8.3              base
+        OUTPUT
       end
 
-      context 'unsuccessful command' do
-        before { shell.stub(:last_exit_status).and_return 1 }
-
-        it 'returns false and does not notify observers' do
-          subject.should_not_receive(:changed)
-          subject.should_not_receive(:notify_observers)
-
-          subject.update_index.should == false
-        end
+      it 'returns an Array of Hashes containing the updated package defs' do
+        expect(subject.extract_updated_definitions(output)).to eq [
+          {
+            package: 'augeas-libs',
+            architecture: 'x86_64',
+            version: '1.0.0-1.el5',
+            repository: 'epel'
+          }, {
+            package: 'bash',
+            architecture: 'x86_64',
+            version: '3.2-32.el5_9.1',
+            repository: 'updates'
+          }, {
+            package: 'binutils',
+            architecture: 'x86_64',
+            version: '2.17.50.0.6-20.el5_8.3',
+            repository: 'base'
+          }
+        ]
       end
     end
   end

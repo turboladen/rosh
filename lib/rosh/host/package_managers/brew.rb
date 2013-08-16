@@ -23,14 +23,21 @@ class Rosh
           end
         end
 
-        # Updates homebrew's package index using `brew update`.  Notifies
-        # observers with lists of new, updated, and deleted packages from the
-        # index.
+        # Updates homebrew's formula index using `brew update`.
         #
-        # @return [Boolean] +true+ if exit status was 0; +false+ if not.
-        def update_index
-          output = @shell.exec("#{bin_path}/brew update")
-          return false unless output.is_a? String
+        # @return [String] Output from the shell command.
+        def update_definitions
+          @shell.exec("#{bin_path}/brew update")
+        end
+
+        # Extracts the list of updated package definitions from the output of
+        # a #update_definitions call.
+        #
+        # @param [String] output from the #update_defintions call.
+        # @return [Array<Hash{new_formulae: Array, updated_formulae: Array, deleted_formulae: Array}>]
+        # TODO: How to deal with output being an Exception?
+        def extract_updated_definitions(output)
+          return [] unless output.is_a? String
 
           /==> New Formulae\n(?<new_formulae>[^=>]*)/m =~ output
           /==> Updated Formulae\n(?<updated_formulae>[^=>]*)/m =~ output
@@ -47,15 +54,7 @@ class Rosh
             updated << { deleted_formulae: deleted_formulae.split }
           end
 
-          success = @shell.last_exit_status.zero?
-
-          if success && !updated.empty?
-            changed
-            notify_observers(self,
-              attribute: :index, old: [], new: updated, as_sudo: @shell.su?)
-          end
-
-          success
+          updated
         end
 
         # Upgrades outdated packages using `brew upgrade`.

@@ -7,38 +7,38 @@ class Rosh
     module PackageManagers
       class Apt < Base
 
-        # Updates Apt's package index using `apt-get update`.  Notifies
-        # observers with Arrays of old sources (that weren't updated) and
-        # updated sources.
+        # Updates Apt's package index using `apt-get update`.
         #
-        # @return [Boolean] +true+ if exit status was 0; +false+ if not.
-        def update_index
-          output = @shell.exec 'apt-get update'
+        # @return [String] Output from the shell command.
+        def update_definitions
+          @shell.exec 'apt-get update'
+        end
 
-          not_updated = []
+        # Extracts the list of updated package definitions from the output of
+        # a #update_definitions call.
+        #
+        # @param [String] output from the #update_defintions call.
+        # @return [Array<Hash{source: String, distribution: String, components: Array, size: String}]
+        # TODO: How to deal with output being an Exception?
+        def extract_updated_definitions(output)
+          return [] unless output.is_a? String
+
           updated = []
 
           output.each_line do |line|
-            /Hit\s+(?<hit_source>.+)/ =~ line
-            if hit_source
-              not_updated << hit_source
-              next
-            end
+            next unless line.start_with?('Get:')
 
-            /Get:\d\s+(?<get_source>.+)/ =~ line
-            updated << get_source if get_source
+            %r(Get:\d\s+(?<get_source>\S+)\s(?<distro>\S+)\s(?<components>[^\[]+)\s\[(?<size>[^\]]+)) =~ line
+
+            updated << {
+              source: get_source,
+              distribution: distro,
+              components: components.split(' '),
+              size: size
+            }
           end
 
-          success = @shell.last_exit_status.zero?
-
-          if success && !updated.empty?
-            changed
-            notify_observers(self,
-              attribute: :index, old: not_updated, new: updated,
-              as_sudo: @shell.su?)
-          end
-
-          success
+          updated.compact
         end
 
         # Upgrades outdated packages using `apt-get upgrade -y`.

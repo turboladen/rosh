@@ -22,29 +22,30 @@ class Rosh
           end
         end
 
-        # Updates Yum's package index using `yum check-update`.  Notifies
-        # observers with updated sources.
+        # Updates Yum's package index using `yum check-update`.
         #
-        # @return [Boolean] +true+ if exit status was 0; +false+ if not.
-        def update_index
-          output = @shell.exec 'yum check-update'
+        # @return [String] output from the shell command.
+        def update_definitions
+          @shell.exec 'yum check-update'
+        end
 
-          updated = output.each_line.map do |line|
-            /^(?<yum_source>\S+)\s+\|\s+\d/ =~ line
-            next unless yum_source
+        # Extracts the list of updated package definitions from the output of
+        # a #update_definitions call.
+        #
+        # @param [String] output from the #update_defintions call.
+        # @return [Array<Hash{package: String, architecture: String, version: String, repository: String}>]
+        # TODO: How to deal with output being an Exception?
+        def extract_updated_definitions(output)
+          return [] unless output.is_a? String
+          return [] unless output.match(/\n\n/)
 
-            yum_source
-          end.compact
+          _, packages = output.split("\n\n")
 
-          success = @shell.last_exit_status.zero?
+          packages.each_line.map do |line|
+            /^(?<pkg>[^\.]+)\.(?<arch>\S+)\s+(?<version>\S+)\s+(?<repo>\S+)/ =~ line
 
-          if success && !updated.empty?
-            changed
-            notify_observers(self,
-              attribute: :index, old: [], new: updated, as_sudo: @shell.su?)
+            { package: pkg, architecture: arch, version: version, repository: repo }
           end
-
-          success
         end
 
         # Upgrades outdated packages using `yum update -y`.
