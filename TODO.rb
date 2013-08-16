@@ -39,7 +39,7 @@
 #   * user_manager
 
 # TODO: API specs
-#   * package managers
+#   x package managers
 #   * service managers
 #   * service types
 #   * shells
