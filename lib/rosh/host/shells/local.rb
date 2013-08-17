@@ -75,7 +75,7 @@ class Rosh
           {
             path: @path,
             shell: File.expand_path(File.basename($0), File.dirname($0)),
-            pwd: pwd.to_path
+            pwd: Rosh::Host::FileSystemObjects::LocalDir.new(@internal_pwd).to_path
           }
         end
 
