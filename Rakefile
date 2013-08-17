@@ -8,7 +8,7 @@ require 'yard'
 YARD::Rake::YardocTask.new do |t|
   t.files = %w(lib/**/*.rb - History.rdoc)
   t.options = %w(--title rosh Documentation (#{Rosh::VERSION}))
-  t.options += %w(--main README.rdoc)
+  t.options += %w(--main README.md)
 end
 
 RSpec::Core::RakeTask.new do |t|
