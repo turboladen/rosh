@@ -134,7 +134,13 @@ class Rosh
         def pwd
           log 'pwd called'
 
-          process(:pwd) { [Rosh::Host::FileSystemObjects::LocalDir.new(@internal_pwd), 0] }
+          output = process(:pwd) do
+            [Rosh::Host::FileSystemObjects::LocalDir.new(@internal_pwd), 0]
+          end
+
+          puts File.expand_path(output)
+
+          output
         end
 
         # Executes Ruby code in the context of an IRB::WorkSpace.  Thus, variables
