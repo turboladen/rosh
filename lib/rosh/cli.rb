@@ -101,14 +101,18 @@ class Rosh
       user_and_host << ":#{@current_host.shell._env[:pwd].split('/').last}".red
       user_and_host << ']'.blue
 
+=begin
       _, width = Readline.get_screen_size
       git = %x[git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/']
+=end
 
       prompt = user_and_host
 
+=begin
       unless git.empty?
         prompt << ("%#{width + 70 - user_and_host.size}s".yellow % "[git(#{git.strip})]")
       end
+=end
 
       prompt << '$ '.red
 
