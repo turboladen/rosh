@@ -32,7 +32,8 @@ class Rosh
         #   directory.
         #
         # @return [TrueClass] On success, returns true.  On fail,
-        #   #last_exit_status is set to 1 and returns the Exception that was raised.
+        #   #last_exit_status is set to 1 and returns the Exception that was
+        #   raised.
         def cd(path)
           log "cd called with arg '#{path}'"
           full_path = preprocess_path(path)
@@ -49,7 +50,7 @@ class Rosh
           end
         end
 
-        # Prints and returns the shell's environment as a commnad.  Note this
+        # Prints and returns the shell's environment as a command.  Note this
         # doesn't trump the Ruby process's ENV settings (which are still
         # accessible).
         #
@@ -58,24 +59,24 @@ class Rosh
           log 'env called'
 
           process(:env) do
-            env = read_env
+            env = _env
             ap env
 
             [env, 0]
           end
         end
 
-        # The shell's environment as a Hash.  Useful internally, or if for some
-        # reason you don't want to use #env.
+        # The shell's environment as a Hash.  Does not alter the state of the
+        # shell.
         #
         # @return [Hash]
-        def read_env
+        def _env
           @path ||= ENV['PATH'].split(':')
 
           {
             path: @path,
             shell: File.expand_path(File.basename($0), File.dirname($0)),
-            pwd: Rosh::Host::FileSystemObjects::LocalDir.new(@internal_pwd).to_path
+            pwd: _pwd.to_path
           }
         end
 
@@ -135,12 +136,19 @@ class Rosh
           log 'pwd called'
 
           output = process(:pwd) do
-            [Rosh::Host::FileSystemObjects::LocalDir.new(@internal_pwd), 0]
+            [_pwd, 0]
           end
 
           puts File.expand_path(output)
 
           output
+        end
+
+        # @return [Rosh::Host::FileSystemObjects::LocalDir] Returns the current
+        #   working directory, but doesn't alter state of the shell (i.e. does
+        #   not alter last_exit_status, etc).
+        def _pwd
+          Rosh::Host::FileSystemObjects::LocalDir.new(@internal_pwd)
         end
 
         # Executes Ruby code in the context of an IRB::WorkSpace.  Thus, variables
@@ -191,11 +199,14 @@ class Rosh
 
         # @return [Array<String>] List of commands given in the PATH.
         def system_commands
-          read_env[:path].map do |dir|
+          _env[:path].map do |dir|
             Dir["#{dir}/*"].map { |f| ::File.basename(f) }
           end.flatten
         end
 
+        #-----------------------------------------------------------------------
+        # PRIVATES
+        #-----------------------------------------------------------------------
         private
 
         # Expands paths based on the context of the shell.  Allows for using Ruby
