@@ -26,6 +26,7 @@ if arg == '--irb'
     keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
 
   Rosh.add_host('localhost', host_alias: :local)
+  Rosh.add_host('192.168.10.2', host_alias: :server)
 
   IRB.start
 else
