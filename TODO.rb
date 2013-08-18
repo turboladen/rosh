@@ -1,6 +1,8 @@
 # TODO: Convert FSOs to follow Package/PackageTypes design.
 
 # TODO: CLI shell
+#   * Make adding shell commands more API-like.
+#   * Handle wrong number of args by printing out usage
 
 # TODO: check_state_first stuff for shells
 #   * local base
