@@ -135,10 +135,7 @@ class Rosh
         def pwd
           log 'pwd called'
 
-          output = process(:pwd) do
-            [_pwd, 0]
-          end
-
+          output = process(:pwd) { [_pwd, 0] }
           puts File.expand_path(output)
 
           output
