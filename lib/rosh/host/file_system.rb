@@ -13,9 +13,9 @@ class Rosh
 
       def [](path)
         if @remote
-          RemoteBase.create(path, @shell)
+          FileSystemObjects::RemoteBase.create(path, @shell)
         else
-          LocalBase.create(path)
+          FileSystemObjects::LocalBase.create(path)
         end
       end
 

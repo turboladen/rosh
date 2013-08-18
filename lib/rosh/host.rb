@@ -39,7 +39,7 @@ class Rosh
       return @fs if @fs
 
       @fs = if local?
-        Rosh::Host::FileSystem.new
+        Rosh::Host::FileSystem.new(@shell, false)
       else
         Rosh::Host::FileSystem.new(@shell)
       end
