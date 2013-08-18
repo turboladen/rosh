@@ -11,12 +11,34 @@ describe Rosh::Host::FileSystemObjects::RemoteFile do
   let(:shell) { double 'Rosh::Host::Shells::Remote', :su? => false }
 
   describe '#contents' do
-    before do
-      shell.should_receive(:cat).and_return 'file contents'
+    context 'file does not exist' do
+      context 'no in-memory contents' do
+        before do
+          expect(shell).to receive(:cat) do
+            'cat: blah: No such file or directory'
+          end
+
+          expect(shell).to receive(:last_exit_status) { 1 }
+        end
+
+        specify { expect(subject.contents).to be_nil }
+      end
+
+      context 'no in-memory contents' do
+        before { subject.instance_variable_set(:@unwritten_contents, '12345') }
+        specify { expect(subject.contents).to eq '12345' }
+      end
     end
 
-    it 'cats the remote file and returns that' do
-      subject.contents.should == 'file contents'
+    context 'file exists' do
+      before do
+        expect(shell).to receive(:cat) { 'file contents' }
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      it 'cats the remote file and returns that' do
+        subject.contents.should == 'file contents'
+      end
     end
   end
 

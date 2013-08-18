@@ -22,7 +22,11 @@ class Rosh
 
         # @return [String] The contents of the remote file.
         def contents
-          @shell.cat(@path)
+          return @unwritten_contents if @unwritten_contents
+
+          results = @shell.cat(@path)
+
+          @shell.last_exit_status.zero? ? results : nil
         end
 
         # Stores +new_contents+ in memory until #save is called.
