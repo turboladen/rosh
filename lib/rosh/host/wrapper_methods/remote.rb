@@ -21,7 +21,7 @@ class Rosh
             cmd.insert(0, 'sudo ') if @sudo
             result = run(cmd)
 
-            if result.stderr.match %r[No such file or directory]
+            if result.stdout.match %r[No such file or directory]
               error = Rosh::ErrorENOENT.new(result.stderr)
 
               [error, result.exit_status, result.stdout, result.stderr]

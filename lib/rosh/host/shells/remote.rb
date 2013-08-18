@@ -194,6 +194,7 @@ class Rosh
 
               [result.ruby_object, 0, result.stdout]
             else
+              good_info result.stdout unless result.stdout.empty?
               output = if result.stdout.empty? && result.stderr.empty?
                 ''
               elsif result.stderr.empty?
