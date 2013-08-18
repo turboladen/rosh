@@ -47,7 +47,7 @@ describe Rosh::Host::Shells::Local do
       end
 
       specify { @r.should be_kind_of Exception }
-      specify { subject.last_exit_status.should eq $?.exitstatus }
+      specify { subject.last_exit_status.should eq 1 }
       specify { subject.last_result.should eq @r }
     end
 
