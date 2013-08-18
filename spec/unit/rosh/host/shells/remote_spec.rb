@@ -19,16 +19,8 @@ describe Rosh::Host::Shells::Remote do
     o
   end
 
-  subject do
-    Rosh::Host::Shells::Remote.new(hostname)
-  end
-
-  let(:internal_pwd) do
-    i = double 'Rosh::Host::FileSystemObjects::RemoteDir'
-    i.stub(:to_path).and_return '/home'
-
-    i
-  end
+  let(:internal_pwd) { '/home' }
+  subject { Rosh::Host::Shells::Remote.new(hostname) }
 
   before do
     Net::SSH.stub(:start).and_return(ssh)
@@ -293,10 +285,6 @@ describe Rosh::Host::Shells::Remote do
         r
       end
 
-      let(:internal_pwd) do
-        double 'Rosh::Host::FileSystemObjects::RemoteDir', to_path: '/home'
-      end
-
       before do
         subject.instance_variable_set(:@internal_pwd, internal_pwd)
         subject.should_receive(:run).with('cd /home && blah').and_return result
@@ -310,39 +298,15 @@ describe Rosh::Host::Shells::Remote do
   end
 
   describe '#pwd' do
-    let(:result) do
-      r = double 'Rosh::CommandResult'
-      r.stub(:ruby_object).and_return 'some path'
-      r.stub(:stderr)
+    let(:dir) do
+      r = double 'Rosh::Host::FileSystemObjects::RemoteDir'
+      r.stub(:to_path).and_return 'some path'
 
       r
     end
 
-    context '@internal_pwd is not set' do
-      before do
-        result.stub(:stdout)
-        subject.instance_variable_set(:@internal_pwd, nil)
-        subject.should_receive(:run).with('pwd').and_return result
-
-        @r = subject.pwd
-      end
-
-      specify { @r.should be_a Rosh::Host::FileSystemObjects::RemoteDir }
-      specify { subject.last_exit_status.should eq 0 }
-      specify { subject.last_result.should eq @r }
-    end
-
-    context '@internal_pwd is set' do
-      before do
-        subject.should_not_receive(:run).with('pwd')
-
-        @r = subject.pwd
-      end
-
-      specify { @r.should eq internal_pwd }
-      specify { subject.last_exit_status.should eq 0 }
-      specify { subject.last_result.should eq @r }
-    end
+    before { expect(subject).to receive(:_pwd) { dir } }
+    specify { expect(subject.pwd).to eq dir }
   end
 
   describe '#run' do

@@ -161,7 +161,7 @@ class Rosh
             result = run(cmd)
 
             if result.exit_status.zero?
-              @internal_pwd = Rosh::Host::FileSystemObjects::RemoteDir.new(result.ruby_object, self)
+              @internal_pwd = result.ruby_object.strip
 
               [true, 0, result.stdout, result.stderr]
             elsif result.stderr.match %r[No such file or directory]
@@ -186,7 +186,7 @@ class Rosh
           log "exec called with command '#{command}'"
 
           process(:exec, command: command) do
-            command = "cd #{@internal_pwd.to_path} && #{command}"
+            command = "cd #{@internal_pwd} && #{command}"
             result = run(command)
 
             if result.exit_status.zero?
@@ -221,14 +221,14 @@ class Rosh
         def pwd
           log 'pwd called'
 
-          if @internal_pwd
-            process(:pwd) { [@internal_pwd, 0, nil] }
-          else
-            result = run('pwd')
-            @internal_pwd = Rosh::Host::FileSystemObjects::RemoteDir.new(result.ruby_object.strip, self)
+          output = process(:pwd) { [_pwd, 0, nil] }
+          puts output.to_path
 
-            process(:pwd) { [@internal_pwd, 0, result.stdout, result.stderr] }
-          end
+          output
+        end
+
+        def _pwd
+          Rosh::Host::FileSystemObjects::RemoteDir.new(@internal_pwd, self)
         end
 
         def ruby(code)
@@ -379,7 +379,9 @@ class Rosh
         end
 
         def process(cmd, **args, &block)
-          pwd unless @internal_pwd
+          unless @internal_pwd
+            @internal_pwd = run('pwd').ruby_object.strip
+          end
 
           super(cmd, **args, &block)
         end
@@ -387,8 +389,7 @@ class Rosh
         def preprocess_path(path)
           path = '' unless path
           path.strip!
-
-          pwd unless @internal_pwd
+          @internal_pwd = run('pwd').ruby_object.strip
 
           unless path.start_with?('/') || path.start_with?('$')
             path = "#{@internal_pwd.to_path}/#{path}"
