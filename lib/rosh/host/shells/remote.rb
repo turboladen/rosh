@@ -152,10 +152,10 @@ class Rosh
         #   fail, #last_exit_status is set to the exit status from the remote
         #   command, Rosh::ErrorNOENT error.
         def cd(path)
-          log "cat called with arg '#{path}'"
+          log "cd called with arg '#{path}'"
           full_path = preprocess_path(path)
 
-          process(:cat, path: path) do
+          process(:cd, path: path) do
             cmd = "cd #{full_path} && pwd"
             cmd.insert(0, 'sudo ') if @sudo
             result = run(cmd)
