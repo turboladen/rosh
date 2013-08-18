@@ -66,24 +66,6 @@ describe Rosh::Host::FileSystemObjects::RemoteBase do
           should eq 'the link'
       end
     end
-
-    context 'force_type is given' do
-      let(:fso) do
-        f = double 'Rosh::Host::FileSystemObjects::RemoteBase'
-        f.should_receive(:directory?).and_return false
-        f.should_receive(:file?).and_return false
-        f.should_receive(:link?).and_return false
-
-        f
-      end
-
-      it 'returns a new object of force_type' do
-        Rosh::Host::FileSystemObjects::RemoteLink.should_receive(:new).
-          with('link', shell).and_return 'the link'
-        Rosh::Host::FileSystemObjects::RemoteBase.
-          create('link', shell, force_type: :link).should eq 'the link'
-      end
-    end
   end
 
   describe '#to_path' do

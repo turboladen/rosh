@@ -19,11 +19,8 @@ class Rosh
 
         # @param [String] path Path to the object.
         # @param [Rosh::Host::Shells::Remote] remote_shell
-        # @param [Symbol] force_type Make the object as a certain type.  +dir+,
-        #   +file+, +link+.  Used when the object doesn't yet exist on the file
-        #   system.
         # @return [Rosh::Host::FileSystemObjects::RemoteDir,Rosh::Host::FileSystemObjects::RemoteFile,Rosh::Host::FileSystemObjects::RemoteLink]
-        def self.create(path, remote_shell, force_type: nil)
+        def self.create(path, remote_shell)
           fso = new(path, remote_shell)
 
           if fso.directory?
@@ -32,9 +29,6 @@ class Rosh
             Rosh::Host::FileSystemObjects::RemoteFile.new(path, remote_shell)
           elsif fso.link?
             Rosh::Host::FileSystemObjects::RemoteLink.new(path, remote_shell)
-          elsif force_type
-            klass = Rosh::Host::FileSystemObjects.const_get("Remote#{force_type.capitalize}".to_sym)
-            klass.new(path, remote_shell)
           end
         end
 
