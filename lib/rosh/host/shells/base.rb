@@ -78,18 +78,20 @@ class Rosh
 
         # @return [String] the output of the last command.
         def last_result
-          @history.last[:output]
+          @history.empty? ? nil : @history.last[:output]
         end
         alias :__ :last_result
 
         # @return [Integer] the exit status code of the last command executed.
         def last_exit_status
-          @history.last[:exit_status]
+          @history.empty? ? nil : @history.last[:exit_status]
         end
         alias :_? :last_exit_status
 
         # @return [Exception] the last exception that was raised.
         def last_exception
+          return nil if @history.empty?
+
           exception = @history.reverse.find { |result| result[:output].kind_of? Exception }
 
           exception[:output]

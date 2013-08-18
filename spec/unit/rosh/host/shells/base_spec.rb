@@ -41,6 +41,11 @@ describe Rosh::Host::Shells::Base do
         subject.__.should == 'hi'
       end
     end
+
+    context 'no history' do
+      before { subject.instance_variable_set(:@history, []) }
+      specify { expect(subject.last_result).to be_nil }
+    end
   end
 
   describe '#last_exit_status' do
@@ -58,6 +63,11 @@ describe Rosh::Host::Shells::Base do
       it 'returns the last :exit_status item from the history' do
         subject._?.should == 123
       end
+    end
+
+    context 'no history' do
+      before { subject.instance_variable_set(:@history, []) }
+      specify { expect(subject.last_exit_status).to be_nil }
     end
   end
 
@@ -78,6 +88,11 @@ describe Rosh::Host::Shells::Base do
       it 'returns the last :output item from the history that is an Exception' do
         subject._!.should == exception
       end
+    end
+
+    context 'no history' do
+      before { subject.instance_variable_set(:@history, []) }
+      specify { expect(subject.last_exception).to be_nil }
     end
   end
 
