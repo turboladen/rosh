@@ -37,7 +37,7 @@ class Rosh
         # @param [String] path Path to the remote file system object.
         # @param [Rosh::Host::Shells::Remote] shell
         def initialize(path, shell)
-          @path = path
+          @path = path.strip
           @shell = shell
         end
 
