@@ -30,21 +30,13 @@ class Rosh
         def linux_list
           result = @shell.ls '/etc/init.d'
 
-          services = result.ruby_object.map do |file|
-            create(file.basename)
-          end
-
-          Rosh::CommandResult.new(services, 0, result.stdout, result.stderr)
+          result.map { |file| create(file.basename) }
         end
 
         def freebsd_list
           result = @shell.ls '/etc/rc.d'
 
-          services = result.ruby_object.map do |file|
-            create(file.basename)
-          end
-
-          Rosh::CommandResult.new(services, 0, result.stdout, result.stderr)
+          result.map { |file| create(file.basename) }
         end
       end
     end
