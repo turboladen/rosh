@@ -65,6 +65,11 @@ class Rosh
         end
 =end
 
+        # List hosts.
+        def lh
+          Rosh.hosts.keys.each(&method(:puts))
+        end
+
         # @return [Boolean] Returns if the shell is set to check the state of
         #   commands to determine if the command needs to be run.
         def check_state_first?
