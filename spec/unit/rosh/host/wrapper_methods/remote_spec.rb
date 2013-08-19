@@ -3,9 +3,7 @@ require 'rosh/host/shells/remote'
 
 
 describe Rosh::Host::WrapperMethods::Remote do
-  subject do
-    Rosh::Host::Shells::Remote.new('testhost')
-  end
+  subject { Rosh::Host::Shells::Remote.new('testhost') }
 
   let(:ssh) do
     double 'Net::SSH::Connection', close: true, :closed? => true
@@ -70,9 +68,9 @@ describe Rosh::Host::WrapperMethods::Remote do
     context 'path does not exist' do
       let(:result) do
         r = double 'Rosh::CommandResult'
-        r.stub(:exit_status).and_return 1
-        r.stub(:stderr).and_return 'No such file or directory'
-        r.stub(:stdout)
+        allow(r).to receive(:exit_status) { 1 }
+        allow(r).to receive(:stderr) { 'No such file or directory' }
+        allow(r).to receive(:stdout) { 'stuff' }
 
         r
       end
