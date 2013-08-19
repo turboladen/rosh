@@ -11,9 +11,10 @@ class Rosh
 
       def info
         result = @host.shell.exec "dscl -plist . -read /Groups/#{@name}"
-        group = Plist.parse_xml(result.ruby_object)
+        group = Plist.parse_xml(result)
+        group.strip!
 
-        Rosh::CommandResult.new(group, 0, result.stdout, result.stderr)
+        Rosh::CommandResult.new(group, 0, result)
       end
     end
   end
