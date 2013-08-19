@@ -30,6 +30,10 @@ class Rosh
           services
         end
 
+        def [](name)
+          create(name, nil)
+        end
+
         private
 
         def create(name, pid)
