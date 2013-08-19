@@ -27,8 +27,21 @@ class Rosh
     def initialize
       ENV['SHELL'] = ::File.expand_path($0)
 
-      Rosh.add_host 'localhost'
-      @current_host = Rosh.hosts['localhost']
+      if Rosh.config
+        instance_eval Rosh.config
+      else
+        Rosh.add_host 'localhost'
+      end
+
+      localhost = if Rosh.hosts['localhost']
+        Rosh.hosts['localhost']
+      elsif Rosh.hosts[:localhost]
+        Rosh.hosts[:localhost]
+      else
+        Rosh.hosts.values.find { |host| host.hostname == 'localhost' }
+      end
+
+      @current_host ||= localhost
     end
 
     # Starts the Readline loop for accepting input.  Each iteration through the

@@ -3,7 +3,7 @@ require_relative 'rosh/host'
 
 
 class Rosh
-  DEFAULT_RC_FILE = '.roshrc.yml'
+  DEFAULT_RC_FILE = Dir.home + '/.roshrc'
   @hosts = {}
   @config = nil
 
@@ -42,9 +42,8 @@ class Rosh
   def self.config
     return @config if @config
 
-    if File.exists? DEFAULT_RC_FILE
-      erb = ERB.new(File.read(DEFAULT_RC_FILE))
-      @config = YAML.load(erb.result)
+    @config = if File.exists? DEFAULT_RC_FILE
+      File.read(DEFAULT_RC_FILE)
     end
   end
 
