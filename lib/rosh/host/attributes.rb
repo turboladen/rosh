@@ -25,7 +25,7 @@ class Rosh
           end
 
           @distribution = distro
-          @distribution_version = version
+          @distribution_version = version.strip
 
           instance_variable_get("@#{meth}".to_sym)
         end
