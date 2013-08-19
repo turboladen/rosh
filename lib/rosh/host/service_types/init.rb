@@ -6,6 +6,11 @@ class Rosh
   class Host
     module ServiceTypes
       class Init < Base
+
+        # @param [String] name
+        # @param [Rosh::Host::Shells::*] shell
+        # @param [Symbol] os_type
+        # @param [Number] pid
         def initialize(name, shell, os_type, pid=nil)
           super(name, shell, pid)
 
@@ -20,8 +25,10 @@ class Rosh
           end
         end
 
+        # @return [Hash{name: String, status: Symbol, processes: Fixnum}]
         def info
-          state, exit_code, result, pid = fetch_status
+          state = fetch_status
+          pid = fetch_pid
 
           info = if pid.is_a? Array
             build_info(state, process_info: pid)
@@ -29,38 +36,62 @@ class Rosh
             build_info(state, pid: pid)
           end
 
-          Rosh::CommandResult.new(info, exit_code, result.stdout, result.stderr)
+          info
         end
 
+        # @return [Symbol]
         def status
-          state, exit_code, result, = fetch_status
+          result = @shell.exec("#{@script_dir}/#{@name} #{status_command}")
 
-          Rosh::CommandResult.new(state, exit_code, result.stdout, result.stderr)
+          if @shell.last_exit_status.zero?
+            pid = fetch_pid
+            pid.empty? ? :stopped : :running
+          elsif @shell.last_exit_status == 127
+            :unrecognized_service
+          else
+            if result =~ / stopped/
+              :stopped
+            else
+              :unknown
+            end
+          end
         end
 
+        # Starts the service.
+        #
+        # @return [Boolean] +true+ if successful, +false+ if not.
         def start
+          @shell.exec("#{@script_dir}/#{@name} start")
+
+          @shell.last_exit_status.zero?
+        end
+
+        # Starts the service, but raises if not able to.
+        #
+        # @return [NilClass]
+        # @raise [Rosh::PermissionDenied]
+        # @raise [Rosh::UnrecognizedService]
+        def start!
           result = @shell.exec("#{@script_dir}/#{@name} start")
 
-          if result.exit_status.zero?
-            if permission_denied? result.ruby_object
-              Rosh::CommandResult.new(Rosh::PermissionDenied.new(result.ruby_object),
-                result.exit_status, result.stdout, result.stderr)
-            else
-              result
+          if @shell.last_exit_status.zero?
+            if permission_denied? result
+              raise Rosh::PermissionDenied, result
             end
-          elsif result.exit_status == 127
-            Rosh::CommandResult.new(Rosh::UnrecognizedService.new(result.ruby_object),
-              result.exit_status, result.stdout, result.stderr)
-          elsif permission_denied? result.ruby_object
-            Rosh::CommandResult.new(Rosh::PermissionDenied.new(result.ruby_object),
-              result.exit_status, result.stdout, result.stderr)
-          else
-            result
+          elsif @shell.last_exit_status == 127
+            raise Rosh::UnrecognizedService, result
+          elsif permission_denied? result
+            raise Rosh::PermissionDenied, result
           end
         end
 
         private
 
+        # Determines from +output+ if the message contains text that represents
+        # a permission denied error.
+        #
+        # @param [String] output
+        # @return [Boolean]
         def permission_denied?(output)
           if output.match(/superuser access required/) ||
             output.match(/permission denied/i)
@@ -70,6 +101,9 @@ class Rosh
           end
         end
 
+        # Command used for getting service status, based on OS.
+        #
+        # @return [String]
         def status_command
           case @os_type
           when :linux
@@ -79,30 +113,10 @@ class Rosh
           end
         end
 
-        def fetch_status
-          result = @shell.exec("#{@script_dir}/#{@name} #{status_command}")
-
-          if result.exit_status.zero?
-            pid = fetch_pid
-            state = pid.empty? ? :stopped : :running
-
-            [state, 0, result, pid]
-          elsif result.exit_status == 127
-            [Rosh::UnrecognizedService.new(result.ruby_object),
-              result.exit_status, result, nil]
-          else
-            if result.ruby_object =~ / stopped/
-              [:stopped, result.exit_status, result, nil]
-            else
-              [:unknown, result.exit_status, result, nil]
-            end
-          end
-        end
-
         # @return [Array<Integer>] An Array of pids that match the name of the
         #   service.
         def fetch_pid
-          process_list = @shell.ps(name: @name).ruby_object
+          process_list = @shell.ps(name: @name)
           pids = process_list.map { |process| process.pid }
 
           pids

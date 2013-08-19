@@ -4,10 +4,7 @@ require 'rosh/host/service_types/init'
 
 describe Rosh::Host::ServiceTypes::Init do
   let(:name) { 'thing' }
-
-  let(:shell) do
-    double 'Rosh::Host::Shell'
-  end
+  let(:shell) { double 'Rosh::Host::Shell' }
 
   let(:result) do
     r = double 'Rosh::CommandResult'
@@ -18,99 +15,90 @@ describe Rosh::Host::ServiceTypes::Init do
   end
 
   context 'linux' do
-    subject do
-      Rosh::Host::ServiceTypes::Init.new(name, shell, :linux)
-    end
+    subject { Rosh::Host::ServiceTypes::Init.new(name, shell, :linux) }
 
     describe '#info' do
-      let(:info) do
-        {}
-      end
+      let(:info) { double 'service info' }
 
       context 'pid is an Array' do
         before do
-          subject.should_receive(:fetch_status).
-            and_return ['test state', 0, result, ['process info']]
-
-          subject.should_receive(:build_info).
+          expect(subject).to receive(:fetch_status) { 'test state' }
+          expect(subject).to receive(:fetch_pid) { ['process info'] }
+          expect(subject).to receive(:build_info).
             with('test state', process_info: ['process info']).and_return info
-
-          @r = subject.info
         end
 
-        specify { @r.ruby_object.should eq info }
-        specify { @r.exit_status.should eq 0 }
-        specify { @r.stdout.should eq 'output' }
+        specify { expect(subject.info).to eq info }
       end
 
       context 'pid is not an Array' do
         before do
-          subject.should_receive(:fetch_status).
-            and_return ['test state', 0, result, 123]
-
-          subject.should_receive(:build_info).
+          expect(subject).to receive(:fetch_status) { 'test state' }
+          expect(subject).to receive(:fetch_pid) { 123 }
+          expect(subject).to receive(:build_info).
             with('test state', pid: 123).and_return info
-
-          @r = subject.info
         end
 
-        specify { @r.ruby_object.should eq info }
-        specify { @r.exit_status.should eq 0 }
-        specify { @r.stdout.should eq 'output' }
-      end
-    end
-
-    describe '#status' do
-      before do
-        subject.should_receive(:fetch_status).
-          and_return ['test state', 0, result, nil]
-      end
-
-      it 'returns a CommandResult' do
-        r = subject.status
-        r.should be_a Rosh::CommandResult
-        r.ruby_object.should == 'test state'
-        r.exit_status.should be_zero
+        specify { expect(subject.info).to eq info }
       end
     end
 
     describe '#start' do
-      context 'exit status is 127' do
+      it 'runs the start command' do
+        allow(shell).to receive(:last_exit_status) { 0 }
+        expect(shell).to receive(:exec).with '/etc/init.d/thing start'
+        subject.start
+      end
+
+      context 'successful command' do
         before do
-          result.should_receive(:ruby_object).and_return 'bad service'
-          result.should_receive(:exit_status).exactly(3).times.and_return 127
+          allow(shell).to receive(:last_exit_status) { 0 }
+          allow(shell).to receive(:exec)
         end
 
-        it 'returns a CommandResult with an UnrecognizedService exception' do
-          shell.should_receive(:exec).with('/etc/init.d/thing start').
-            and_return result
+        specify { subject.start.should be_true }
+      end
 
-          subject.start
+      context 'unsuccessful command' do
+        before do
+          allow(shell).to receive(:last_exit_status) { 1 }
+          allow(shell).to receive(:exec)
+        end
+
+        specify { subject.start.should be_false }
+      end
+    end
+
+    describe '#start!' do
+      let(:result) { double 'result' }
+
+      context 'exit status is 127' do
+        before { allow(shell).to receive(:last_exit_status) { 127 } }
+
+        it 'raises an UnrecognizedService exception' do
+          expect(shell).to receive(:exec).with('/etc/init.d/thing start')
+
+          expect { subject.start! }.to raise_error Rosh::UnrecognizedService
         end
       end
 
       context 'permission denied' do
         before do
-          result.stub(:ruby_object).and_return 'permission denied'
-          result.stub(:exit_status).and_return 3
-          subject.should_receive(:permission_denied?).and_return true
+          allow(shell).to receive(:last_exit_status) { 3 }
+          expect(subject).to receive(:permission_denied?).and_return true
         end
 
-        it 'returns a CommandResult with an UnrecognizedService exception' do
-          shell.should_receive(:exec).with('/etc/init.d/thing start').
-            and_return result
+        it 'raises a PermissionDenied exception' do
+          expect(shell).to receive(:exec).with('/etc/init.d/thing start')
 
-          subject.start
+          expect { subject.start! }.to raise_error Rosh::PermissionDenied
         end
       end
     end
 
     describe '#fetch_pid' do
       context 'pids for the process name not found' do
-        before do
-          result.should_receive(:ruby_object).and_return []
-          shell.should_receive(:ps).with(name: 'thing').and_return result
-        end
+        before { expect(shell).to receive(:ps).with(name: 'thing') { [] } }
 
         it 'returns an empty Array' do
           subject.send(:fetch_pid).should == []
@@ -118,13 +106,10 @@ describe Rosh::Host::ServiceTypes::Init do
       end
 
       context 'pids for the process was found' do
-        let(:process) do
-          double 'Rosh::Process', pid: 123
-        end
+        let(:process) { double 'Rosh::Process', pid: 123 }
 
         before do
-          result.should_receive(:ruby_object).and_return [process]
-          shell.should_receive(:ps).with(name: 'thing').and_return result
+          shell.should_receive(:ps).with(name: 'thing').and_return [process]
         end
 
         it 'returns an Array with the pids' do
@@ -133,64 +118,44 @@ describe Rosh::Host::ServiceTypes::Init do
       end
     end
 
-    describe '#fetch_status' do
+    describe '#status' do
       before do
-        shell.should_receive(:exec).with('/etc/init.d/thing status').
+        expect(shell).to receive(:exec).with('/etc/init.d/thing status').
           and_return result
       end
 
       context 'exit status is 0 and a matching pid is found' do
         before do
-          result.stub(:exit_status).and_return 0
+          allow(shell).to receive(:last_exit_status) { 0 }
           subject.stub(:fetch_pid).and_return [123]
-          @r = subject.send(:fetch_status)
         end
 
-        specify { @r[0].should eq :running }
-        specify { @r[1].should eq 0 }
-        specify { @r[2].should eq result }
-        specify { @r[3].should eq [123] }
+        specify { expect(subject.status).to eq :running }
       end
 
       context 'exit status is 0 and a matching pid is not found' do
         before do
-          result.stub(:exit_status).and_return 0
+          allow(shell).to receive(:last_exit_status) { 0 }
           subject.stub(:fetch_pid).and_return []
-          @r = subject.send(:fetch_status)
         end
 
-        specify { @r[0].should eq :stopped }
-        specify { @r[1].should eq 0 }
-        specify { @r[2].should eq result }
-        specify { @r[3].should eq [] }
+        specify { expect(subject.status).to eq :stopped }
       end
 
       context 'exit status is non-0 and output contains unknown response' do
         before do
-          result.stub(:ruby_object).and_return 'launchctl list returned unknown response'
-          result.stub(:exit_status).and_return 1
-          subject.stub(:fetch_pid).and_return nil
-          @r = subject.send(:fetch_status)
+          allow(shell).to receive(:last_exit_status) { 1 }
         end
 
-        specify { @r[0].should eq :unknown }
-        specify { @r[1].should eq 1 }
-        specify { @r[2].should eq result }
-        specify { @r[3].should eq nil }
+        specify { expect(subject.status).to eq :unknown }
       end
 
       context 'exit status is 127' do
         before do
-          result.stub(:ruby_object).and_return ''
-          result.stub(:exit_status).and_return 127
-          subject.stub(:fetch_pid).and_return nil
-          @r = subject.send(:fetch_status)
+          allow(shell).to receive(:last_exit_status) { 127 }
         end
 
-        specify { @r[0].should be_a Rosh::UnrecognizedService  }
-        specify { @r[1].should eq 127 }
-        specify { @r[2].should eq result }
-        specify { @r[3].should eq nil }
+        specify { expect(subject.status).to eq :unrecognized_service }
       end
     end
   end
