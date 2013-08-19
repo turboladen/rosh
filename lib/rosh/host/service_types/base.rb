@@ -39,11 +39,11 @@ class Rosh
 
         def build_info(status, pid: nil, process_info: nil)
           process_info = if pid
-            @shell.ps(pid: pid).ruby_object
+            @shell.ps(pid: pid)
           elsif process_info
             process_info
           else
-            @shell.ps(name: @name).ruby_object
+            @shell.ps(name: @name)
           end
 
           if pid && !process_info.empty?
