@@ -75,8 +75,8 @@ returns:
 * ps
 * pwd
 
-If you execute a command that is not defined in the Rosh shell, Rosh will try
-to use the OS's builtin instead.
+If you execute a command that is not defined in the Rosh shell, Rosh will use
+your PATH setting and try to find the executable there.
 
 The shell also adds the `ch` (change host) command, which lets you quickly
 change which host you're working with--similar to SSHing into another remote
@@ -102,7 +102,7 @@ The Rosh::Host object is the core to Rosh.  At the very basic level, Rosh gives
 you access to some attributes of that object:
 
 ```ruby
-Rosh.add_host('my_server.example.com', host_alias: :box1, user: 'admin)
+Rosh.add_host('my_server.example.com', host_alias: :box1, user: 'admin')
 Rosh[:box1].class                   # => Rosh::Host
 Rosh[:box1].hostname
 # (prompts for password)
@@ -145,17 +145,90 @@ Rosh[:box1].fs.directory('/tmp/neat_dir').exists?      # => true
 Rosh[:box1].fs.directory('/tmp/neat_dir').owner        # => 'admin'
 
 # Files
-Rosh[:box1].fs.directory('/tmp/neat_file').exists?      # => false
-Rosh[:box1].fs.directory('/tmp/neat_file').contents     # => nil
-Rosh[:box1].fs.directory('/tmp/neat_file').contents = "Hi!"
-Rosh[:box1].fs.directory('/tmp/neat_file').save         # => true
-Rosh[:box1].fs.directory('/tmp/neat_file').contents     # => "Hi!"
-Rosh[:box1].fs.directory('/tmp/neat_file').exists?      # => true
+Rosh[:box1].fs.file('/tmp/neat_file').exists?      # => false
+Rosh[:box1].fs.file('/tmp/neat_file').contents     # => nil
+Rosh[:box1].fs.file('/tmp/neat_file').contents = "Hi!"
+Rosh[:box1].fs.file('/tmp/neat_file').save         # => true
+Rosh[:box1].fs.file('/tmp/neat_file').contents     # => "Hi!"
+Rosh[:box1].fs.file('/tmp/neat_file').exists?      # => true
+```
+
+You're not limited to the above syntax; you could rewrite the above like:
+
+```ruby
+# Directories
+dir = Rosh[:box1].fs.directory('/tmp/neat_dir')
+dir.class        # => Rosh::Host::FileSystemObjects::RemoteDir
+dir.exists?      # => false
+dir.save         # => true
+dir.exists?      # => true
+dir.owner        # => 'admin'
+
+# Files
+file = Rosh[:box1].fs.file('/tmp/neat_file')
+file.class        # => Rosh::Host::FileSystemObjects::RemoteFile
+file.exists?      # => false
+file.contents     # => nil
+file.contents = "Hi!"
+file.save         # => true
+file.contents     # => "Hi!"
+file.exists?      # => true
+```
+
+When working with files, you may want to use a template for generating
+the file.
+
+```erb
+# config.erb
+
+export DB_USER=<%= username %>
+```
+
+```ruby
+%w[george wanda].each do |user|
+  file = Rosh[:box1].fs.file("/users/#{user}/.neat_config")
+  file.from_template('config.erb', username: user)
+  file.save
+  puts file.contents    # => "# config.erb\n\nexport DB_USER=george\n"
+                        # => "# config.erb\n\nexport DB_USER=wanda\n"
+end
 ```
 
 #### Working with packages managers and packages
 
-TBD
+Rosh objectifies not only your OS's package manager, but the packages
+themselves.  It makes some assumptions of which package manager you're using
+based on your OS (which it detects when it needs to), thus you don't have to
+worry about which OS you're dealing with before dealing with it.
+
+```ruby
+# Update the package manager's local cache.
+Rosh[:box1].packages.update_definitions
+
+# Upgrade outdated packages.
+Rosh[:box1].packages.upgrade_packages
+
+# Install a specific package.
+Rosh[:box1].packages['curl'].installed?             # => false
+Rosh[:box1].packages['curl'].install                # => true
+Rosh[:box1].packages['curl'].installed?             # => true
+Rosh[:box1].packages['curl'].at_latest_version?     # => true
+
+# ...or
+curl = Rosh[:box1].packages['curl']
+curl.installed?             # => false
+curl.install                # => true
+curl.installed?             # => true
+curl.at_latest_version?     # => true
+```
+
+#### Working with service managers and services
+
+```ruby
+Rosh[:box1].services.list                   # => (A potentially long list)
+Rosh[:box1].services['httpd'].status
+
+```
 
 ### Shell
 
