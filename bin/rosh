@@ -9,24 +9,7 @@ if arg == '--irb'
   require_relative '../lib/rosh'
   IRB.setup '../lib/rosh'
 
-  Rosh.add_host('192.168.1.160', host_alias: :jenkins, user: 'admin')
-
-  Rosh.add_host('192.168.33.100', host_alias: :centos5, user: 'vagrant',
-    keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
-
-  Rosh.add_host('192.168.33.102', host_alias: :deb, user: 'vagrant',
-    keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
-
-  Rosh.add_host('192.168.33.104', host_alias: :freebsd, user: 'sloveless')
-
-  Rosh.add_host('192.168.33.105', host_alias: :gentoo, user: 'vagrant',
-    keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
-
-  Rosh.add_host('192.168.33.110', host_alias: :ubuntu, user: 'vagrant',
-    keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
-
-  Rosh.add_host('localhost', host_alias: :local)
-  Rosh.add_host('192.168.10.2', host_alias: :server)
+  eval Rosh.config if Rosh.config
 
   IRB.start
 else
