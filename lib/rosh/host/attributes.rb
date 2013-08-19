@@ -95,7 +95,7 @@ class Rosh
         when :darwin
           %r[Kernel Version (?<version>\d\d\.\d\d?\.\d\d?).*RELEASE_(?<arch>\S+)] =~ uname
         when :linux
-          %r[\S+\s+(?<version>\S+).*\s(?<arch>\S+)\s*$] =~ uname
+          %r[\S+\s+(?<version>\S+).*\s(?<arch>(x86_64|i386|i586|i686)).*$] =~ uname
         when :freebsd
           %r[\S+\s+(?<version>\S+).*\s(?<arch>\S+)\s*$] =~ uname
         end
