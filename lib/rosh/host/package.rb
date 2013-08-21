@@ -4,11 +4,11 @@ require_relative 'package_types/base'
 class Rosh
   class Host
     class Package
-      attr_reader :package_name
+      attr_reader :name
 
       def initialize(type, name, shell)
         @shell = shell
-        @package_name = name
+        @name = name
         @type = type
       end
 
@@ -102,7 +102,7 @@ class Rosh
       #
       # @return [Rosh::Host::PackageTypes::*]
       def adapter
-        @adapter ||= create_adapter(@type, @package_name, @shell)
+        @adapter ||= create_adapter(@type, @name, @shell)
       end
 
       # Creates the adapter object based on the given +type+.

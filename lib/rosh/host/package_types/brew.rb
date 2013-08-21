@@ -22,7 +22,7 @@ class Rosh
           if version
             install_and_switch_version(version)
           else
-            @shell.exec "#{bin_path}/brew install #{@package_name}"
+            @shell.exec "#{bin_path}/brew install #{@name}"
 
             @shell.last_exit_status.zero?
           end
@@ -33,7 +33,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if installed, +false+ if not.
         def installed?
-          result = @shell.exec "#{bin_path}/brew info #{@package_name}"
+          result = @shell.exec "#{bin_path}/brew info #{@name}"
 
           if @shell.last_exit_status.zero?
             !result.match %r[Not installed]
@@ -46,7 +46,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def upgrade
-          @shell.exec "#{bin_path}/brew upgrade #{@package_name}"
+          @shell.exec "#{bin_path}/brew upgrade #{@name}"
 
           @shell.last_exit_status.zero?
         end
@@ -55,7 +55,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def remove
-          @shell.exec "#{bin_path}/brew remove #{@package_name}"
+          @shell.exec "#{bin_path}/brew remove #{@name}"
 
           @shell.last_exit_status.zero?
         end
@@ -64,13 +64,13 @@ class Rosh
         #
         # @return [Hash]
         def info
-          output = @shell.exec "#{bin_path}/brew info #{@package_name}"
+          output = @shell.exec "#{bin_path}/brew info #{@name}"
           info_hash = {}
 
-          /^\s*#{@package_name}: (?<spec>\w+) (?<version>[^\n]+)
+          /^\s*#{@name}: (?<spec>\w+) (?<version>[^\n]+)
 (?<home>https?:\/\/[^\n]*)/ =~ output
 
-          info_hash[:package] = @package_name
+          info_hash[:package] = @name
           info_hash[:spec] = $~[:spec]
           info_hash[:version] = $~[:version].strip
           info_hash[:homepage] = $~[:home].strip
@@ -87,10 +87,10 @@ class Rosh
         # @return [Array<String>] The list of versions of the current package
         #   that are installed.
         def installed_versions
-          result = @shell.exec "#{bin_path}/brew info #{@package_name}"
+          result = @shell.exec "#{bin_path}/brew info #{@name}"
 
           result.each_line.map do |line|
-            %r[.*Cellar/#{@package_name}/(?<version>\S+)] =~ line.strip
+            %r[.*Cellar/#{@name}/(?<version>\S+)] =~ line.strip
             $~ ? $~[:version] : nil
           end.compact
         end
@@ -116,7 +116,7 @@ class Rosh
         # @param [String] version The version to install/switch to.
         # @return [Boolean] +true+ if install was successful; +false+ if not.
         def install_and_switch_version(version)
-          version_line = @shell.exec("#{bin_path}/brew versions #{@package_name} | grep #{version}").
+          version_line = @shell.exec("#{bin_path}/brew versions #{@name} | grep #{version}").
             split("\n").last
           return false unless version_line
 
@@ -125,19 +125,19 @@ class Rosh
           prefix = @shell.exec "#{bin_path}/brew --prefix"
           @shell.cd(prefix)
 
-          @shell.exec "git checkout #{hash} Library/Formula/#{@package_name}.rb"
+          @shell.exec "git checkout #{hash} Library/Formula/#{@name}.rb"
           return false unless @shell.last_exit_status.zero?
 
-          @shell.exec "#{bin_path}/brew unlink #{@package_name}"
+          @shell.exec "#{bin_path}/brew unlink #{@name}"
           return false unless @shell.last_exit_status.zero?
 
-          @shell.exec "#{bin_path}/brew install #{@package_name}"
+          @shell.exec "#{bin_path}/brew install #{@name}"
           return false unless @shell.last_exit_status.zero?
 
-          @shell.exec "#{bin_path}/brew switch #{@package_name} #{version}"
+          @shell.exec "#{bin_path}/brew switch #{@name} #{version}"
           return false unless @shell.last_exit_status.zero?
 
-          @shell.exec "git checkout -- Library/Formula/#{@package_name}.rb"
+          @shell.exec "git checkout -- Library/Formula/#{@name}.rb"
 
           @shell.last_exit_status.zero?
         end

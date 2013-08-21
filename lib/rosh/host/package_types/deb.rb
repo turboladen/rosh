@@ -16,7 +16,7 @@ class Rosh
         # @param [String] version
         # @return [Boolean] +true+ if successful, +false+ if not.
         def install(version=nil)
-          cmd = "DEBIAN_FRONTEND=noninteractive apt-get install #{@package_name}"
+          cmd = "DEBIAN_FRONTEND=noninteractive apt-get install #{@name}"
           cmd << "=#{version}" if version
           cmd << ' -y'
           @shell.exec(cmd)
@@ -29,7 +29,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if installed, +false+ if not.
         def installed?
-          @shell.exec "dpkg --status #{@package_name}"
+          @shell.exec "dpkg --status #{@name}"
 
           @shell.last_exit_status.zero?
         end
@@ -45,7 +45,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def remove
-          @shell.exec "DEBIAN_FRONTEND=noninteractive apt-get remove #{@package_name}"
+          @shell.exec "DEBIAN_FRONTEND=noninteractive apt-get remove #{@name}"
 
           @shell.last_exit_status.zero?
         end
@@ -54,7 +54,7 @@ class Rosh
         #
         # @return [Hash]
         def info
-          output = @shell.exec "dpkg --status #{@package_name}"
+          output = @shell.exec "dpkg --status #{@name}"
           info_hash = {}
 
           output.each_line do |line|
@@ -74,7 +74,7 @@ class Rosh
         # @return [Boolean] Checks to see if the latest installed version is
         #   the latest version available.
         def at_latest_version?
-          cmd = "apt-cache policy #{@package_name}"
+          cmd = "apt-cache policy #{@name}"
           result = @shell.exec(cmd)
           %r[Installed: (?<current>\S+)\n\s*Candidate: (?<candidate>\S+)] =~ result
 
@@ -86,7 +86,7 @@ class Rosh
         # @return [String] The currently installed version of the package. +nil+
         #   if the package is not installed.
         def current_version
-          cmd = "apt-cache policy #{@package_name}"
+          cmd = "apt-cache policy #{@name}"
           result = @shell.exec(cmd)
           %r[Installed: (?<version>\S*)] =~ result
 

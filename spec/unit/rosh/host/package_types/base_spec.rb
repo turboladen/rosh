@@ -11,7 +11,7 @@ describe Rosh::Host::PackageTypes::Base do
     Rosh::Host::PackageTypes::Base.new('test', shell, version: '1', status: 'ok')
   end
 
-  its(:package_name) { should eq 'test' }
+  its(:name) { should eq 'test' }
   its(:version) { should eq '1' }
   its(:status) { should eq 'ok' }
 end

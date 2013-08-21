@@ -10,8 +10,8 @@ class Rosh
       class Base
         include Observable
 
-        attr_reader :package_name
-        # @!attribute [r] package_name
+        attr_reader :name
+        # @!attribute [r] name
         #   Name of the OS package this represents.
         #   @return [String]
 
@@ -44,7 +44,7 @@ class Rosh
           version: nil, status: nil, architecture: nil,
           bin_path: nil
         )
-          @package_name = name
+          @name = name
           @shell = shell
           @version = version
           @status = status

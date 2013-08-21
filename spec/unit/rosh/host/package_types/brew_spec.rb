@@ -73,7 +73,7 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
 
   describe '#installed_versions' do
     before do
-      subject.instance_variable_set(:@package_name, 'git')
+      subject.instance_variable_set(:@name, 'git')
       expect(shell).to receive(:exec).with('/usr/local/bin/brew info git') { output }
     end
 
