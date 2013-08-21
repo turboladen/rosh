@@ -7,6 +7,7 @@ require_relative 'host/file_system'
 Dir[File.dirname(__FILE__) + '/host/service_managers/*.rb'].each(&method(:require))
 require_relative 'host/package_manager'
 require_relative 'host/group_manager'
+require_relative 'host/user_manager'
 
 
 class Rosh
