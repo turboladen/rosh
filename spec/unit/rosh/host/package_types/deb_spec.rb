@@ -4,10 +4,8 @@ require 'rosh/host/package_types/deb'
 
 describe Rosh::Host::PackageTypes::Deb do
   let(:shell) { double 'Rosh::Host::Shell', :su? => false }
-
-  subject do
-    Rosh::Host::PackageTypes::Deb.new('thing', shell)
-  end
+  before { allow(subject).to receive(:current_shell) { shell } }
+  subject { Rosh::Host::PackageTypes::Deb.new('thing', 'example.com') }
 
   describe '#info' do
     let(:output) do

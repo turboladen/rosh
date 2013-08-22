@@ -1,4 +1,4 @@
-require_relative 'string_refinements'
+require_relative '../string_refinements'
 
 
 class Rosh

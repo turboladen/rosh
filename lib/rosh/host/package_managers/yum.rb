@@ -11,7 +11,7 @@ class Rosh
         #
         # @return [Array<Rosh::Host::PackageTypes::Rpm>]
         def installed_packages
-          output = @shell.exec 'yum list'
+          output = current_shell.exec 'yum list'
 
           output.each_line.map do |line|
             /^(?<name>\S+)\.(?<arch>\S+)\s+(?<version>\S+)\s+(?<status>\S*)/ =~ line
@@ -26,7 +26,7 @@ class Rosh
         #
         # @return [String] output from the shell command.
         def update_definitions
-          @shell.exec 'yum check-update'
+          current_shell.exec 'yum check-update'
         end
 
         # Extracts the list of updated package definitions from the output of
@@ -35,7 +35,7 @@ class Rosh
         # @param [String] output from the #update_defintions call.
         # @return [Array<Hash{package: String, architecture: String, version: String, repository: String}>]
         # TODO: How to deal with output being an Exception?
-        def extract_updated_definitions(output)
+        def _extract_updated_definitions(output)
           return [] unless output.is_a? String
           return [] unless output.match(/\n\n/)
 
@@ -52,11 +52,11 @@ class Rosh
         #
         # @return [String] Output of the upgrade command.
         def upgrade_packages
-          @shell.exec 'yum update -y'
+          current_shell.exec 'yum update -y'
         end
 
         def create_package(name, **options)
-          Rosh::Host::PackageTypes::Rpm.new(name, @shell, **options)
+          Rosh::Host::PackageTypes::Rpm.new(name, @host_label, **options)
         end
 
         # Extracts Rpm packagesnames for #upgrade_packages from the command
@@ -64,7 +64,7 @@ class Rosh
         #
         # @param [String] output Output from the yum update command.
         # @return [Array<Rosh::Host::PackageTypes::Rpm>]
-        def extract_upgraded_packages(output)
+        def _extract_upgraded_packages(output)
           output.each_line.map do |line|
             /Package (?<name>\S+)\.(?<arch>\S+)\s+(?<version>\S+).*to be / =~ line
             next unless name

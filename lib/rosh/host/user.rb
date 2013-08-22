@@ -1,4 +1,5 @@
 require 'plist'
+require_relative '../string_refinements'
 
 
 class Rosh
@@ -8,10 +9,10 @@ class Rosh
       attr_reader :user_id
       attr_reader :group_id
 
-      def initialize(type, name, shell)
+      def initialize(type, name, host_label)
         @type = type
         @name = name
-        @shell = shell
+        @host_label = host_label
       end
 
       def info
@@ -21,15 +22,15 @@ class Rosh
       private
 
       def adapter
-        @adapter ||= create_adapter(@type, @name, @shell)
+        @adapter ||= create_adapter(@type, @name, @host_label)
       end
 
-      def create_adapter(type, name, shell)
+      def create_adapter(type, name, host_label)
         require_relative "user_types/#{type}"
 
-        user_klass = Rosh::Host::UserTypes.const_get(type.to_s.capitalize.to_sym)
+        user_klass = Rosh::Host::UserTypes.const_get(type.to_s.classify)
 
-        user_klass.new(name, shell)
+        user_klass.new(name, host_label)
       end
     end
   end

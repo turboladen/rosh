@@ -1,4 +1,5 @@
 require_relative 'package_types/base'
+require_relative '../string_refinements'
 
 
 class Rosh
@@ -6,8 +7,8 @@ class Rosh
     class Package
       attr_reader :name
 
-      def initialize(type, name, shell)
-        @shell = shell
+      def initialize(type, name, host_label)
+        @host_label = host_label
         @name = name
         @type = type
       end
@@ -51,7 +52,7 @@ class Rosh
             adapter.changed
             adapter.notify_observers(adapter,
               attribute: :version, old: old_version, new: new_version,
-              as_sudo: @shell.su?)
+              as_sudo: current_shell.su?)
           end
         end
 
@@ -64,7 +65,7 @@ class Rosh
       def remove
         already_installed = adapter.installed?
 
-        if @shell.check_state_first? && !already_installed
+        if current_shell.check_state_first? && !already_installed
           return
         end
 
@@ -75,7 +76,7 @@ class Rosh
           adapter.changed
           adapter.notify_observers(self,
             attribute: :version, old: old_version, new: nil,
-            as_sudo: @shell.su?)
+            as_sudo: current_shell.su?)
         end
 
         success
@@ -102,31 +103,28 @@ class Rosh
       #
       # @return [Rosh::Host::PackageTypes::*]
       def adapter
-        @adapter ||= create_adapter(@type, @name, @shell)
+        @adapter ||= create_adapter(@type, @name, @host_label)
       end
 
       # Creates the adapter object based on the given +type+.
       #
       # @param [Symbol, String] type
       # @param [String] name
-      # @param [Rosh::Host::Shells::*] shell
+      # @param [String,Symbol] host_label
       #
       # @return [Rosh::Host::PackageTypes::*]
-      def create_adapter(type, name, shell)
-        puts "package_types/#{type}"
+      def create_adapter(type, name, host_label)
         require_relative "package_types/#{type}"
+        package_klass = Rosh::Host::PackageTypes.const_get(type.to_s.classify)
 
-        package_klass = Rosh::Host::PackageTypes.
-          const_get(type.to_s.capitalize.to_sym)
-
-        package_klass.new(name, shell)
+        package_klass.new(name, host_label)
       end
 
       # Checks to see if installing the package should be skipped based on the
       # shell settings, if the package is installed, and which version the
       # package is at.
       def skip_install?(version=nil)
-        if @shell.check_state_first? && adapter.installed?
+        if current_shell.check_state_first? && adapter.installed?
           #log 'SKIP: check_state_first is true and already at latest version.'
           if version
             true if version == adapter.current_version
@@ -143,7 +141,7 @@ class Rosh
           adapter.changed
           adapter.notify_observers(adapter,
             attribute: :version, old: old_version, new: new_version,
-            as_sudo: @shell.su?)
+            as_sudo: current_shell.su?)
         end
       end
     end

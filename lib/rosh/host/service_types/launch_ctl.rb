@@ -8,10 +8,10 @@ class Rosh
       class LaunchCTL < Base
 
         # @param [String] name
-        # @param [Rosh::Host::Shells::*] shell
+        # @param [String,Symbol] host_label
         # @param [Fixnum] pid
-        def initialize(name, shell, pid=nil)
-          super(name, shell, pid)
+        def initialize(name, host_label, pid=nil)
+          super(name, host_label, pid)
         end
 
         # @return [Rosh::CommandResult] #ruby_object is a Hash containing +:name+
@@ -36,9 +36,9 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def start
-          @shell.exec("launchctl load #{@name}")
+          current_shell.exec("launchctl load #{@name}")
 
-          @shell.last_exit_status.zero?
+          current_shell.last_exit_status.zero?
         end
 
         # Runs `launchctl load` on the current service, but raises if it could
@@ -47,7 +47,7 @@ class Rosh
         # @return [NilClass]
         # @raises [Rosh::UnrecognizedService]
         def start!
-          result = @shell.exec("launchctl load #{@name}")
+          result = current_shell.exec("launchctl load #{@name}")
 
           if result =~ /nothing found to load/m
             raise Rosh::UnrecognizedService, result
@@ -60,7 +60,7 @@ class Rosh
 
         # @return [Integer,nil]
         def fetch_pid
-          pid_result = @shell.exec("launchctl list | grep #{@name}")
+          pid_result = current_shell.exec("launchctl list | grep #{@name}")
           temp_pid = pid_result.match /^\d+/
 
           temp_pid.to_s.to_i if temp_pid
@@ -68,12 +68,12 @@ class Rosh
 
         # @return [Array[Symbol, String, Integer]]
         def fetch_status
-          result = @shell.exec("launchctl list -x #{@name}")
+          result = current_shell.exec("launchctl list -x #{@name}")
           pid = @pid || fetch_pid
 
-          if @shell.last_exit_status.zero? && pid
+          if current_shell.last_exit_status.zero? && pid
             [:running, result, pid]
-          elsif @shell.last_exit_status.zero?
+          elsif current_shell.last_exit_status.zero?
             [:stopped, result, pid]
           elsif result =~ /launchctl list returned unknown response/
             [:unknown, result, pid]

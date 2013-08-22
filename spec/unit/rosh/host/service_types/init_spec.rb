@@ -5,6 +5,7 @@ require 'rosh/host/service_types/init'
 describe Rosh::Host::ServiceTypes::Init do
   let(:name) { 'thing' }
   let(:shell) { double 'Rosh::Host::Shell' }
+  before { allow(subject).to receive(:current_shell) { shell } }
 
   let(:result) do
     r = double 'Rosh::CommandResult'
@@ -15,7 +16,7 @@ describe Rosh::Host::ServiceTypes::Init do
   end
 
   context 'linux' do
-    subject { Rosh::Host::ServiceTypes::Init.new(name, shell, :linux) }
+    subject { Rosh::Host::ServiceTypes::Init.new(name, :linux, 'example.com') }
 
     describe '#info' do
       let(:info) { double 'service info' }

@@ -8,9 +8,9 @@ class Rosh
         attr_reader :name
         attr_reader :pid
 
-        def initialize(name, shell, pid=nil)
+        def initialize(name, host_label, pid=nil)
           @name = name
-          @shell = shell
+          @host_label = host_label
           @pid = pid
         end
 
@@ -39,11 +39,11 @@ class Rosh
 
         def build_info(status, pid: nil, process_info: nil)
           process_info = if pid
-            @shell.ps(pid: pid)
+            current_shell.ps(pid: pid)
           elsif process_info
             process_info
           else
-            @shell.ps(name: @name)
+            current_shell.ps(name: @name)
           end
 
           if pid && !process_info.empty?

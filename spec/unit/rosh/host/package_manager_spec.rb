@@ -9,6 +9,8 @@ describe Rosh::Host::PackageManager do
     double 'Rosh::Host::PackageManager::Fakie'
   end
 
+  before { allow(subject).to receive(:current_shell) { shell } }
+
   subject do
     pm = Rosh::Host::PackageManager.new('testie', 'meow', shell)
     pm.stub(:adapter).and_return adapter
@@ -43,7 +45,7 @@ describe Rosh::Host::PackageManager do
     context 'no definitions updated' do
       before do
         allow(adapter).to receive(:update_definitions) { '' }
-        allow(adapter).to receive(:extract_updated_definitions) { [] }
+        allow(adapter).to receive(:_extract_updated_definitions) { [] }
       end
 
       context 'failed command' do
@@ -75,7 +77,7 @@ describe Rosh::Host::PackageManager do
 
       before do
         allow(adapter).to receive(:update_definitions) { command_output }
-        allow(adapter).to receive(:extract_updated_definitions) { [updated_definition] }
+        allow(adapter).to receive(:_extract_updated_definitions) { [updated_definition] }
       end
 
       context 'failed command' do
@@ -116,7 +118,7 @@ describe Rosh::Host::PackageManager do
       before do
         allow(adapter).to receive(:installed_packages) { [] }
         allow(adapter).to receive(:upgrade_packages) { [] }
-        allow(adapter).to receive(:extract_upgraded_packages) { [] }
+        allow(adapter).to receive(:_extract_upgraded_packages) { [] }
       end
 
       context 'failed command' do
@@ -149,7 +151,7 @@ describe Rosh::Host::PackageManager do
       before do
         allow(adapter).to receive(:installed_packages) { [] }
         allow(adapter).to receive(:upgrade_packages) { command_output }
-        allow(adapter).to receive(:extract_upgraded_packages) { [upgraded_package] }
+        allow(adapter).to receive(:_extract_upgraded_packages) { [upgraded_package] }
       end
 
       context 'failed command' do

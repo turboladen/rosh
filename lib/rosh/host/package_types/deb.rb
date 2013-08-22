@@ -19,9 +19,9 @@ class Rosh
           cmd = "DEBIAN_FRONTEND=noninteractive apt-get install #{@name}"
           cmd << "=#{version}" if version
           cmd << ' -y'
-          @shell.exec(cmd)
+          current_shell.exec(cmd)
 
-          @shell.last_exit_status.zero?
+          current_shell.last_exit_status.zero?
         end
 
         # Uses <tt>dpkg --status [pkg]</tt> to see if the package is installed
@@ -29,9 +29,9 @@ class Rosh
         #
         # @return [Boolean] +true+ if installed, +false+ if not.
         def installed?
-          @shell.exec "dpkg --status #{@name}"
+          current_shell.exec "dpkg --status #{@name}"
 
-          @shell.last_exit_status.zero?
+          current_shell.last_exit_status.zero?
         end
 
         # Upgrades the package, using `apt-get install`.
@@ -45,16 +45,16 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def remove
-          @shell.exec "DEBIAN_FRONTEND=noninteractive apt-get remove #{@name}"
+          current_shell.exec "DEBIAN_FRONTEND=noninteractive apt-get remove #{@name}"
 
-          @shell.last_exit_status.zero?
+          current_shell.last_exit_status.zero?
         end
 
         # Result of `dpkg --status` as a Hash.
         #
         # @return [Hash]
         def info
-          output = @shell.exec "dpkg --status #{@name}"
+          output = current_shell.exec "dpkg --status #{@name}"
           info_hash = {}
 
           output.each_line do |line|
@@ -75,7 +75,7 @@ class Rosh
         #   the latest version available.
         def at_latest_version?
           cmd = "apt-cache policy #{@name}"
-          result = @shell.exec(cmd)
+          result = current_shell.exec(cmd)
           %r[Installed: (?<current>\S+)\n\s*Candidate: (?<candidate>\S+)] =~ result
 
           if $~
@@ -87,7 +87,7 @@ class Rosh
         #   if the package is not installed.
         def current_version
           cmd = "apt-cache policy #{@name}"
-          result = @shell.exec(cmd)
+          result = current_shell.exec(cmd)
           %r[Installed: (?<version>\S*)] =~ result
 
           if $~

@@ -8,8 +8,8 @@ class Rosh
 
         attr_writer :bin_path
 
-        def initialize(shell)
-          @shell = shell
+        def initialize(host_label)
+          @host_label = host_label
         end
       end
     end

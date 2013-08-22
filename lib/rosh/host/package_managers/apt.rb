@@ -11,7 +11,7 @@ class Rosh
         #
         # @return [String] Output from the shell command.
         def update_definitions
-          @shell.exec 'apt-get update'
+          current_shell.exec 'apt-get update'
         end
 
         # Extracts the list of updated package definitions from the output of
@@ -20,7 +20,7 @@ class Rosh
         # @param [String] output from the #update_defintions call.
         # @return [Array<Hash{source: String, distribution: String, components: Array, size: String}]
         # TODO: How to deal with output being an Exception?
-        def extract_updated_definitions(output)
+        def _extract_updated_definitions(output)
           return [] unless output.is_a? String
 
           updated = []
@@ -45,7 +45,7 @@ class Rosh
         #
         # @return [String] Output of the upgrade command.
         def upgrade_packages
-          @shell.exec 'apt-get upgrade -y DEBIAN_FRONTEND=noninteractive'
+          current_shell.exec 'apt-get upgrade -y DEBIAN_FRONTEND=noninteractive'
         end
 
         # Creates a new Apt package by name.
@@ -54,7 +54,7 @@ class Rosh
         #
         # @return [Rosh::Host::PackageTypes::Deb]
         def create_package(name, **options)
-          Rosh::Host::PackageTypes::Deb.new(name, @shell, **options)
+          Rosh::Host::PackageTypes::Deb.new(name, @host_label, **options)
         end
 
         # Extracts Deb package names for #upgrade_packages from the command
@@ -62,7 +62,7 @@ class Rosh
         #
         # @param [String] output Output from the apt-get upgrade command.
         # @return [Array<String>]
-        def extract_upgraded_packages(output)
+        def _extract_upgraded_packages(output)
           new_packages = []
 
           output.each_line do |line|

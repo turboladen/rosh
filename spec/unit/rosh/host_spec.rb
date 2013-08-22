@@ -3,10 +3,10 @@ require 'rosh/host'
 
 
 describe Rosh::Host do
-  let(:hostname) { 'test' }
+  let(:name) { 'test' }
 
   subject do
-    Rosh::Host.new(hostname)
+    Rosh::Host.new(name)
   end
 
   describe '#initialize' do
@@ -14,6 +14,6 @@ describe Rosh::Host do
       Rosh::Host::Shells::Remote.should_receive(:new)
     end
 
-    its(:hostname) { should eq hostname }
+    its(:name) { should eq name }
   end
 end

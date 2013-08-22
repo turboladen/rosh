@@ -5,7 +5,8 @@ require 'rosh/host/service_types/base'
 describe Rosh::Host::ServiceTypes::Base do
   let(:name) { 'thing' }
   let(:shell) { double 'Rosh::Host::Shell' }
-  subject { Rosh::Host::ServiceTypes::Base.new(name, shell) }
+  before { allow(subject).to receive(:current_shell) { shell } }
+  subject { Rosh::Host::ServiceTypes::Base.new(name, 'example.com') }
 
   describe '#info' do
     specify { subject.should respond_to :info }

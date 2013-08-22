@@ -4,7 +4,7 @@ require 'rosh/host/package_managers/dpkg'
 
 describe Rosh::Host::PackageManagers::Dpkg do
   let(:shell) { double 'Rosh::Host::Shell' }
-  before { subject.instance_variable_set(:@shell, shell) }
+  before { allow(subject).to receive(:current_shell) { shell } }
 
   subject do
     Rosh::Host::PackageManagers::Dpkg.new(shell)

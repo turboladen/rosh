@@ -17,9 +17,9 @@ class Rosh
         def install(version=nil)
           cmd = "yum install -y #{@name}"
           cmd << "-#{version}" if version
-          @shell.exec(cmd)
+          current_shell.exec(cmd)
 
-          @shell.last_exit_status.zero?
+          current_shell.last_exit_status.zero?
         end
 
         # Uses <tt>yum info [pkg]</tt> to see if the package is installed
@@ -27,17 +27,17 @@ class Rosh
         #
         # @return [Boolean] +true+ if installed, +false+ if not.
         def installed?
-          @shell.exec "yum info #{@name}"
+          current_shell.exec "yum info #{@name}"
 
-          @shell.last_exit_status.zero?
+          current_shell.last_exit_status.zero?
         end
 
         # Upgrades the package, using <tt>yum upgrade [pkg]</tt>.
         #
         # @return [Boolean] +true+ if install was successful, +false+ if not.
         def upgrade
-          output = @shell.exec "yum upgrade -y #{@name}"
-          success = @shell.last_exit_status.zero?
+          output = current_shell.exec "yum upgrade -y #{@name}"
+          success = current_shell.last_exit_status.zero?
 
           return false if output.match(/#{@name} available, but not installed/m)
           return false if output.match(/No Packages marked for Update/m)
@@ -49,16 +49,16 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def remove
-          @shell.exec "yum remove -y #{@name}"
+          current_shell.exec "yum remove -y #{@name}"
 
-          @shell.last_exit_status.zero?
+          current_shell.last_exit_status.zero?
         end
 
         # Result of <tt>yum info [pkg]</tt> as a Hash.
         #
         # @return [Hash]
         def info
-          output = @shell.exec "yum info #{@name}"
+          output = current_shell.exec "yum info #{@name}"
           info_hash = {}
 
           output.each_line do |line|
@@ -79,13 +79,13 @@ class Rosh
         #   the latest version available.
         def at_latest_version?
           cmd = "yum list updates #{@name}"
-          result = @shell.exec(cmd)
+          result = current_shell.exec(cmd)
 
           # Could be that: a) not a package, b) the package is not installed, c)
           # the package is at the latest.
           if result =~ /No matching Packages to list/
             cmd = "yum info #{@name}"
-            result = @shell.exec(cmd)
+            result = current_shell.exec(cmd)
 
             if result =~ /Available Packages/m
               false
@@ -105,7 +105,7 @@ class Rosh
         #   if the package is not installed.
         def current_version
           cmd = "rpm -qa #{@name}"
-          result = @shell.exec(cmd)
+          result = current_shell.exec(cmd)
 
           if result.empty?
             nil

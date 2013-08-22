@@ -8,13 +8,13 @@ class Rosh
       class Init < Base
 
         # @param [String] name
-        # @param [Rosh::Host::Shells::*] shell
+        # @param [String,Symbol] host_label
         # @param [Symbol] os_type
         # @param [Number] pid
-        def initialize(name, shell, os_type, pid=nil)
-          super(name, shell, pid)
+        def initialize(name, os_type, host_label, pid=nil)
+          super(name, host_label, pid)
 
-          @shell = shell
+          @host_label = host_label
           @os_type = os_type
 
           @script_dir = case @os_type
@@ -41,12 +41,12 @@ class Rosh
 
         # @return [Symbol]
         def status
-          result = @shell.exec("#{@script_dir}/#{@name} #{status_command}")
+          result = current_shell.exec("#{@script_dir}/#{@name} #{status_command}")
 
-          if @shell.last_exit_status.zero?
+          if current_shell.last_exit_status.zero?
             pid = fetch_pid
             pid.empty? ? :stopped : :running
-          elsif @shell.last_exit_status == 127
+          elsif current_shell.last_exit_status == 127
             :unrecognized_service
           else
             if result =~ / stopped/
@@ -61,9 +61,9 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def start
-          @shell.exec("#{@script_dir}/#{@name} start")
+          current_shell.exec("#{@script_dir}/#{@name} start")
 
-          @shell.last_exit_status.zero?
+          current_shell.last_exit_status.zero?
         end
 
         # Starts the service, but raises if not able to.
@@ -72,13 +72,13 @@ class Rosh
         # @raise [Rosh::PermissionDenied]
         # @raise [Rosh::UnrecognizedService]
         def start!
-          result = @shell.exec("#{@script_dir}/#{@name} start")
+          result = current_shell.exec("#{@script_dir}/#{@name} start")
 
-          if @shell.last_exit_status.zero?
+          if current_shell.last_exit_status.zero?
             if permission_denied? result
               raise Rosh::PermissionDenied, result
             end
-          elsif @shell.last_exit_status == 127
+          elsif current_shell.last_exit_status == 127
             raise Rosh::UnrecognizedService, result
           elsif permission_denied? result
             raise Rosh::PermissionDenied, result
@@ -116,7 +116,7 @@ class Rosh
         # @return [Array<Integer>] An Array of pids that match the name of the
         #   service.
         def fetch_pid
-          process_list = @shell.ps(name: @name)
+          process_list = current_shell.ps(name: @name)
           pids = process_list.map { |process| process.pid }
 
           pids
