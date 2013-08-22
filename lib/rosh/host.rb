@@ -68,11 +68,11 @@ class Rosh
 
       @service_manager = case operating_system
       when :darwin
-        Rosh::Host::ServiceManagers::LaunchCTL.new(@shell)
+        Rosh::Host::ServiceManagers::LaunchCTL.new(@host_label)
       when :linux
-        Rosh::Host::ServiceManagers::Init.new(@shell, :linux)
+        Rosh::Host::ServiceManagers::Init.new(:linux, @host_label)
       when :freebsd
-        Rosh::Host::ServiceManagers::Init.new(@shell, :freebsd)
+        Rosh::Host::ServiceManagers::Init.new(:freebsd, @host_label)
       end
     end
 

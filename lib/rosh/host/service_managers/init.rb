@@ -5,8 +5,8 @@ class Rosh
   class Host
     module ServiceManagers
       class Init
-        def initialize(shell, os_type)
-          @shell = shell
+        def initialize(os_type, host_label)
+          @host_label = host_label
           @os_type = os_type
         end
 
@@ -24,17 +24,17 @@ class Rosh
         private
 
         def create(name)
-          Rosh::Host::ServiceTypes::Init.new(name, @shell, @os_type)
+          Rosh::Host::ServiceTypes::Init.new(name, @os_type, @host_label)
         end
 
         def linux_list
-          result = @shell.ls '/etc/init.d'
+          result = current_shell.ls '/etc/init.d'
 
           result.map { |file| create(file.basename) }
         end
 
         def freebsd_list
-          result = @shell.ls '/etc/rc.d'
+          result = current_shell.ls '/etc/rc.d'
 
           result.map { |file| create(file.basename) }
         end

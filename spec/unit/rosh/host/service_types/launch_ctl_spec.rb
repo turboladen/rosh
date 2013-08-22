@@ -5,6 +5,7 @@ require 'rosh/host/service_types/launch_ctl'
 describe Rosh::Host::ServiceTypes::LaunchCTL do
   let(:name) { 'com.thing' }
   let(:shell) { double 'Rosh::Host::Shell' }
+  before { allow(subject).to receive(:current_shell) { shell } }
 
   let(:result) do
     r = double 'Rosh::CommandResult'
@@ -14,7 +15,7 @@ describe Rosh::Host::ServiceTypes::LaunchCTL do
     r
   end
 
-  subject { Rosh::Host::ServiceTypes::LaunchCTL.new(name, shell) }
+  subject { Rosh::Host::ServiceTypes::LaunchCTL.new(name, 'example.com') }
 
   describe '#info' do
     let(:info) { {} }

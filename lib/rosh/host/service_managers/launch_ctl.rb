@@ -5,12 +5,12 @@ class Rosh
   class Host
     module ServiceManagers
       class LaunchCTL
-        def initialize(shell)
-          @shell = shell
+        def initialize(host_label)
+          @host_label = host_label
         end
 
         def list
-          result = @shell.exec 'launchctl list'
+          result = current_shell.exec 'launchctl list'
 
           services = []
           result.each_line.each do |line|
@@ -37,7 +37,7 @@ class Rosh
         private
 
         def create(name, pid)
-          Rosh::Host::ServiceTypes::LaunchCTL.new(name, @shell, pid)
+          Rosh::Host::ServiceTypes::LaunchCTL.new(name, @host_label, pid)
         end
       end
     end
