@@ -16,7 +16,7 @@ class Rosh
         #
         # @return [Array<Rosh::Host::PackageTypes::Brew>]
         def installed_packages
-          output = @shell.exec("#{bin_path}/brew list")
+          output = current_shell.exec("#{bin_path}/brew list")
 
           output.split(/\s+/).map do |pkg|
             create_package(pkg)
@@ -27,7 +27,7 @@ class Rosh
         #
         # @return [String] Output from the shell command.
         def update_definitions
-          @shell.exec("#{bin_path}/brew update")
+          current_shell.exec("#{bin_path}/brew update")
         end
 
         # Extracts the list of updated package definitions from the output of
@@ -36,7 +36,7 @@ class Rosh
         # @param [String] output from the #update_defintions call.
         # @return [Array<Hash{new_formulae: Array, updated_formulae: Array, deleted_formulae: Array}>]
         # TODO: How to deal with output being an Exception?
-        def extract_updated_definitions(output)
+        def _extract_updated_definitions(output)
           return [] unless output.is_a? String
 
           /==> New Formulae\n(?<new_formulae>[^=>]*)/m =~ output
@@ -61,11 +61,11 @@ class Rosh
         #
         # @return [String] Output of the upgrade command.
         def upgrade_packages
-          @shell.exec("#{bin_path}/brew upgrade")
+          current_shell.exec("#{bin_path}/brew upgrade")
         end
 
         def create_package(name, **options)
-          Rosh::Host::PackageTypes::Brew.new(name, @shell, **options)
+          Rosh::Host::PackageTypes::Brew.new(name, current_shell, **options)
         end
 
         # Extracts Brew package names for #upgrade_packages from the command
@@ -73,7 +73,7 @@ class Rosh
         #
         # @param [String] output Output from the brew upgrade command.
         # @return [Array<String>]
-        def extract_upgraded_packages(output)
+        def _extract_upgraded_packages(output)
           /Upgrading \d+ outdated packages, with result:\n(?<list>[^=>]+)/ =~ output
 
           name_and_version = list.split(', ')

@@ -43,6 +43,26 @@ class Rosh
       @fs ||= Rosh::Host::FileSystem.new(@host_label)
     end
 
+    # Access to the PackageManager for the Host's OS type.
+    #
+    # @return [Rosh::Host::PackageManager]
+    # @see Rosh::Host::PackageManager
+    def packages
+      return @package_manager if @package_manager
+
+      @package_manager = case operating_system
+      when :darwin
+        Rosh::Host::PackageManager.new(:brew, :brew, @host_label)
+      when :linux
+        case distribution
+        when :ubuntu
+          Rosh::Host::PackageManager.new(:apt, :dpkg, @host_label)
+        when :centos
+          Rosh::Host::PackageManager.new(:yum, :rpm, @host_label)
+        end
+      end
+    end
+
     def services
       return @service_manager if @service_manager
 
@@ -67,26 +87,6 @@ class Rosh
 
     def groups
       @group_manager ||= Rosh::Host::GroupManager.new(self)
-    end
-
-    # Access to the PackageManager for the Host's OS type.
-    #
-    # @return [Rosh::Host::PackageManager]
-    # @see Rosh::Host::PackageManager
-    def packages
-      return @package_manager if @package_manager
-
-      @package_manager = case operating_system
-      when :darwin
-        Rosh::Host::PackageManager.new(:brew, :brew, @shell)
-      when :linux
-        case distribution
-        when :ubuntu
-          Rosh::Host::PackageManager.new(:apt, :dpkg, @shell)
-        when :centos
-          Rosh::Host::PackageManager.new(:yum, :rpm, @shell)
-        end
-      end
     end
 
     def local?

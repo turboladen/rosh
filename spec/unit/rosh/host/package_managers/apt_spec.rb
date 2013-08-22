@@ -23,7 +23,7 @@ describe Rosh::Host::PackageManagers::Apt do
   subject { Rosh::Host::PackageManagers::Apt.new(shell) }
 
   before do
-    subject.instance_variable_set(:@shell, shell)
+    allow(subject).to receive(:current_shell) { shell }
   end
 
   describe '#update_definitions' do
@@ -33,7 +33,7 @@ describe Rosh::Host::PackageManagers::Apt do
     end
   end
 
-  describe '#extract_update_definitions' do
+  describe '#_extract_update_definitions' do
     context 'index does not change during update' do
       let(:output) do
         <<-OUTPUT
@@ -50,7 +50,7 @@ Reading package lists... Done
       end
 
       it 'returns an empty Array' do
-        expect(subject.extract_updated_definitions(output)).to eq []
+        expect(subject._extract_updated_definitions(output)).to eq []
       end
     end
 
@@ -71,7 +71,7 @@ Reading package lists... Done
       end
 
       it 'returns an Array of Hashes containing the updated package defs' do
-        expect(subject.extract_updated_definitions(output)).to eq [
+        expect(subject._extract_updated_definitions(output)).to eq [
           {
             source: 'http://us.archive.ubuntu.com',
             distribution: 'precise-backports',
@@ -96,7 +96,7 @@ Reading package lists... Done
     end
   end
 
-  describe '#extract_upgraded_packages' do
+  describe '#_extract_upgraded_packages' do
     let(:output) do
        <<-EOF
 The following packages will be upgraded:
@@ -107,7 +107,7 @@ The following packages will be upgraded:
     end
 
     it 'returns an array of new Deb packages' do
-      result = subject.extract_upgraded_packages(output)
+      result = subject._extract_upgraded_packages(output)
       result.all? { |r| expect(r).to be_a Rosh::Host::PackageTypes::Deb }
     end
   end

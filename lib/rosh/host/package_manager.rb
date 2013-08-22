@@ -23,9 +23,9 @@ class Rosh
       #   Look at the list of PackageManagers.
       # @param [Symbol] package_type The PackageType to delegate to.
       #   Look at the list of PackageTypes.
-      # @param [Rosh::Host::Shells::*] shell
-      def initialize(manager_type, package_type, shell)
-        @shell = shell
+      # @param [String,Symbol] host_label
+      def initialize(manager_type, package_type, host_label)
+        @host_label = host_label
         @manager_type = manager_type
         @package_type = package_type
       end
@@ -52,16 +52,20 @@ class Rosh
         adapter.bin_path = new_path
       end
 
+      def installed_packages
+        adapter.installed_packages
+      end
+
       def update_definitions
         output = adapter.update_definitions
-        updated = adapter.extract_updated_definitions(output)
-        success = @shell.last_exit_status.zero?
+        updated = adapter._extract_updated_definitions(output)
+        success = current_shell.last_exit_status.zero?
 
         if success && !updated.empty?
           adapter.changed
           adapter.notify_observers(adapter,
             attribute: :package_definitions,
-            old: [], new: updated, as_sudo: @shell.su?)
+            old: [], new: updated, as_sudo: current_shell.su?)
         end
 
         success
@@ -75,14 +79,14 @@ class Rosh
       def upgrade_packages
         old_packages = adapter.installed_packages
         output = adapter.upgrade_packages
-        new_packages = adapter.extract_upgraded_packages(output)
-        success = @shell.last_exit_status.zero?
+        new_packages = adapter._extract_upgraded_packages(output)
+        success = current_shell.last_exit_status.zero?
 
         if success && !new_packages.empty?
           adapter.changed
           adapter.notify_observers(adapter,
             attribute: :installed_packages, old: old_packages,
-            new: new_packages, as_sudo: @shell.su?)
+            new: new_packages, as_sudo: current_shell.su?)
         end
 
         success
@@ -97,22 +101,22 @@ class Rosh
       #
       # @return [Rosh::Host::PackageManagers::*]
       def adapter
-        @adapter ||= create_adapter(@manager_type, @shell)
+        @adapter ||= create_adapter(@manager_type, @host_label)
       end
 
       # Creates the adapter object based on the given +manager_type+.
       #
       # @param [Symbol, String] manager_type
-      # @param [Rosh::Host::Shells::*] shell
+      # @param [String,Symbol] host_label
       #
       # @return [Rosh::Host::PackageManagers::*]
-      def create_adapter(manager_type, shell)
+      def create_adapter(manager_type, host_label)
         require_relative "package_managers/#{manager_type}"
 
         package_manager_klass =
           Rosh::Host::PackageManagers.const_get(manager_type.to_s.capitalize.to_sym)
 
-        package_manager_klass.new(shell)
+        package_manager_klass.new(host_label)
       end
     end
   end

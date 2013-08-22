@@ -10,7 +10,7 @@ describe 'Package manager API' do
     INSTANCE_METHODS =
       %i[
         create_package upgrade_packages update_definitions installed_packages
-        extract_updated_definitions extract_upgraded_packages
+        _extract_updated_definitions _extract_upgraded_packages
       ]
 
     OBSERVABLE_METHODS =

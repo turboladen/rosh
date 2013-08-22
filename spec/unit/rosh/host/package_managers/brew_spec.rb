@@ -15,7 +15,7 @@ describe Rosh::Host::PackageManagers::Brew do
   end
 
   subject { Rosh::Host::PackageManagers::Brew.new(shell) }
-  before { subject.instance_variable_set(:@shell, shell) }
+  before { allow(subject).to receive(:current_shell) { shell } }
 
   describe '#bin_path' do
     context 'default' do
@@ -64,11 +64,11 @@ atk				freetype			intltool
     end
   end
 
-  describe '#extract_update_definitions' do
+  describe '#_extract_update_definitions' do
     context 'output is an Exception' do
       it 'returns an empty Array' do
         output = RuntimeError.new
-        expect(subject.extract_updated_definitions(output)).to eq []
+        expect(subject._extract_updated_definitions(output)).to eq []
       end
     end
 
@@ -80,7 +80,7 @@ Already up-to-date.
       end
 
       it 'returns an empty Array' do
-        expect(subject.extract_updated_definitions(output)).to eq []
+        expect(subject._extract_updated_definitions(output)).to eq []
       end
     end
 
@@ -114,7 +114,7 @@ wp-cli
       end
 
       it 'returns an Array of Hashes containing the updated package defs' do
-        expect(subject.extract_updated_definitions(output)).to eq updated
+        expect(subject._extract_updated_definitions(output)).to eq updated
       end
     end
   end
@@ -126,7 +126,7 @@ wp-cli
     end
   end
 
-  describe '#extract_upgraded_packages' do
+  describe '#_extract_upgraded_packages' do
     let(:output) do
       <<-EOF
       ==> Upgrading 17 outdated packages, with result:
@@ -135,7 +135,7 @@ atk 2.8.0, gmp 5.1.1, gtk+ 2.24.17, hub 1.10.6
     end
 
     it 'returns an array of new Brew packages' do
-      result = subject.send(:extract_upgraded_packages, output)
+      result = subject.send(:_extract_upgraded_packages, output)
       result.should  eq %w[atk gmp gtk+ hub]
     end
   end
