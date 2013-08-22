@@ -3,13 +3,9 @@ require 'rosh/host/package'
 
 
 describe Rosh::Host::Package do
-  let(:adapter) do
-    double 'Rosh::Host::PackageTypes::Fakie'
-  end
-
-  let(:shell) do
-    double 'Rosh::Host::Shells::Fakie'
-  end
+  let(:adapter) { double 'Rosh::Host::PackageTypes::Fakie' }
+  let(:shell) { double 'Rosh::Host::Shells::Fakie' }
+  before { allow(subject).to receive(:current_shell) { shell } }
 
   subject do
     package = Rosh::Host::Package.new('type_meow', 'testie', shell)

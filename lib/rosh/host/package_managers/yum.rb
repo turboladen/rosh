@@ -56,7 +56,7 @@ class Rosh
         end
 
         def create_package(name, **options)
-          Rosh::Host::PackageTypes::Rpm.new(name, current_shell, **options)
+          Rosh::Host::PackageTypes::Rpm.new(name, @host_label, **options)
         end
 
         # Extracts Rpm packagesnames for #upgrade_packages from the command

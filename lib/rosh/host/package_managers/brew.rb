@@ -65,7 +65,7 @@ class Rosh
         end
 
         def create_package(name, **options)
-          Rosh::Host::PackageTypes::Brew.new(name, current_shell, **options)
+          Rosh::Host::PackageTypes::Brew.new(name, @host_label, **options)
         end
 
         # Extracts Brew package names for #upgrade_packages from the command

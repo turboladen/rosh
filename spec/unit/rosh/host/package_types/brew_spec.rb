@@ -4,10 +4,8 @@ require 'rosh/host/package_types/brew'
 
 describe Rosh::Host::PackageTypes::Brew do
   let(:shell) { double 'Rosh::Host::Shell', :su? => false }
-
-  subject do
-    Rosh::Host::PackageTypes::Brew.new('thing', shell)
-  end
+  before { allow(subject).to receive(:current_shell) { shell } }
+  subject { Rosh::Host::PackageTypes::Brew.new('thing', 'example.com') }
 
   describe '#info' do
     before do

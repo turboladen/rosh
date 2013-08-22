@@ -54,7 +54,7 @@ class Rosh
         #
         # @return [Rosh::Host::PackageTypes::Deb]
         def create_package(name, **options)
-          Rosh::Host::PackageTypes::Deb.new(name, current_shell, **options)
+          Rosh::Host::PackageTypes::Deb.new(name, @host_label, **options)
         end
 
         # Extracts Deb package names for #upgrade_packages from the command

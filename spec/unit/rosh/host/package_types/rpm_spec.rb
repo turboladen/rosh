@@ -4,10 +4,8 @@ require 'rosh/host/package_types/rpm'
 
 describe Rosh::Host::PackageTypes::Rpm do
   let(:shell) { double 'Rosh::Host::Shell', :su? => false }
-
-  subject do
-    Rosh::Host::PackageTypes::Rpm.new('thing', shell)
-  end
+  before { allow(subject).to receive(:current_shell) { shell } }
+  subject { Rosh::Host::PackageTypes::Rpm.new('thing', 'example.com') }
 
   describe '#info' do
     let(:output) do

@@ -56,3 +56,4 @@
 # TODO: Remove +status+ from PackageTypes::Base (check with screenplay first).
 # TODO: Remove +architecture+ from PackageTypes::Base (check with screenplay first).
 # TODO: Serialization of a full Host object (instead of just FileSystemObjects)
+# TODO: Handle uninstalled package manager (i.e. brew)
