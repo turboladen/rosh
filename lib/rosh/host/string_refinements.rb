@@ -12,6 +12,7 @@ end
 
 class String
   def to_safe_down_sym
+    #self.snake_case.to_sym
     self.gsub(' ', '_').gsub('.', '').gsub('-', '_').downcase.to_sym
   end
 
