@@ -60,7 +60,12 @@ class Rosh
     end
 
     def users
-      @user_manager ||= Rosh::Host::UserManager.new(self)
+      return @user_manager if @user_manager
+
+      @user_manager = case operating_system
+      when :darwin
+        Rosh::Host::UserManager.new(:open_directory, @shell)
+      end
     end
 
     def groups

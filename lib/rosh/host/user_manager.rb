@@ -1,29 +1,35 @@
-require 'plist'
-require_relative 'user'
+require_relative 'string_refinements'
 
 
 class Rosh
   class Host
     class UserManager
-      def initialize(host)
-        @host = host
+      def initialize(type, shell)
+        @shell = shell
+        @type = type
       end
 
       def [](user_name)
-        create(user_name)
+        adapter.create_user(user_name)
       end
 
       def list
-        result = @host.shell.exec 'dscl -plist . -readall /Users'
-        users = Plist.parse_xml(result)
-
-        Rosh::CommandResult.new(users, 0, result)
+        adapter.list
       end
 
       private
 
-      def create(name)
-        Rosh::Host::User.new(@host, name)
+      def adapter
+        @adapter ||= create_adapter(@type, @shell)
+      end
+
+      def create_adapter(type, shell)
+        require_relative "user_managers/#{type}"
+
+        um_klass =
+          Rosh::Host::UserManagers.const_get(type.to_s.classify)
+
+        um_klass.new(shell)
       end
     end
   end
