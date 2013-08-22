@@ -18,27 +18,27 @@ class Rosh
         include Observable
 
         # @param [String] path Path to the object.
-        # @param [Rosh::Host::Shells::Remote] remote_shell
+        # @param [String,Symbol] host_label
         # @return [Rosh::Host::FileSystemObjects::RemoteDir,Rosh::Host::FileSystemObjects::RemoteFile,Rosh::Host::FileSystemObjects::RemoteLink]
-        def self.create(path, remote_shell)
-          fso = new(path, remote_shell)
+        def self.create(path, host_label)
+          fso = new(path, host_label)
 
           if fso.directory?
-            Rosh::Host::FileSystemObjects::RemoteDir.new(path, remote_shell)
+            Rosh::Host::FileSystemObjects::RemoteDir.new(path, host_label)
           elsif fso.file?
-            Rosh::Host::FileSystemObjects::RemoteFile.new(path, remote_shell)
+            Rosh::Host::FileSystemObjects::RemoteFile.new(path, host_label)
           elsif fso.link?
-            Rosh::Host::FileSystemObjects::RemoteLink.new(path, remote_shell)
+            Rosh::Host::FileSystemObjects::RemoteLink.new(path, host_label)
           end
         end
 
         attr_reader :path
 
         # @param [String] path Path to the remote file system object.
-        # @param [Rosh::Host::Shells::Remote] shell
-        def initialize(path, shell)
+        # @param [String,Symbol] host_label
+        def initialize(path, host_label)
           @path = path.strip
-          @shell = shell
+          @host_label = host_label
         end
 
         # Returns the pathname used to create file as a String. Does not normalize
@@ -52,41 +52,41 @@ class Rosh
         # @return [Boolean] +true+ if the object is a file; +false+ if not.
         def file?
           cmd = "[ -f #{@path} ]"
-          @shell.exec(cmd)
+          current_shell.exec(cmd)
 
-          @shell.last_exit_status.zero?
+          current_shell.last_exit_status.zero?
         end
 
         # @return [Boolean] +true+ if the object is a directory; +false+ if not.
         def directory?
           cmd = "[ -d #{@path} ]"
-          @shell.exec(cmd)
+          current_shell.exec(cmd)
 
-          @shell.last_exit_status.zero?
+          current_shell.last_exit_status.zero?
         end
 
         # @return [Boolean] +true+ if the object is a link; +false+ if not.
         def link?
           cmd = "[ -L #{@path} ]"
-          @shell.exec(cmd)
+          current_shell.exec(cmd)
 
-          @shell.last_exit_status.zero?
+          current_shell.last_exit_status.zero?
         end
 
         # @return [Boolean] +true+ if the object exists on the file system;
         #   +false+ if not.
         def exists?
           cmd = "[ -e #{@path} ]"
-          @shell.exec(cmd)
+          current_shell.exec(cmd)
 
-          @shell.last_exit_status.zero?
+          current_shell.last_exit_status.zero?
         end
 
         # @return [String] The owner of the file system object.
         def owner
           cmd = "ls -l #{@path} | awk '{print $3}'"
 
-          @shell.exec(cmd).strip
+          current_shell.exec(cmd).strip
         end
 
         # Sets the file system object to +new_owner+.  If the update was a
@@ -98,16 +98,16 @@ class Rosh
         #   system object.
         def owner=(new_owner)
           old_owner = owner
-          return if @shell.check_state_first? && old_owner == new_owner
+          return if current_shell.check_state_first? && old_owner == new_owner
 
           cmd = "chown #{new_owner} #{@path}"
-          @shell.exec(cmd)
+          current_shell.exec(cmd)
 
-          if @shell.last_exit_status.zero? && old_owner != new_owner
+          if current_shell.last_exit_status.zero? && old_owner != new_owner
             changed
             notify_observers(self,
               attribute: :owner, old: old_owner, new: new_owner,
-              as_sudo: @shell.su?)
+              as_sudo: current_shell.su?)
           end
         end
 
@@ -115,7 +115,7 @@ class Rosh
         def group
           cmd = "ls -l #{@path} | awk '{print $4}'"
 
-          @shell.exec(cmd).strip
+          current_shell.exec(cmd).strip
         end
 
         # Sets the group on the file system object to +new_group+.  If the update was a
@@ -127,23 +127,23 @@ class Rosh
         #   system object.
         def group=(new_group)
           old_group = group
-          return if @shell.check_state_first? && old_group == new_group
+          return if current_shell.check_state_first? && old_group == new_group
 
           cmd = "chgrp #{new_group} #{@path}"
-          @shell.exec(cmd)
+          current_shell.exec(cmd)
 
-          if @shell.last_exit_status.zero? && old_group != new_group
+          if current_shell.last_exit_status.zero? && old_group != new_group
             changed
             notify_observers(self,
               attribute: :group, old: old_group, new: new_group,
-              as_sudo: @shell.su?)
+              as_sudo: current_shell.su?)
           end
         end
 
         # @return [Integer] The mode of the file system object.
         def mode
           cmd = "ls -l #{@path} | awk '{print $1}'"
-          letter_mode = @shell.exec(cmd)
+          letter_mode = current_shell.exec(cmd)
 
           mode_to_i(letter_mode)
         end
@@ -157,16 +157,16 @@ class Rosh
         #   system object.
         def mode=(new_mode)
           old_mode = mode
-          return if @shell.check_state_first? && old_mode == new_mode
+          return if current_shell.check_state_first? && old_mode == new_mode
 
           cmd = "chmod #{new_mode} #{@path}"
-          @shell.exec(cmd)
+          current_shell.exec(cmd)
 
-          if @shell.last_exit_status.zero? && old_mode != new_mode.to_i
+          if current_shell.last_exit_status.zero? && old_mode != new_mode.to_i
             changed
             notify_observers(self,
               attribute: :mode, old: old_mode, new: new_mode,
-              as_sudo: @shell.su?)
+              as_sudo: current_shell.su?)
           end
         end
 
@@ -183,17 +183,18 @@ class Rosh
         # actually removes the object, the observer's #update method gets called.
         def remove
           existed = exists?
-          return if @shell.check_state_first? && !existed
+          return if current_shell.check_state_first? && !existed
 
           cmd = "rm -rf #{@path}"
-          @shell.exec(cmd)
+          current_shell.exec(cmd)
 
-          success = @shell.last_exit_status.zero?
+          success = current_shell.last_exit_status.zero?
 
           if success && existed
             changed
             notify_observers(self,
-              attribute: :path, old: @path, new: nil, as_sudo: @shell.su?)
+              attribute: :path, old: @path, new: nil,
+              as_sudo: current_shell.su?)
           end
 
           success
@@ -202,13 +203,13 @@ class Rosh
         # Called by serializer when dumping.
         def encode_with(coder)
           coder['path'] = @path
-          coder['shell'] = @shell
+          coder['host_label'] = @host_label
         end
 
         # Called by serializer when loading.
         def init_with(coder)
           @path = coder['path']
-          @shell = coder['shell']
+          @host_label = coder['host_label']
         end
 
         #-------------------------------------------------------------------------

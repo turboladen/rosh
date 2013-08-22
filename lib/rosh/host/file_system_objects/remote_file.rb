@@ -13,9 +13,9 @@ class Rosh
       class RemoteFile < RemoteBase
 
         # @param [String] path
-        # @param [Rosh::Host::Shells::Remote] remote_shell
-        def initialize(path, remote_shell)
-          super(path, remote_shell)
+        # @param [String,Symbol] host_label
+        def initialize(path, host_label)
+          super(path, host_label)
 
           @unwritten_contents = nil
         end
@@ -24,16 +24,16 @@ class Rosh
         def contents
           return @unwritten_contents if @unwritten_contents
 
-          results = @shell.cat(@path)
+          results = current_shell.cat(@path)
 
-          @shell.last_exit_status.zero? ? results : nil
+          current_shell.last_exit_status.zero? ? results : nil
         end
 
         # Stores +new_contents+ in memory until #save is called.
         #
         # @param [String] new_contents Contents to write to the file on #save.
         def contents=(new_contents)
-          if @shell.check_state_first? && new_contents == contents
+          if current_shell.check_state_first? && new_contents == contents
             #log 'SKIP: check_state_first is true and file contents are identical.'
             return
           end
@@ -52,7 +52,7 @@ class Rosh
           template = ERB.new(File.read(template_file))
           new_contents = template.result(namespace.instance_eval { binding })
 
-          if @shell.check_state_first? && contents == new_contents
+          if current_shell.check_state_first? && contents == new_contents
             #log 'SKIP: check_state_first is true and file contents are identical to the rendered template.'
             return
           end
@@ -81,19 +81,20 @@ class Rosh
         #
         # @return [Boolean] +true+ if creating was successful; +false+ if not.
         def create
-          if @shell.check_state_first? && exists?
+          if current_shell.check_state_first? && exists?
             #log 'SKIP: check_state_first is true and file already exists.'
             return
           end
 
-          @shell.exec("touch #{@path}")
+          current_shell.exec("touch #{@path}")
 
-          success = @shell.last_exit_status.zero?
+          success = current_shell.last_exit_status.zero?
 
           if success
             changed
             notify_observers(self,
-              attribute: :path, old: nil, new: @path, as_sudo: @shell.su?)
+              attribute: :path, old: nil, new: @path,
+              as_sudo: current_shell.su?)
           end
 
           success
@@ -109,16 +110,16 @@ class Rosh
           tempfile = Tempfile.new('rosh_remote_file')
           tempfile.write(@unwritten_contents)
           tempfile.rewind
-          @shell.upload(tempfile, @path)
+          current_shell.upload(tempfile, @path)
 
           tempfile.unlink
-          success = @shell.last_exit_status.zero?
+          success = current_shell.last_exit_status.zero?
 
           if success && old_contents != @unwritten_contents
             changed
             notify_observers(self,
               attribute: :contents, old: old_contents, new: @unwritten_contents,
-              as_sudo: @shell.su?)
+              as_sudo: current_shell.su?)
           end
 
           @unwritten_contents = nil

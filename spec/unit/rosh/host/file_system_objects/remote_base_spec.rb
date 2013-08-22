@@ -4,11 +4,12 @@ require 'rosh/host/file_system_objects/remote_base'
 
 describe Rosh::Host::FileSystemObjects::RemoteBase do
   subject do
-    Rosh::Host::FileSystemObjects::RemoteBase.new(path, shell)
+    Rosh::Host::FileSystemObjects::RemoteBase.new(path, 'test_host')
   end
 
   let(:path) { '/file' }
   let(:shell) { double 'Rosh::Host::Shells::Remote', :su? => false }
+  before { allow(subject).to receive(:current_shell) { shell } }
 
   describe '.create' do
     before do

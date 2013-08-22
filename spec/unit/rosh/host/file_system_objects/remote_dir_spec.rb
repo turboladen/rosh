@@ -4,11 +4,12 @@ require 'rosh/host/file_system_objects/remote_dir'
 
 describe Rosh::Host::FileSystemObjects::RemoteDir do
   subject do
-    Rosh::Host::FileSystemObjects::RemoteDir.new(path, shell)
+    Rosh::Host::FileSystemObjects::RemoteDir.new(path, 'test_host')
   end
 
   let(:path) { '/dir' }
   let(:shell) { double 'Rosh::Host::Shells::Remote', :su? => false }
+  before { allow(subject).to receive(:current_shell) { shell } }
 
   describe '#owner' do
     context 'command output is empty' do

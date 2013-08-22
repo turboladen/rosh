@@ -37,10 +37,15 @@ options:
     end
   end
 
-  describe Rosh::Host::Shells::Remote do
+  describe Rosh::Host::FileSystemObjects::RemoteBase do
     subject do
-      shell = Rosh::Host::Shells::Remote.new('example.com', user: 'bobo')
-      Rosh::Host::FileSystemObjects::RemoteBase.new(__FILE__, shell)
+      Rosh::Host::FileSystemObjects::RemoteBase.new(__FILE__, 'example.com')
+    end
+
+    before do
+      allow(subject).to receive(:current_shell).and_return {
+        Rosh::Host::Shells::Remote.new('example.com', user: 'bobo')
+      }
     end
 
     context 'YAML' do
@@ -48,9 +53,7 @@ options:
         <<-FSO
 --- !ruby/object:Rosh::Host::FileSystemObjects::RemoteBase
 path: #{__FILE__}
-shell: !ruby/object:Rosh::Host::Shells::Remote
-  hostname: example.com
-  user: bobo
+host_label: example.com
         FSO
       end
 
@@ -58,10 +61,7 @@ shell: !ruby/object:Rosh::Host::Shells::Remote
         subject.to_yaml.should == <<-FSO
 --- !ruby/object:Rosh::Host::FileSystemObjects::RemoteBase
 path: #{__FILE__}
-shell: !ruby/object:Rosh::Host::Shells::Remote
-  hostname: example.com
-  user: bobo
-  options: {}
+host_label: example.com
         FSO
       end
 
@@ -69,9 +69,7 @@ shell: !ruby/object:Rosh::Host::Shells::Remote
         new_fso = YAML.load(yaml)
         new_fso.should be_a Rosh::Host::FileSystemObjects::RemoteBase
         new_fso.to_path.should eq __FILE__
-        shell = new_fso.instance_variable_get(:@shell)
-        shell.hostname.should eq 'example.com'
-        shell.instance_variable_get(:@user).should eq 'bobo'
+        new_fso.instance_variable_get(:@host_label).should eq 'example.com'
       end
     end
   end

@@ -4,11 +4,12 @@ require 'rosh/host/file_system_objects/remote_file'
 
 describe Rosh::Host::FileSystemObjects::RemoteFile do
   subject do
-    Rosh::Host::FileSystemObjects::RemoteFile.new(path, shell)
+    Rosh::Host::FileSystemObjects::RemoteFile.new(path, 'test_host')
   end
 
   let(:path) { '/file' }
   let(:shell) { double 'Rosh::Host::Shells::Remote', :su? => false }
+  before { allow(subject).to receive(:current_shell) { shell } }
 
   describe '#contents' do
     context 'file does not exist' do

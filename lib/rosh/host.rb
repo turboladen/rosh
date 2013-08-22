@@ -9,6 +9,8 @@ require_relative 'host/package_manager'
 require_relative 'host/group_manager'
 require_relative 'host/user_manager'
 
+require_relative 'kernel_refinements'
+
 
 class Rosh
   class Host
@@ -29,7 +31,7 @@ class Rosh
       @shell = if local?
         Rosh::Host::Shells::Local.new
       else
-        Rosh::Host::Shells::Remote.new(@host_label, ssh_options)
+        Rosh::Host::Shells::Remote.new(@name, ssh_options)
       end
     end
 
@@ -38,13 +40,7 @@ class Rosh
     end
 
     def fs
-      return @fs if @fs
-
-      @fs = if local?
-        Rosh::Host::FileSystem.new(@shell, false)
-      else
-        Rosh::Host::FileSystem.new(@shell)
-      end
+      @fs ||= Rosh::Host::FileSystem.new(@host_label)
     end
 
     def services

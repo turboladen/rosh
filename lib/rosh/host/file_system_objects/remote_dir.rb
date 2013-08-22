@@ -12,20 +12,20 @@ class Rosh
         def owner
           cmd = "ls -ld #{@path} | awk '{print $3}'"
 
-          @shell.exec(cmd).strip
+          current_shell.exec(cmd).strip
         end
 
         # @return [String] The group of the remote directory.
         def group
           cmd = "ls -ld #{@path} | awk '{print $4}'"
 
-          @shell.exec(cmd).strip
+          current_shell.exec(cmd).strip
         end
 
         # @return [Integer] The mode of the file system object.
         def mode
           cmd = "ls -ld #{@path} | awk '{print $1}'"
-          letter_mode = @shell.exec(cmd)
+          letter_mode = current_shell.exec(cmd)
 
           mode_to_i(letter_mode)
         end
@@ -39,14 +39,15 @@ class Rosh
           return true if exists?
 
           cmd = "mkdir -p #{@path}"
-          @shell.exec(cmd)
+          current_shell.exec(cmd)
 
-          success = @shell.last_exit_status.zero?
+          success = current_shell.last_exit_status.zero?
 
           if success
             changed
             notify_observers(self,
-              attribute: :path, old: nil, new: @path, as_sudo: @shell.su?)
+              attribute: :path, old: nil, new: @path,
+              as_sudo: current_shell.su?)
           end
 
           success
