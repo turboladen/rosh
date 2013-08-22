@@ -227,7 +227,14 @@ curl.at_latest_version?     # => true
 ```ruby
 Rosh[:box1].services.list                   # => (A potentially long list)
 Rosh[:box1].services['httpd'].status
+Rosh[:box1].services['httpd'].stop
+Rosh[:box1].services['httpd'].start
+```
 
+#### Working with users and groups
+
+```ruby
+Rosh[:box1].users.list
 ```
 
 ### Shell
