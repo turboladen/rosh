@@ -1,4 +1,5 @@
 require_relative 'package_types/base'
+require_relative '../string_refinements'
 
 
 class Rosh
@@ -102,24 +103,21 @@ class Rosh
       #
       # @return [Rosh::Host::PackageTypes::*]
       def adapter
-        @adapter ||= create_adapter(@type, @name, current_shell)
+        @adapter ||= create_adapter(@type, @name, @host_label)
       end
 
       # Creates the adapter object based on the given +type+.
       #
       # @param [Symbol, String] type
       # @param [String] name
-      # @param [Rosh::Host::Shells::*] shell
+      # @param [String,Symbol] host_label
       #
       # @return [Rosh::Host::PackageTypes::*]
-      def create_adapter(type, name, shell)
-        puts "package_types/#{type}"
+      def create_adapter(type, name, host_label)
         require_relative "package_types/#{type}"
+        package_klass = Rosh::Host::PackageTypes.const_get(type.to_s.classify)
 
-        package_klass = Rosh::Host::PackageTypes.
-          const_get(type.to_s.capitalize.to_sym)
-
-        package_klass.new(name, shell)
+        package_klass.new(name, host_label)
       end
 
       # Checks to see if installing the package should be skipped based on the

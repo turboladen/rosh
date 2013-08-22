@@ -1,4 +1,5 @@
 Dir[File.dirname(__FILE__) + '/package_managers/*.rb'].each(&method(:require))
+require_relative '../string_refinements'
 
 
 class Rosh
@@ -114,7 +115,7 @@ class Rosh
         require_relative "package_managers/#{manager_type}"
 
         package_manager_klass =
-          Rosh::Host::PackageManagers.const_get(manager_type.to_s.capitalize.to_sym)
+          Rosh::Host::PackageManagers.const_get(manager_type.to_s.classify)
 
         package_manager_klass.new(host_label)
       end

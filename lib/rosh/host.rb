@@ -10,6 +10,7 @@ require_relative 'host/group_manager'
 require_relative 'host/user_manager'
 
 require_relative 'kernel_refinements'
+require_relative 'string_refinements'
 
 
 class Rosh
@@ -81,7 +82,7 @@ class Rosh
 
       @user_manager = case operating_system
       when :darwin
-        Rosh::Host::UserManager.new(:open_directory, @shell)
+        Rosh::Host::UserManager.new(:open_directory, @host_label)
       end
     end
 

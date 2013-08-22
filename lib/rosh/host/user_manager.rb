@@ -1,11 +1,11 @@
-require_relative 'string_refinements'
+require_relative '../string_refinements'
 
 
 class Rosh
   class Host
     class UserManager
-      def initialize(type, shell)
-        @shell = shell
+      def initialize(type, host_label)
+        @host_label = host_label
         @type = type
       end
 
@@ -20,16 +20,16 @@ class Rosh
       private
 
       def adapter
-        @adapter ||= create_adapter(@type, @shell)
+        @adapter ||= create_adapter(@type, @host_label)
       end
 
-      def create_adapter(type, shell)
+      def create_adapter(type, host_label)
         require_relative "user_managers/#{type}"
 
         um_klass =
           Rosh::Host::UserManagers.const_get(type.to_s.classify)
 
-        um_klass.new(shell)
+        um_klass.new(host_label)
       end
     end
   end
