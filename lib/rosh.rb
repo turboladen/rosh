@@ -1,4 +1,3 @@
-require 'yaml'
 require_relative 'rosh/host'
 
 
@@ -10,22 +9,22 @@ class Rosh
   # Adds a new Rosh::Host for Rosh to manage.
   #
   # @param [String] hostname Name or IP of the host to add.
-  # @param host_alias Any object to refer to the Host as.  Allows for shortcuts
+  # @param host_label Any object to refer to the Host as.  Allows for shortcuts
   #   to referring to the hostname.
   #
   # @example Add by hostname only
   #   Rosh.add_host 'super-duper-server.example.com', user: 'robby', password: 'stuff'
-  #   Rosh.hosts['super-duper-server.example.com'].hostname   # => 'super-duper-server.example.com'
+  #   Rosh.hosts['super-duper-server.example.com'].name   # => 'super-duper-server.example.com'
   #
-  # @example Add by alias only
-  #   Rosh.add_host 'super-duper-server.example.com', host_alias: :super,
+  # @example Add by label only
+  #   Rosh.add_host 'super-duper-server.example.com', host_label: :super,
   #     user: 'robby', password: 'stuff'
-  #   Rosh.hosts[:super'].hostname      # => 'super-duper-server.example.com'
-  def self.add_host(hostname, host_alias: nil, **ssh_options)
-    if host_alias.nil?
+  #   Rosh.hosts[:super'].name      # => 'super-duper-server.example.com'
+  def self.add_host(hostname, host_label: nil, **ssh_options)
+    if host_label.nil?
       @hosts[hostname] = Rosh::Host.new(hostname, ssh_options)
     else
-      @hosts[host_alias] = Rosh::Host.new(hostname, ssh_options)
+      @hosts[host_label] = Rosh::Host.new(hostname, host_label, ssh_options)
     end
   end
 

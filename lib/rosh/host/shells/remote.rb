@@ -1,6 +1,7 @@
 require 'etc'
 require 'net/ssh'
 require 'net/scp'
+require 'yaml'
 
 require_relative 'base'
 require_relative '../file_system_objects/remote_base'

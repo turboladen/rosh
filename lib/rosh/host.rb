@@ -16,19 +16,20 @@ class Rosh
     include LogSwitch::Mixin
     include Host::Attributes
 
-    attr_reader :hostname
+    attr_reader :name
     attr_reader :shell
     attr_reader :user
     attr_reader :package_manager
 
-    def initialize(hostname,  **ssh_options)
-      @hostname = hostname
+    def initialize(hostname, host_label=nil, **ssh_options)
+      @name = hostname
+      @host_label = host_label || @name
       @user = ssh_options[:user] || Etc.getlogin
 
       @shell = if local?
         Rosh::Host::Shells::Local.new
       else
-        Rosh::Host::Shells::Remote.new(@hostname, ssh_options)
+        Rosh::Host::Shells::Remote.new(@host_label, ssh_options)
       end
     end
 
@@ -93,7 +94,7 @@ class Rosh
     end
 
     def local?
-      @hostname == 'localhost'
+      @name == 'localhost'
     end
   end
 end

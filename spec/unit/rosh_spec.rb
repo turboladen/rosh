@@ -14,14 +14,16 @@ describe Rosh do
       Rosh::Host.should_receive(:new).and_return(current_host)
     end
 
-    it 'creates a Host by the given hostname and adds it to the list of hosts' do
-      subject.add_host('test')
-      subject.hosts.should == { 'test' => current_host }
+    context 'without a label' do
+      it 'creates a Host by the given name and adds it to the list of hosts' do
+        subject.add_host('test')
+        subject.hosts.should == { 'test' => current_host }
+      end
     end
 
-    context 'with an alias' do
-      it 'lets you refer to the host by its alias' do
-        subject.add_host('test', host_alias: :thing)
+    context 'with a label' do
+      it 'lets you refer to the host by its label' do
+        subject.add_host('test', host_label: :thing)
 
         subject.hosts.should == { thing: current_host }
       end

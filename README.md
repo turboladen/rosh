@@ -102,7 +102,7 @@ The Rosh::Host object is the core to Rosh.  At the very basic level, Rosh gives
 you access to some attributes of that object:
 
 ```ruby
-Rosh.add_host('my_server.example.com', host_alias: :box1, user: 'admin')
+Rosh.add_host('my_server.example.com', host_label: :box1, user: 'admin')
 Rosh[:box1].class                   # => Rosh::Host
 Rosh[:box1].hostname
 # (prompts for password)

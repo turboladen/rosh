@@ -38,7 +38,7 @@ class Rosh
       elsif Rosh.hosts[:localhost]
         Rosh.hosts[:localhost]
       else
-        Rosh.hosts.values.find { |host| host.hostname == 'localhost' }
+        Rosh.hosts.values.find { |host| host.name == 'localhost' }
       end
 
       @current_host ||= localhost
@@ -53,7 +53,7 @@ class Rosh
       trap('INT') { system('stty', stty_save); exit }
 
       loop do
-        log "Current host is: #{@current_host.hostname}"
+        log "Current host is: #{@current_host.name}"
         prompt = ENV['PROMPT'] || new_prompt
 
         Readline.completion_proc = Rosh::Completion.build do
@@ -110,7 +110,7 @@ class Rosh
     def new_prompt
       user_and_host = '['.blue
       user_and_host << "#{@current_host.user}".red
-      user_and_host << "@#{@current_host.hostname}".red
+      user_and_host << "@#{@current_host.name}".red
       user_and_host << ":#{@current_host.shell._env[:pwd].split('/').last}".red
       user_and_host << ']'.blue
 
