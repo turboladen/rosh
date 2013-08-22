@@ -19,17 +19,19 @@ class Rosh
               line.strip!
               next if line.empty?
               %r[(?<key>\S+):\s+(?<value>.+)$] =~ line.strip
-              result[key.to_sym] = value
+
+              result[key.to_sym] = value unless key == 'password'
 
               result
             end
 
-            create_user(user[:name])
+            name = user.delete(:name)
+            create_user(name, user)
           end
         end
 
-        def create_user(name)
-          Rosh::Host::UserTypes::OpenDirectory.new(name, current_shell)
+        def create_user(name, **options)
+          Rosh::Host::UserTypes::OpenDirectory.new(name, @host_label, **options)
         end
       end
     end
