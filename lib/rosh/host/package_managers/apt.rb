@@ -19,7 +19,7 @@ class Rosh
         #
         # @return [Rosh::Host::PackageTypes::Deb]
         def create_package(name, **options)
-          Rosh::Host::PackageTypes::Deb.new(name, @host_label, **options)
+          Rosh::Host::Package.new(:deb, name, @host_label, **options)
         end
 
         # Updates Apt's package index using `apt-get update`.
