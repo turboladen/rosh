@@ -108,7 +108,7 @@ The following packages will be upgraded:
 
     it 'returns an array of new Deb packages' do
       result = subject._extract_upgraded_packages(output)
-      result.all? { |r| expect(r).to be_a Rosh::Host::PackageTypes::Deb }
+      result.all? { |r| expect(r).to be_a Rosh::Host::Package }
     end
   end
 end

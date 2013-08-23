@@ -4,10 +4,14 @@ require 'rosh/host/package_types/brew'
 
 describe Rosh::Host::PackageTypes::Brew do
   let(:shell) { double 'Rosh::Host::Shell', :su? => false }
-  before { allow(subject).to receive(:current_shell) { shell } }
-  subject { Rosh::Host::PackageTypes::Brew.new('thing', 'example.com') }
+  subject { Object.new.extend Rosh::Host::PackageTypes::Brew }
 
-  describe '#info' do
+  before do
+    allow(subject).to receive(:current_shell) { shell }
+    subject.instance_variable_set(:@name, 'thing')
+  end
+
+  describe '#_info' do
     before do
       expect(shell).to receive(:exec).with('/usr/local/bin/brew info thing') { output }
     end
@@ -32,7 +36,7 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
       end
 
       it 'parses each field and value to a Hash' do
-        expect(subject.info).to eq({
+        expect(subject.send(:_info)).to eq({
           package: 'thing',
           spec: 'stable',
           version: '2.0.21, HEAD',
@@ -58,7 +62,7 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
       end
 
       it 'parses each field and value to a Hash' do
-        expect(subject.info).to eq({
+        expect(subject.send(:_info)).to eq({
           package: 'thing',
           spec: 'stable',
           version: '2.0.21, HEAD',
@@ -107,12 +111,12 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
     end
   end
 
-  describe '#install' do
+  describe '#_install' do
     context 'with version' do
       it 'calls #install_and_switch_version' do
         expect(subject).to receive(:install_and_switch_version).with('0.1.2')
 
-        subject.install('0.1.2')
+        subject.send(:_install, '0.1.2')
       end
     end
 
@@ -123,7 +127,7 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
           expect(shell).to receive(:exec).with('/usr/local/bin/brew install thing')
         end
 
-        specify { expect(subject.install).to eq false }
+        specify { expect(subject.send(:_install)).to eq false }
       end
 
       context 'successful install' do
@@ -132,12 +136,12 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
           expect(shell).to receive(:exec).with('/usr/local/bin/brew install thing')
         end
 
-        specify { expect(subject.install).to eq true }
+        specify { expect(subject.send(:_install)).to eq true }
       end
     end
   end
 
-  describe '#installed?' do
+  describe '#_installed?' do
     context 'not a package' do
       before do
         allow(shell).to receive(:last_exit_status) { 1 }
@@ -146,7 +150,7 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
         }
       end
 
-      specify { expect(subject).to_not be_installed }
+      specify { expect(subject).to_not be__installed }
     end
 
     context 'not installed' do
@@ -162,7 +166,7 @@ Required: libusb-compat]
         }
       end
 
-      specify { expect(subject).to_not be_installed }
+      specify { expect(subject).to_not be__installed }
     end
 
     context 'installed' do
@@ -196,39 +200,39 @@ The 'contrib' directory has been installed to:
         }
       end
 
-      specify { expect(subject).to be_installed }
+      specify { expect(subject).to be__installed }
     end
   end
 
-  describe '#remove' do
+  describe '#_remove' do
     before do
       expect(shell).to receive(:exec).with('/usr/local/bin/brew remove thing')
     end
 
     context 'failed removal' do
       before { allow(shell).to receive(:last_exit_status) { 1 } }
-      specify { expect(subject.remove).to eq false }
+      specify { expect(subject.send(:_remove)).to eq false }
     end
 
     context 'successful removal' do
       before { allow(shell).to receive(:last_exit_status) { 0 } }
-      specify { expect(subject.remove).to eq true }
+      specify { expect(subject.send(:_remove)).to eq true }
     end
   end
 
-  describe '#upgrade' do
+  describe '#_upgrade' do
     before do
       expect(shell).to receive(:exec).with('/usr/local/bin/brew upgrade thing')
     end
 
     context 'failed upgrade' do
       before { allow(shell).to receive(:last_exit_status) { 1 } }
-      specify { expect(subject.upgrade).to eq false }
+      specify { expect(subject.send(:_upgrade)).to eq false }
     end
 
     context 'successful upgrade' do
       before { allow(shell).to receive(:last_exit_status) { 0 } }
-      specify { expect(subject.upgrade).to eq true }
+      specify { expect(subject.send(:_upgrade)).to eq true }
     end
   end
 

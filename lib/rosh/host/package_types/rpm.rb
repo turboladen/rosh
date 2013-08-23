@@ -1,20 +1,19 @@
-require_relative 'base'
-
-
 class Rosh
   class Host
     module PackageTypes
 
       # Represents a {http://www.rpm.org RPM package}.  Managed here using
       # {http://yum.baseurl.org Yum} and RPM commands.
-      class Rpm < Base
+      module Rpm
+
+        private
 
         # Install the package.  If no +version+ is given, uses the latest in
         # Yum's cache.
         #
         # @param [String] version
         # @return [Boolean] +true+ if successful, +false+ if not.
-        def install(version=nil)
+        def _install(version=nil)
           cmd = "yum install -y #{@name}"
           cmd << "-#{version}" if version
           current_shell.exec(cmd)
@@ -26,7 +25,7 @@ class Rosh
         # or not.
         #
         # @return [Boolean] +true+ if installed, +false+ if not.
-        def installed?
+        def _installed?
           current_shell.exec "yum info #{@name}"
 
           current_shell.last_exit_status.zero?
@@ -35,7 +34,7 @@ class Rosh
         # Upgrades the package, using <tt>yum upgrade [pkg]</tt>.
         #
         # @return [Boolean] +true+ if install was successful, +false+ if not.
-        def upgrade
+        def _upgrade
           output = current_shell.exec "yum upgrade -y #{@name}"
           success = current_shell.last_exit_status.zero?
 
@@ -48,7 +47,7 @@ class Rosh
         # Uses <tt>yum remove [pkg]</tt> to remove the package.
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
-        def remove
+        def _remove
           current_shell.exec "yum remove -y #{@name}"
 
           current_shell.last_exit_status.zero?
@@ -57,7 +56,7 @@ class Rosh
         # Result of <tt>yum info [pkg]</tt> as a Hash.
         #
         # @return [Hash]
-        def info
+        def _info
           output = current_shell.exec "yum info #{@name}"
           info_hash = {}
 
@@ -77,7 +76,7 @@ class Rosh
 
         # @return [Boolean] Checks to see if the latest installed version is
         #   the latest version available.
-        def at_latest_version?
+        def _at_latest_version?
           cmd = "yum list updates #{@name}"
           result = current_shell.exec(cmd)
 
@@ -103,7 +102,7 @@ class Rosh
 
         # @return [String] The currently installed version of the package. +nil+
         #   if the package is not installed.
-        def current_version
+        def _current_version
           cmd = "rpm -qa #{@name}"
           result = current_shell.exec(cmd)
 

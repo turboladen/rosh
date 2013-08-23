@@ -3,15 +3,15 @@ require 'rosh/host/package'
 
 
 describe Rosh::Host::Package do
-  let(:adapter) { double 'Rosh::Host::PackageTypes::Fakie' }
   let(:shell) { double 'Rosh::Host::Shells::Fakie' }
-  before { allow(subject).to receive(:current_shell) { shell } }
+
+  before do
+    Rosh::Host::Package.any_instance.stub(:load_adapter)
+    allow(subject).to receive(:current_shell) { shell }
+  end
 
   subject do
-    package = Rosh::Host::Package.new('type_meow', 'testie', shell)
-    package.stub(:adapter).and_return adapter
-
-    package
+    Rosh::Host::Package.new('type_meow', 'testie', 'example.com')
   end
 
   describe '#install' do
@@ -24,17 +24,17 @@ describe Rosh::Host::Package do
       context 'skip_install? is false' do
         before do
           allow(subject).to receive(:skip_install?) { false }
-          allow(adapter).to receive(:current_version).and_return('0.1.2', '1.2.3')
+          allow(subject).to receive(:_current_version).and_return('0.1.2', '1.2.3')
         end
 
         it 'tells the adapter to install using the version' do
           allow(subject).to receive(:notify_on_success)
-          expect(adapter).to receive(:install).with('1.2.3').and_return true
+          expect(subject).to receive(:_install).with('1.2.3').and_return true
           subject.install(version: '1.2.3')
         end
 
         it 'delegates to notify observers' do
-          allow(adapter).to receive(:install) { true }
+          allow(subject).to receive(:_install) { true }
           expect(subject).to receive(:notify_on_success).with('1.2.3', '0.1.2', true)
           subject.install(version: '1.2.3')
         end
@@ -42,16 +42,15 @@ describe Rosh::Host::Package do
     end
   end
 
-  describe '#create_adapter' do
-    subject do
-      Rosh::Host::Package.new('type_meow', 'testie', shell)
+  describe '#load_adapter' do
+    before do
+      subject.unstub(:load_adapter)
     end
 
     context 'brew' do
-      it 'creates a Brew package object' do
-        pkg = subject.send(:create_adapter, :brew, 'testie', shell)
-
-        pkg.should be_a Rosh::Host::PackageTypes::Brew
+      it 'extends self with Brew methods' do
+        subject.class.should_receive(:include).with Rosh::Host::PackageTypes::Brew
+        subject.send(:load_adapter, :brew)
       end
     end
   end
@@ -61,10 +60,10 @@ describe Rosh::Host::Package do
       before { shell.stub(:check_state_first?).and_return true }
 
       context 'package is installed' do
-        before { adapter.stub(:installed?).and_return true }
+        before { subject.stub(:_installed?).and_return true }
 
         context 'with version provided' do
-          before { adapter.stub(:current_version).and_return '0.1.2' }
+          before { subject.stub(:_current_version).and_return '0.1.2' }
 
           context 'equal to current_version' do
             specify { subject.send(:skip_install?, '0.1.2').should be_true }
@@ -81,7 +80,7 @@ describe Rosh::Host::Package do
       end
 
       context 'package not installed' do
-        before { adapter.stub(:installed?).and_return false }
+        before { subject.stub(:_installed?).and_return false }
         specify { subject.send(:skip_install?).should be_false }
       end
     end

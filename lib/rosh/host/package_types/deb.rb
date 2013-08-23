@@ -1,6 +1,3 @@
-require_relative 'base'
-
-
 class Rosh
   class Host
     module PackageTypes
@@ -8,14 +5,21 @@ class Rosh
       # Represents a {https://wiki.debian.org/DebianPackage Debian package}.
       # Managed using {https://wiki.debian.org/Apt Apt} and
       # {https://wiki.debian.org/dpkg dpkg}.
-      class Deb < Base
+      module Deb
+        DEFAULT_BIN_PATH = '/usr/local'
+
+        def bin_path
+          @bin_path ||= DEFAULT_BIN_PATH
+        end
+
+        private
 
         # Install the package.  If no +version+ is given, uses the latest in
         # Apt's cache.
         #
         # @param [String] version
         # @return [Boolean] +true+ if successful, +false+ if not.
-        def install(version=nil)
+        def _install(version=nil)
           cmd = "DEBIAN_FRONTEND=noninteractive apt-get install #{@name}"
           cmd << "=#{version}" if version
           cmd << ' -y'
@@ -28,7 +32,7 @@ class Rosh
         # or not.
         #
         # @return [Boolean] +true+ if installed, +false+ if not.
-        def installed?
+        def _installed?
           current_shell.exec "dpkg --status #{@name}"
 
           current_shell.last_exit_status.zero?
@@ -37,14 +41,14 @@ class Rosh
         # Upgrades the package, using `apt-get install`.
         #
         # @return [Boolean] +true+ if install was successful, +false+ if not.
-        def upgrade
-          install
+        def _upgrade
+          _install
         end
 
         # Uses <tt>apt-get remove [pkg]</tt> to remove the package.
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
-        def remove
+        def _remove
           current_shell.exec "DEBIAN_FRONTEND=noninteractive apt-get remove #{@name}"
 
           current_shell.last_exit_status.zero?
@@ -53,7 +57,7 @@ class Rosh
         # Result of `dpkg --status` as a Hash.
         #
         # @return [Hash]
-        def info
+        def _info
           output = current_shell.exec "dpkg --status #{@name}"
           info_hash = {}
 
@@ -73,7 +77,7 @@ class Rosh
 
         # @return [Boolean] Checks to see if the latest installed version is
         #   the latest version available.
-        def at_latest_version?
+        def _at_latest_version?
           cmd = "apt-cache policy #{@name}"
           result = current_shell.exec(cmd)
           %r[Installed: (?<current>\S+)\n\s*Candidate: (?<candidate>\S+)] =~ result
@@ -85,7 +89,7 @@ class Rosh
 
         # @return [String] The currently installed version of the package. +nil+
         #   if the package is not installed.
-        def current_version
+        def _current_version
           cmd = "apt-cache policy #{@name}"
           result = current_shell.exec(cmd)
           %r[Installed: (?<version>\S*)] =~ result

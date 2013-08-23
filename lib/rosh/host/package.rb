@@ -1,16 +1,60 @@
-require_relative 'package_types/base'
+require 'observer'
 require_relative '../string_refinements'
 
 
 class Rosh
   class Host
     class Package
-      attr_reader :name
+      include Observable
 
-      def initialize(type, name, host_label)
+      attr_reader :name
+      # @!attribute [r] name
+      #   Name of the OS package this represents.
+      #   @return [String]
+
+      attr_reader :version
+      # @!attribute [r] version
+      #   Version of the OS package this represents, if any.  Defaults to
+      #   +nil+.
+      #   @return [String]
+
+      attr_reader :status
+      # @!attribute [r] status
+      #   Status that the OS package should be in, if any.  Defaults to
+      #   +nil+.
+      #   @return [Symbol]
+
+      attr_reader :architecture
+      # @!attribute [r] architecture
+      #   Architecture of the OS package, if any.  Defaults to +nil+.
+      #   @return [Symbol]
+
+      attr_writer :bin_path
+
+      # @param [Symbol] type
+      # @param [String] name Name of the package.
+      # @param [String,Symbol] host_label
+      # @param [String] version
+      # @param [Symbol] status
+      # @param [String] architecture
+      # @param [String] bin_path
+      def initialize(type, name, host_label,
+        version: nil, status: nil, architecture: nil,
+        bin_path: nil
+      )
         @host_label = host_label
         @name = name
         @type = type
+        @version = version
+        @status = status
+        @architecture = architecture
+        @bin_path = bin_path
+
+        load_adapter(@type)
+      end
+
+      def bin_path
+        _bin_path
       end
 
       # Installs the package using brew and notifies observers with the new
@@ -23,9 +67,9 @@ class Rosh
       def install(version: nil)
         return if skip_install?(version)
 
-        old_version = adapter.current_version
-        success = adapter.install(version)
-        new_version = adapter.current_version
+        old_version = _current_version
+        success = _install(version)
+        new_version = _current_version
         notify_on_success(new_version, old_version, success)
 
         success
@@ -33,7 +77,7 @@ class Rosh
 
       # @return [Boolean] +true+ if installed; +false+ if not.
       def installed?
-        adapter.installed?
+        _installed?
       end
 
       # Upgrades the package, using `brew upgrade ` and updates observers with
@@ -41,16 +85,16 @@ class Rosh
       #
       # @return [Boolean] +true+ if upgrade was successful, +false+ if not.
       def upgrade
-        old_version = adapter.current_version
-        success = adapter.upgrade
+        old_version = _current_version
+        success = _upgrade
 
         # TODO: is the same as #notify_on_success?
         if success
-          new_version = current_version
+          new_version = _current_version
 
           if old_version != new_version
-            adapter.changed
-            adapter.notify_observers(adapter,
+            changed
+            notify_observers(self,
               attribute: :version, old: old_version, new: new_version,
               as_sudo: current_shell.su?)
           end
@@ -63,18 +107,18 @@ class Rosh
       #
       # @return [Boolean] +true+ if install was successful; +false+ if not.
       def remove
-        already_installed = adapter.installed?
+        already_installed = _installed?
 
         if current_shell.check_state_first? && !already_installed
           return
         end
 
-        old_version = adapter.current_version
-        success = adapter.remove
+        old_version = _current_version
+        success = _remove
 
         if success && already_installed
-          adapter.changed
-          adapter.notify_observers(self,
+          changed
+          notify_observers(self,
             attribute: :version, old: old_version, new: nil,
             as_sudo: current_shell.su?)
         end
@@ -83,15 +127,15 @@ class Rosh
       end
 
       def info
-        adapter.info
+        _info
       end
 
       def at_latest_version?
-        adapter.at_latest_version?
+        _at_latest_version?
       end
 
       def current_version
-        adapter.current_version
+        _current_version
       end
 
       #-------------------------------------------------------------------------
@@ -99,35 +143,24 @@ class Rosh
       #-------------------------------------------------------------------------
       private
 
-      # Creates the adapter if it's not yet been set.
-      #
-      # @return [Rosh::Host::PackageTypes::*]
-      def adapter
-        @adapter ||= create_adapter(@type, @name, @host_label)
-      end
-
-      # Creates the adapter object based on the given +type+.
+      # Loads the adapter object based on the given +type+.
       #
       # @param [Symbol, String] type
-      # @param [String] name
-      # @param [String,Symbol] host_label
-      #
-      # @return [Rosh::Host::PackageTypes::*]
-      def create_adapter(type, name, host_label)
+      def load_adapter(type)
         require_relative "package_types/#{type}"
         package_klass = Rosh::Host::PackageTypes.const_get(type.to_s.classify)
 
-        package_klass.new(name, host_label)
+        self.class.send(:include, package_klass)
       end
 
       # Checks to see if installing the package should be skipped based on the
       # shell settings, if the package is installed, and which version the
       # package is at.
       def skip_install?(version=nil)
-        if current_shell.check_state_first? && adapter.installed?
+        if current_shell.check_state_first? && _installed?
           #log 'SKIP: check_state_first is true and already at latest version.'
           if version
-            true if version == adapter.current_version
+            true if version == _current_version
           else
             true
           end
@@ -138,8 +171,8 @@ class Rosh
 
       def notify_on_success(new_version, old_version, success)
         if success && old_version != new_version
-          adapter.changed
-          adapter.notify_observers(adapter,
+          changed
+          notify_observers(self,
             attribute: :version, old: old_version, new: new_version,
             as_sudo: current_shell.su?)
         end
