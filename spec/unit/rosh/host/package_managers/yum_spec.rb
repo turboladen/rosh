@@ -15,10 +15,7 @@ describe Rosh::Host::PackageManagers::Yum do
   end
 
   before { allow(subject).to receive(:current_shell) { shell } }
-
-  subject do
-    Rosh::Host::PackageManagers::Yum.new(shell)
-  end
+  subject { Object.new.extend(Rosh::Host::PackageManagers::Yum) }
 
   describe '#installed_packages' do
     let(:output) do
@@ -61,14 +58,14 @@ ORBit2.x86_64                            2.14.3-5.el5          installed
         with('ORBit2', architecture: 'x86_64',version: '2.14.3-5.el5',
         status: 'installed')
 
-      subject.installed_packages
+      subject._installed_packages
     end
   end
 
-  describe '#update_definitions' do
+  describe '#_update_definitions' do
     it 'calls `yum check-update`' do
       expect(shell).to receive(:exec).with 'yum check-update'
-      subject.update_definitions
+      subject._update_definitions
     end
   end
 
@@ -141,10 +138,10 @@ binutils.x86_64                2.17.50.0.6-20.el5_8.3              base
     end
   end
 
-  describe '#upgrade_packages' do
+  describe '#_upgrade_packages' do
     it 'runs yum update -y' do
       shell.should_receive(:exec).with('yum update -y')
-      subject.upgrade_packages
+      subject._upgrade_packages
     end
   end
 

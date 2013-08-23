@@ -1,21 +1,28 @@
-require_relative 'base'
 require_relative '../package_types/rpm'
 
 
 class Rosh
   class Host
     module PackageManagers
-      class Yum < Base
+      module Yum
+        DEFAULT_BIN_PATH = '/usr/bin'
+
+        def bin_path
+          @bin_path ||= DEFAULT_BIN_PATH
+        end
+
+        def create_package(name, **options)
+          Rosh::Host::PackageTypes::Rpm.new(name, @host_label, **options)
+        end
 
         # Lists all installed Rpm packages.
         #
         # @return [Array<Rosh::Host::PackageTypes::Rpm>]
-        def installed_packages
+        def _installed_packages
           output = current_shell.exec 'yum list'
 
           output.each_line.map do |line|
             /^(?<name>\S+)\.(?<arch>\S+)\s+(?<version>\S+)\s+(?<status>\S*)/ =~ line
-            puts "name: #{name}"
             next unless name
 
             create_package(name, architecture: arch, version: version, status: status)
@@ -25,7 +32,7 @@ class Rosh
         # Updates Yum's package index using `yum check-update`.
         #
         # @return [String] output from the shell command.
-        def update_definitions
+        def _update_definitions
           current_shell.exec 'yum check-update'
         end
 
@@ -51,12 +58,8 @@ class Rosh
         # Upgrades outdated packages using `yum update -y`.
         #
         # @return [String] Output of the upgrade command.
-        def upgrade_packages
+        def _upgrade_packages
           current_shell.exec 'yum update -y'
-        end
-
-        def create_package(name, **options)
-          Rosh::Host::PackageTypes::Rpm.new(name, @host_label, **options)
         end
 
         # Extracts Rpm packagesnames for #upgrade_packages from the command
@@ -68,7 +71,6 @@ class Rosh
           output.each_line.map do |line|
             /Package (?<name>\S+)\.(?<arch>\S+)\s+(?<version>\S+).*to be / =~ line
             next unless name
-            puts "name: #{name}"
 
             create_package(name, version: version, architecture: arch)
           end.compact

@@ -1,21 +1,24 @@
-require_relative 'base'
 require_relative '../package_types/brew'
 
 
 class Rosh
   class Host
     module PackageManagers
-      class Brew < Base
+      module Brew
         DEFAULT_BIN_PATH = '/usr/local/bin'
 
         def bin_path
           @bin_path ||= DEFAULT_BIN_PATH
         end
 
+        def create_package(name, **options)
+          Rosh::Host::PackageTypes::Brew.new(name, @host_label, **options)
+        end
+
         # Lists all installed Brew packages.
         #
         # @return [Array<Rosh::Host::PackageTypes::Brew>]
-        def installed_packages
+        def _installed_packages
           output = current_shell.exec("#{bin_path}/brew list")
 
           output.split(/\s+/).map do |pkg|
@@ -26,7 +29,7 @@ class Rosh
         # Updates homebrew's formula index using `brew update`.
         #
         # @return [String] Output from the shell command.
-        def update_definitions
+        def _update_definitions
           current_shell.exec("#{bin_path}/brew update")
         end
 
@@ -60,12 +63,8 @@ class Rosh
         # Upgrades outdated packages using `brew upgrade`.
         #
         # @return [String] Output of the upgrade command.
-        def upgrade_packages
+        def _upgrade_packages
           current_shell.exec("#{bin_path}/brew upgrade")
-        end
-
-        def create_package(name, **options)
-          Rosh::Host::PackageTypes::Brew.new(name, @host_label, **options)
         end
 
         # Extracts Brew package names for #upgrade_packages from the command

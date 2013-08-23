@@ -20,16 +20,16 @@ describe Rosh::Host::PackageManagers::Apt do
     o
   end
 
-  subject { Rosh::Host::PackageManagers::Apt.new(shell) }
+  subject { Object.new.extend(Rosh::Host::PackageManagers::Apt) }
 
   before do
     allow(subject).to receive(:current_shell) { shell }
   end
 
-  describe '#update_definitions' do
+  describe '#_update_definitions' do
     it 'calls apt-get update' do
       expect(shell).to receive(:exec).with('apt-get update')
-      subject.update_definitions
+      subject._update_definitions
     end
   end
 
@@ -88,11 +88,11 @@ Reading package lists... Done
     end
   end
 
-  describe '#upgrade_packages' do
+  describe '#_upgrade_packages' do
     it 'runs apt-get upgrade -y' do
       shell.should_receive(:exec).
         with('apt-get upgrade -y DEBIAN_FRONTEND=noninteractive')
-      subject.upgrade_packages
+      subject._upgrade_packages
     end
   end
 

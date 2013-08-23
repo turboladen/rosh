@@ -1,15 +1,13 @@
-require_relative 'base'
 require_relative '../package_types/deb'
 
 
 class Rosh
   class Host
     module PackageManagers
-      # TODO: Figure out if this should go in Apt.
-      class Dpkg < Base
+      module Dpkg
 
         # @return [Array<Rosh::Host::PackageTypes::Deb>]
-        def installed_packages
+        def _installed_packages
           result = current_shell.exec 'dpkg --list'
 
           result.split("\n").map do |pkg|

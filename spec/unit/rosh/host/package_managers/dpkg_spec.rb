@@ -5,10 +5,7 @@ require 'rosh/host/package_managers/dpkg'
 describe Rosh::Host::PackageManagers::Dpkg do
   let(:shell) { double 'Rosh::Host::Shell' }
   before { allow(subject).to receive(:current_shell) { shell } }
-
-  subject do
-    Rosh::Host::PackageManagers::Dpkg.new(shell)
-  end
+  subject { Object.new.extend(Rosh::Host::PackageManagers::Dpkg) }
 
   describe '#installed_packages' do
     let(:output) do
@@ -39,7 +36,7 @@ ii  apparmor                                     2.7.102-0ubuntu3.7             
         with('apparmor', version: '2.7.102-0ubuntu3.7', status: 'ii').
         and_return 'third package'
 
-      packages = subject.installed_packages
+      packages = subject._installed_packages
       packages.should be_an Array
       packages.size.should == 3
     end

@@ -14,20 +14,12 @@ describe Rosh::Host::PackageManagers::Brew do
     o
   end
 
-  subject { Rosh::Host::PackageManagers::Brew.new(shell) }
+  subject { Object.new.extend(Rosh::Host::PackageManagers::Brew) }
   before { allow(subject).to receive(:current_shell) { shell } }
 
   describe '#bin_path' do
     context 'default' do
       specify { expect(subject.bin_path).to eq '/usr/local/bin' }
-    end
-  end
-
-  describe '#bin_path=' do
-    it 'sets the new bin_path' do
-      subject.bin_path = 'stuff'
-
-      expect(subject.bin_path).to eq 'stuff'
     end
   end
 
@@ -51,15 +43,15 @@ atk				freetype			intltool
       subject.should_receive(:create_package).with('freetype')
       subject.should_receive(:create_package).with('intltool')
 
-      subject.installed_packages
+      subject._installed_packages
     end
   end
 
-  describe '#update_definitions' do
+  describe '#_update_definitions' do
     context 'default path' do
       it 'calls `brew update`' do
         expect(shell).to receive(:exec).with '/usr/local/bin/brew update'
-        subject.update_definitions
+        subject._update_definitions
       end
     end
   end
@@ -119,10 +111,10 @@ wp-cli
     end
   end
 
-  describe '#upgrade_packages' do
+  describe '#_upgrade_packages' do
     it 'runs `brew upgrade`' do
       shell.should_receive(:exec).with('/usr/local/bin/brew upgrade')
-      subject.upgrade_packages
+      subject._upgrade_packages
     end
   end
 

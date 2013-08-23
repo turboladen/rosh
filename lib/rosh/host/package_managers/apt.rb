@@ -1,16 +1,31 @@
-require_relative 'base'
 require_relative '../package_types/deb'
+require_relative 'dpkg'
 
 
 class Rosh
   class Host
     module PackageManagers
-      class Apt < Base
+      module Apt
+        include Dpkg
+        DEFAULT_BIN_PATH = '/usr/bin'
+
+        def bin_path
+          @bin_path ||= DEFAULT_BIN_PATH
+        end
+
+        # Creates a new Apt package by name.
+        #
+        # @param [String] name
+        #
+        # @return [Rosh::Host::PackageTypes::Deb]
+        def create_package(name, **options)
+          Rosh::Host::PackageTypes::Deb.new(name, @host_label, **options)
+        end
 
         # Updates Apt's package index using `apt-get update`.
         #
         # @return [String] Output from the shell command.
-        def update_definitions
+        def _update_definitions
           current_shell.exec 'apt-get update'
         end
 
@@ -44,17 +59,8 @@ class Rosh
         # Upgrades outdated packages using `apt-get upgrade -y`.
         #
         # @return [String] Output of the upgrade command.
-        def upgrade_packages
+        def _upgrade_packages
           current_shell.exec 'apt-get upgrade -y DEBIAN_FRONTEND=noninteractive'
-        end
-
-        # Creates a new Apt package by name.
-        #
-        # @param [String] name
-        #
-        # @return [Rosh::Host::PackageTypes::Deb]
-        def create_package(name, **options)
-          Rosh::Host::PackageTypes::Deb.new(name, @host_label, **options)
         end
 
         # Extracts Deb package names for #upgrade_packages from the command
