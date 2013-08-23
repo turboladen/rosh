@@ -12,7 +12,7 @@ class Rosh
         end
 
         def create_package(name, **options)
-          Rosh::Host::Package.new(:rpm, name, @host_label, **options)
+          Rosh::Host::Package.new(:rpm, name, @host_name, **options)
         end
 
         # Lists all installed Rpm packages.

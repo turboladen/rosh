@@ -18,27 +18,27 @@ class Rosh
         include Observable
 
         # @param [String] path Path to the object.
-        # @param [String,Symbol] host_label
+        # @param [String,Symbol] host_name
         # @return [Rosh::Host::FileSystemObjects::RemoteDir,Rosh::Host::FileSystemObjects::RemoteFile,Rosh::Host::FileSystemObjects::RemoteLink]
-        def self.create(path, host_label)
-          fso = new(path, host_label)
+        def self.create(path, host_name)
+          fso = new(path, host_name)
 
           if fso.directory?
-            Rosh::Host::FileSystemObjects::RemoteDir.new(path, host_label)
+            Rosh::Host::FileSystemObjects::RemoteDir.new(path, host_name)
           elsif fso.file?
-            Rosh::Host::FileSystemObjects::RemoteFile.new(path, host_label)
+            Rosh::Host::FileSystemObjects::RemoteFile.new(path, host_name)
           elsif fso.link?
-            Rosh::Host::FileSystemObjects::RemoteLink.new(path, host_label)
+            Rosh::Host::FileSystemObjects::RemoteLink.new(path, host_name)
           end
         end
 
         attr_reader :path
 
         # @param [String] path Path to the remote file system object.
-        # @param [String,Symbol] host_label
-        def initialize(path, host_label)
+        # @param [String,Symbol] host_name
+        def initialize(path, host_name)
           @path = path.strip
-          @host_label = host_label
+          @host_name = host_name
         end
 
         # Returns the pathname used to create file as a String. Does not normalize
@@ -203,13 +203,13 @@ class Rosh
         # Called by serializer when dumping.
         def encode_with(coder)
           coder['path'] = @path
-          coder['host_label'] = @host_label
+          coder['host_name'] = @host_name
         end
 
         # Called by serializer when loading.
         def init_with(coder)
           @path = coder['path']
-          @host_label = coder['host_label']
+          @host_name = coder['host_name']
         end
 
         #-------------------------------------------------------------------------

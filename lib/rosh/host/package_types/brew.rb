@@ -10,7 +10,7 @@ class Rosh
         #   that are installed.
         # TODO: This is brew-specific... what to do?
         def installed_versions
-          result = current_shell.exec "#{bin_path}/brew info #{@name}"
+          result = current_shell.exec "#{_bin_path}/brew info #{@name}"
 
           result.each_line.map do |line|
             %r[.*Cellar/#{@name}/(?<version>\S+)] =~ line.strip
@@ -33,7 +33,7 @@ class Rosh
           if version
             install_and_switch_version(version)
           else
-            current_shell.exec "#{bin_path}/brew install #{@name}"
+            current_shell.exec "#{_bin_path}/brew install #{@name}"
 
             current_shell.last_exit_status.zero?
           end
@@ -43,7 +43,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def _upgrade
-          current_shell.exec "#{bin_path}/brew upgrade #{@name}"
+          current_shell.exec "#{_bin_path}/brew upgrade #{@name}"
 
           current_shell.last_exit_status.zero?
         end
@@ -53,7 +53,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if installed, +false+ if not.
         def _installed?
-          result = current_shell.exec "#{bin_path}/brew info #{@name}"
+          result = current_shell.exec "#{_bin_path}/brew info #{@name}"
 
           if current_shell.last_exit_status.zero?
             !result.match %r[Not installed]
@@ -66,7 +66,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def _remove
-          current_shell.exec "#{bin_path}/brew remove #{@name}"
+          current_shell.exec "#{_bin_path}/brew remove #{@name}"
 
           current_shell.last_exit_status.zero?
         end
@@ -75,7 +75,7 @@ class Rosh
         #
         # @return [Hash]
         def _info
-          output = current_shell.exec "#{bin_path}/brew info #{@name}"
+          output = current_shell.exec "#{_bin_path}/brew info #{@name}"
           info_hash = {}
 
           /^\s*#{@name}: (?<spec>\w+) (?<version>[^\n]+)
@@ -114,25 +114,25 @@ class Rosh
         # @param [String] version The version to install/switch to.
         # @return [Boolean] +true+ if install was successful; +false+ if not.
         def install_and_switch_version(version)
-          version_line = current_shell.exec("#{bin_path}/brew versions #{@name} | grep #{version}").
+          version_line = current_shell.exec("#{_bin_path}/brew versions #{@name} | grep #{version}").
             split("\n").last
           return false unless version_line
 
           %r[git checkout (?<hash>\w+)] =~ version_line
 
-          prefix = current_shell.exec "#{bin_path}/brew --prefix"
+          prefix = current_shell.exec "#{_bin_path}/brew --prefix"
           current_shell.cd(prefix)
 
           current_shell.exec "git checkout #{hash} Library/Formula/#{@name}.rb"
           return false unless current_shell.last_exit_status.zero?
 
-          current_shell.exec "#{bin_path}/brew unlink #{@name}"
+          current_shell.exec "#{_bin_path}/brew unlink #{@name}"
           return false unless current_shell.last_exit_status.zero?
 
-          current_shell.exec "#{bin_path}/brew install #{@name}"
+          current_shell.exec "#{_bin_path}/brew install #{@name}"
           return false unless current_shell.last_exit_status.zero?
 
-          current_shell.exec "#{bin_path}/brew switch #{@name} #{version}"
+          current_shell.exec "#{_bin_path}/brew switch #{@name} #{version}"
           return false unless current_shell.last_exit_status.zero?
 
           current_shell.exec "git checkout -- Library/Formula/#{@name}.rb"

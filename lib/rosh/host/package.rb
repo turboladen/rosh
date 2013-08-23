@@ -33,16 +33,16 @@ class Rosh
 
       # @param [Symbol] type
       # @param [String] name Name of the package.
-      # @param [String,Symbol] host_label
+      # @param [String] host_name
       # @param [String] version
       # @param [Symbol] status
       # @param [String] architecture
       # @param [String] bin_path
-      def initialize(type, name, host_label,
+      def initialize(type, name, host_name,
         version: nil, status: nil, architecture: nil,
         bin_path: nil
       )
-        @host_label = host_label
+        @host_name = host_name
         @name = name
         @type = type
         @version = version

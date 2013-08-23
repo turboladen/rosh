@@ -13,9 +13,9 @@ class Rosh
       class RemoteFile < RemoteBase
 
         # @param [String] path
-        # @param [String,Symbol] host_label
-        def initialize(path, host_label)
-          super(path, host_label)
+        # @param [String,Symbol] host_name
+        def initialize(path, host_name)
+          super(path, host_name)
 
           @unwritten_contents = nil
         end

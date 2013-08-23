@@ -8,13 +8,13 @@ class Rosh
       class Init < Base
 
         # @param [String] name
-        # @param [String,Symbol] host_label
+        # @param [String] host_name
         # @param [Symbol] os_type
         # @param [Number] pid
-        def initialize(name, os_type, host_label, pid=nil)
-          super(name, host_label, pid)
+        def initialize(name, os_type, host_name, pid=nil)
+          super(name, host_name, pid)
 
-          @host_label = host_label
+          @host_name = host_name
           @os_type = os_type
 
           @script_dir = case @os_type

@@ -27,9 +27,9 @@ class Rosh
 
       # @param [Symbol] manager_type The PackageManager types to delegate to.
       #   Look at the list of PackageManagers.
-      # @param [String,Symbol] host_label
-      def initialize(manager_type, host_label)
-        @host_label = host_label
+      # @param [String] host_name
+      def initialize(manager_type, host_name)
+        @host_name = host_name
         @manager_type = manager_type
         load_adapter(manager_type)
       end

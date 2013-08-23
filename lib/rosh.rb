@@ -24,7 +24,7 @@ class Rosh
     if host_label.nil?
       @hosts[hostname] = Rosh::Host.new(hostname, ssh_options)
     else
-      @hosts[host_label] = Rosh::Host.new(hostname, host_label, ssh_options)
+      @hosts[host_label] = Rosh::Host.new(hostname, ssh_options)
     end
   end
 
@@ -33,6 +33,18 @@ class Rosh
   # @return [Hash{String,Object => Rosh::Host}]
   def self.hosts
     @hosts
+  end
+
+  # Finds the registered Rosh::Host with the given +hostname+.
+  #
+  # @param [String] hostname
+  # @return [Rosh::Host] +nil+ if hostname not registered.
+  def self.find_by_hostname(hostname)
+    key_value_pair = @hosts.find do |_, host|
+      host.name == hostname
+    end
+
+    key_value_pair.last rescue nil
   end
 
   # Reads the configuration from .roshrc.yml.

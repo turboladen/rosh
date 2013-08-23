@@ -7,10 +7,10 @@ class Rosh
     class User
       attr_reader :name
 
-      def initialize(type, name, host_label, **options)
+      def initialize(type, name, host_name, **options)
         @type = type
         @name = name
-        @host_label = host_label
+        @host_name = host_name
         @options = options
       end
 
@@ -37,15 +37,15 @@ class Rosh
       private
 
       def adapter
-        @adapter ||= create_adapter(@type, @name, @host_label, **@options)
+        @adapter ||= create_adapter(@type, @name, @host_name, **@options)
       end
 
-      def create_adapter(type, name, host_label, **options)
+      def create_adapter(type, name, host_name, **options)
         require_relative "user_types/#{type}"
 
         user_klass = Rosh::Host::UserTypes.const_get(type.to_s.classify)
 
-        user_klass.new(name, host_label, **options)
+        user_klass.new(name, host_name, **options)
       end
     end
   end

@@ -8,9 +8,9 @@ class Rosh
         attr_reader :name
         attr_reader :pid
 
-        def initialize(name, host_label, pid=nil)
+        def initialize(name, host_name, pid=nil)
           @name = name
-          @host_label = host_label
+          @host_name = host_name
           @pid = pid
         end
 

@@ -24,9 +24,8 @@ class Rosh
     attr_reader :user
     attr_reader :package_manager
 
-    def initialize(hostname, host_label=nil, **ssh_options)
+    def initialize(hostname, **ssh_options)
       @name = hostname
-      @host_label = host_label || @name
       @user = ssh_options[:user] || Etc.getlogin
 
       @shell = if local?
@@ -41,7 +40,7 @@ class Rosh
     end
 
     def fs
-      @fs ||= Rosh::Host::FileSystem.new(@host_label)
+      @fs ||= Rosh::Host::FileSystem.new(@name)
     end
 
     # Access to the PackageManager for the Host's OS type.
@@ -53,13 +52,13 @@ class Rosh
 
       @package_manager = case operating_system
       when :darwin
-        Rosh::Host::PackageManager.new(:brew, @host_label)
+        Rosh::Host::PackageManager.new(:brew, @name)
       when :linux
         case distribution
         when :ubuntu
-          Rosh::Host::PackageManager.new(:apt, @host_label)
+          Rosh::Host::PackageManager.new(:apt, @name)
         when :centos
-          Rosh::Host::PackageManager.new(:yum, @host_label)
+          Rosh::Host::PackageManager.new(:yum, @name)
         end
       end
     end
@@ -69,11 +68,11 @@ class Rosh
 
       @service_manager = case operating_system
       when :darwin
-        Rosh::Host::ServiceManagers::LaunchCTL.new(@host_label)
+        Rosh::Host::ServiceManagers::LaunchCTL.new(@name)
       when :linux
-        Rosh::Host::ServiceManagers::Init.new(:linux, @host_label)
+        Rosh::Host::ServiceManagers::Init.new(:linux, @name)
       when :freebsd
-        Rosh::Host::ServiceManagers::Init.new(:freebsd, @host_label)
+        Rosh::Host::ServiceManagers::Init.new(:freebsd, @name)
       end
     end
 
@@ -82,7 +81,7 @@ class Rosh
 
       @user_manager = case operating_system
       when :darwin
-        Rosh::Host::UserManager.new(:open_directory, @host_label)
+        Rosh::Host::UserManager.new(:open_directory, @name)
       end
     end
 

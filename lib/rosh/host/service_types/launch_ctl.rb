@@ -8,10 +8,10 @@ class Rosh
       class LaunchCTL < Base
 
         # @param [String] name
-        # @param [String,Symbol] host_label
+        # @param [String] host_name
         # @param [Fixnum] pid
-        def initialize(name, host_label, pid=nil)
-          super(name, host_label, pid)
+        def initialize(name, host_name, pid=nil)
+          super(name, host_name, pid)
         end
 
         # @return [Rosh::CommandResult] #ruby_object is a Hash containing +:name+

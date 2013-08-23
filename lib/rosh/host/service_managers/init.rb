@@ -5,8 +5,8 @@ class Rosh
   class Host
     module ServiceManagers
       class Init
-        def initialize(os_type, host_label)
-          @host_label = host_label
+        def initialize(os_type, host_name)
+          @host_name = host_name
           @os_type = os_type
         end
 
@@ -24,7 +24,7 @@ class Rosh
         private
 
         def create(name)
-          Rosh::Host::ServiceTypes::Init.new(name, @os_type, @host_label)
+          Rosh::Host::ServiceTypes::Init.new(name, @os_type, @host_name)
         end
 
         def linux_list

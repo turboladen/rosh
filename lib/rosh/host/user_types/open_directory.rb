@@ -4,11 +4,11 @@ class Rosh
   class Host
     module UserTypes
       class OpenDirectory
-        def initialize(name, host_label, uid: nil, gid: nil, dir: nil, shell: nil,
+        def initialize(name, host_name, uid: nil, gid: nil, dir: nil, shell: nil,
           gecos: nil
         )
           @name = name
-          @host_label = host_label
+          @host_name = host_name
           @user_id = uid.to_i
           @group_id = gid.to_i
           @home_directory = dir

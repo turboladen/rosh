@@ -53,7 +53,7 @@ options:
         <<-FSO
 --- !ruby/object:Rosh::Host::FileSystemObjects::RemoteBase
 path: #{__FILE__}
-host_label: example.com
+host_name: example.com
         FSO
       end
 
@@ -61,7 +61,7 @@ host_label: example.com
         subject.to_yaml.should == <<-FSO
 --- !ruby/object:Rosh::Host::FileSystemObjects::RemoteBase
 path: #{__FILE__}
-host_label: example.com
+host_name: example.com
         FSO
       end
 
@@ -69,7 +69,7 @@ host_label: example.com
         new_fso = YAML.load(yaml)
         new_fso.should be_a Rosh::Host::FileSystemObjects::RemoteBase
         new_fso.to_path.should eq __FILE__
-        new_fso.instance_variable_get(:@host_label).should eq 'example.com'
+        new_fso.instance_variable_get(:@host_name).should eq 'example.com'
       end
     end
   end

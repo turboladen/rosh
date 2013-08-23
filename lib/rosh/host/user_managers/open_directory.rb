@@ -6,8 +6,8 @@ class Rosh
   class Host
     module UserManagers
       class OpenDirectory
-        def initialize(host_label)
-          @host_label = host_label
+        def initialize(host_name)
+          @host_name = host_name
         end
 
         def list
@@ -31,7 +31,7 @@ class Rosh
         end
 
         def create_user(name, **options)
-          Rosh::Host::UserTypes::OpenDirectory.new(name, @host_label, **options)
+          Rosh::Host::UserTypes::OpenDirectory.new(name, @host_name, **options)
         end
       end
     end

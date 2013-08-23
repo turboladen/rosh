@@ -4,10 +4,10 @@ module Kernel
   #
   # @return [Rosh::Host::Shells::*]
   def current_shell
-    host = Rosh.hosts[@host_label]
+    host = Rosh.find_by_hostname @host_name
 
     unless host
-      raise "No host found with label '#{@host_label}'"
+      raise "No host found with name '#{@host_name}'"
     end
 
     host.shell
