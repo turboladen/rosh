@@ -106,10 +106,11 @@ class Rosh
         # Run commands in the +block+ as sudo.
         #
         # @return Returns whatever the +block+ returns.
+        # @yields [Rosh::Host::Shells::*] the current Rosh shell.
         def su(&block)
           @sudo = true
           log 'sudo enabled'
-          result = block.call
+          result = block.call(self)
           @sudo = false
           log 'sudo disabled'
 
