@@ -54,7 +54,24 @@ class Rosh
       end
 
       def bin_path
-        _bin_path
+        @bin_path ||= default_bin_path
+      end
+
+      def info
+        warn 'Not implemented! Implement in package type...'
+      end
+
+      # @return [Boolean] +true+ if installed; +false+ if not.
+      def installed?
+        warn 'Not implemented! Implement in package type...'
+      end
+
+      def at_latest_version?
+        warn 'Not implemented! Implement in package type...'
+      end
+
+      def current_version
+        warn 'Not implemented! Implement in package type...'
       end
 
       # Installs the package using brew and notifies observers with the new
@@ -67,17 +84,12 @@ class Rosh
       def install(version: nil)
         return if skip_install?(version)
 
-        old_version = _current_version
-        success = _install(version)
-        new_version = _current_version
+        old_version = current_version
+        success = install_package(version)
+        new_version = current_version
         notify_on_success(new_version, old_version, success)
 
         success
-      end
-
-      # @return [Boolean] +true+ if installed; +false+ if not.
-      def installed?
-        _installed?
       end
 
       # Upgrades the package, using `brew upgrade ` and updates observers with
@@ -85,12 +97,12 @@ class Rosh
       #
       # @return [Boolean] +true+ if upgrade was successful, +false+ if not.
       def upgrade
-        old_version = _current_version
-        success = _upgrade
+        old_version = current_version
+        success = upgrade_package
 
         # TODO: is the same as #notify_on_success?
         if success
-          new_version = _current_version
+          new_version = current_version
 
           if old_version != new_version
             changed
@@ -107,14 +119,14 @@ class Rosh
       #
       # @return [Boolean] +true+ if install was successful; +false+ if not.
       def remove
-        already_installed = _installed?
+        already_installed = installed?
 
         if current_shell.check_state_first? && !already_installed
           return
         end
 
-        old_version = _current_version
-        success = _remove
+        old_version = current_version
+        success = remove_package
 
         if success && already_installed
           changed
@@ -124,18 +136,6 @@ class Rosh
         end
 
         success
-      end
-
-      def info
-        _info
-      end
-
-      def at_latest_version?
-        _at_latest_version?
-      end
-
-      def current_version
-        _current_version
       end
 
       #-------------------------------------------------------------------------
@@ -150,17 +150,17 @@ class Rosh
         require_relative "package_types/#{type}"
         package_klass = Rosh::Host::PackageTypes.const_get(type.to_s.classify)
 
-        self.class.send(:include, package_klass)
+        extend package_klass
       end
 
       # Checks to see if installing the package should be skipped based on the
       # shell settings, if the package is installed, and which version the
       # package is at.
       def skip_install?(version=nil)
-        if current_shell.check_state_first? && _installed?
+        if current_shell.check_state_first? && installed?
           #log 'SKIP: check_state_first is true and already at latest version.'
           if version
-            true if version == _current_version
+            true if version == current_version
           else
             true
           end

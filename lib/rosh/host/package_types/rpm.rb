@@ -6,57 +6,10 @@ class Rosh
       # {http://yum.baseurl.org Yum} and RPM commands.
       module Rpm
 
-        private
-
-        # Install the package.  If no +version+ is given, uses the latest in
-        # Yum's cache.
-        #
-        # @param [String] version
-        # @return [Boolean] +true+ if successful, +false+ if not.
-        def _install(version=nil)
-          cmd = "yum install -y #{@name}"
-          cmd << "-#{version}" if version
-          current_shell.exec(cmd)
-
-          current_shell.last_exit_status.zero?
-        end
-
-        # Uses <tt>yum info [pkg]</tt> to see if the package is installed
-        # or not.
-        #
-        # @return [Boolean] +true+ if installed, +false+ if not.
-        def _installed?
-          current_shell.exec "yum info #{@name}"
-
-          current_shell.last_exit_status.zero?
-        end
-
-        # Upgrades the package, using <tt>yum upgrade [pkg]</tt>.
-        #
-        # @return [Boolean] +true+ if install was successful, +false+ if not.
-        def _upgrade
-          output = current_shell.exec "yum upgrade -y #{@name}"
-          success = current_shell.last_exit_status.zero?
-
-          return false if output.match(/#{@name} available, but not installed/m)
-          return false if output.match(/No Packages marked for Update/m)
-
-          success
-        end
-
-        # Uses <tt>yum remove [pkg]</tt> to remove the package.
-        #
-        # @return [Boolean] +true+ if successful, +false+ if not.
-        def _remove
-          current_shell.exec "yum remove -y #{@name}"
-
-          current_shell.last_exit_status.zero?
-        end
-
         # Result of <tt>yum info [pkg]</tt> as a Hash.
         #
         # @return [Hash]
-        def _info
+        def info
           output = current_shell.exec "yum info #{@name}"
           info_hash = {}
 
@@ -74,9 +27,19 @@ class Rosh
           info_hash
         end
 
+        # Uses <tt>yum info [pkg]</tt> to see if the package is installed
+        # or not.
+        #
+        # @return [Boolean] +true+ if installed, +false+ if not.
+        def installed?
+          current_shell.exec "yum info #{@name}"
+
+          current_shell.last_exit_status.zero?
+        end
+
         # @return [Boolean] Checks to see if the latest installed version is
         #   the latest version available.
-        def _at_latest_version?
+        def at_latest_version?
           cmd = "yum list updates #{@name}"
           result = current_shell.exec(cmd)
 
@@ -102,7 +65,7 @@ class Rosh
 
         # @return [String] The currently installed version of the package. +nil+
         #   if the package is not installed.
-        def _current_version
+        def current_version
           cmd = "rpm -qa #{@name}"
           result = current_shell.exec(cmd)
 
@@ -113,6 +76,47 @@ class Rosh
 
             $~[:version] if $~
           end
+        end
+
+        private
+
+        def default_bin_path
+          '/usr/bin'
+        end
+
+        # Install the package.  If no +version+ is given, uses the latest in
+        # Yum's cache.
+        #
+        # @param [String] version
+        # @return [Boolean] +true+ if successful, +false+ if not.
+        def install_package(version=nil)
+          cmd = "yum install -y #{@name}"
+          cmd << "-#{version}" if version
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
+
+        # Upgrades the package, using <tt>yum upgrade [pkg]</tt>.
+        #
+        # @return [Boolean] +true+ if install was successful, +false+ if not.
+        def upgrade_package
+          output = current_shell.exec "yum upgrade -y #{@name}"
+          success = current_shell.last_exit_status.zero?
+
+          return false if output.match(/#{@name} available, but not installed/m)
+          return false if output.match(/No Packages marked for Update/m)
+
+          success
+        end
+
+        # Uses <tt>yum remove [pkg]</tt> to remove the package.
+        #
+        # @return [Boolean] +true+ if successful, +false+ if not.
+        def remove_package
+          current_shell.exec "yum remove -y #{@name}"
+
+          current_shell.last_exit_status.zero?
         end
       end
     end

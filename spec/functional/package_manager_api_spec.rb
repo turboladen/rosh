@@ -40,8 +40,6 @@ describe 'Package manager API' do
 
   %i[apt brew yum].each do |package_manager|
     describe package_manager do
-      let(:shell) { double 'Rosh::Host::Shells::AShell' }
-      before { allow(subject).to receive(:current_shell) { shell } }
       subject { Rosh::Host::PackageManager.new(package_manager, 'example.com') }
       it_behaves_like 'a package manager'
     end

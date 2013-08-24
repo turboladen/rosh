@@ -9,9 +9,10 @@ describe Rosh::Host::PackageTypes::Brew do
   before do
     allow(subject).to receive(:current_shell) { shell }
     subject.instance_variable_set(:@name, 'thing')
+    subject.instance_variable_set(:@bin_path, subject.send(:default_bin_path))
   end
 
-  describe '#_info' do
+  describe '#info' do
     before do
       expect(shell).to receive(:exec).with('/usr/local/bin/brew info thing') { output }
     end
@@ -36,7 +37,7 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
       end
 
       it 'parses each field and value to a Hash' do
-        expect(subject.send(:_info)).to eq({
+        expect(subject.info).to eq({
           package: 'thing',
           spec: 'stable',
           version: '2.0.21, HEAD',
@@ -62,13 +63,122 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
       end
 
       it 'parses each field and value to a Hash' do
-        expect(subject.send(:_info)).to eq({
+        expect(subject.info).to eq({
           package: 'thing',
           spec: 'stable',
           version: '2.0.21, HEAD',
           status: :not_installed,
           homepage: 'http://www.monkey.org/~provos/libevent/'
         })
+      end
+    end
+  end
+
+  describe '#installed?' do
+    context 'not a package' do
+      before do
+        allow(shell).to receive(:last_exit_status) { 1 }
+        expect(shell).to receive(:exec).with('/usr/local/bin/brew info thing') {
+          'Error: No available formula for thing'
+        }
+      end
+
+      specify { expect(subject).to_not be_installed }
+    end
+
+    context 'not installed' do
+      before do
+        allow(shell).to receive(:last_exit_status) { 0 }
+        expect(shell).to receive(:exec).with('/usr/local/bin/brew info thing') {
+          %[garmintools: stable 0.10
+http://code.google.com/p/garmintools/
+Not installed
+From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/garmintools.rb
+==> Dependencies
+Required: libusb-compat]
+        }
+      end
+
+      specify { expect(subject).to_not be_installed }
+    end
+
+    context 'installed' do
+      before do
+        allow(shell).to receive(:last_exit_status) { 0 }
+        expect(shell).to receive(:exec).with('/usr/local/bin/brew info thing') {
+          %[git: stable 1.8.3.4, HEAD
+http://git-scm.com
+/usr/local/Cellar/git/1.8.3.1 (1324 files, 28M)
+  Built from source
+/usr/local/Cellar/git/1.8.3.3 (1326 files, 29M)
+  Built from source
+From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
+==> Dependencies
+Optional: pcre, gettext
+==> Options
+--with-blk-sha1
+	Compile with the block-optimized SHA1 implementation
+--with-gettext
+	Build with gettext support
+--with-pcre
+	Build with pcre support
+--without-completions
+	Disable bash/zsh completions from "contrib" directory
+==> Caveats
+The OS X keychain credential helper has been installed to:
+  /usr/local/bin/git-credential-osxkeychain
+
+The 'contrib' directory has been installed to:
+  /usr/local/share/git-core/contrib]
+        }
+      end
+
+      specify { expect(subject).to be_installed }
+    end
+  end
+
+  describe '#at_latest_version?' do
+    context 'true' do
+      before do
+        allow(subject).to receive(:info) { { version: '1' } }
+        allow(subject).to receive(:current_version) { '1' }
+      end
+
+      it 'returns true' do
+        subject.should be_at_latest_version
+      end
+    end
+
+    context 'false' do
+      before do
+        allow(subject).to receive(:info) { { version: '1' } }
+        allow(subject).to receive(:current_version) { '2' }
+      end
+
+      it 'returns true' do
+        subject.should_not be_at_latest_version
+      end
+    end
+  end
+
+  describe '#current_version' do
+    context 'not installed' do
+      before do
+        allow(subject).to receive(:installed_versions) { [] }
+      end
+
+      it 'returns nil' do
+        expect(subject.current_version).to be_nil
+      end
+    end
+
+    context 'installed' do
+      before do
+        allow(subject).to receive(:installed_versions) { %w[1] }
+      end
+
+      it 'returns the currently installed version' do
+        expect(subject.current_version).to eq '1'
       end
     end
   end
@@ -111,12 +221,16 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
     end
   end
 
-  describe '#_install' do
+  describe '#default_bin_path' do
+    specify { expect(subject.send(:default_bin_path)).to eq '/usr/local/bin' }
+  end
+
+  describe '#install_package' do
     context 'with version' do
       it 'calls #install_and_switch_version' do
         expect(subject).to receive(:install_and_switch_version).with('0.1.2')
 
-        subject.send(:_install, '0.1.2')
+        subject.send(:install_package, '0.1.2')
       end
     end
 
@@ -127,7 +241,7 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
           expect(shell).to receive(:exec).with('/usr/local/bin/brew install thing')
         end
 
-        specify { expect(subject.send(:_install)).to eq false }
+        specify { expect(subject.send(:install_package)).to eq false }
       end
 
       context 'successful install' do
@@ -136,103 +250,40 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
           expect(shell).to receive(:exec).with('/usr/local/bin/brew install thing')
         end
 
-        specify { expect(subject.send(:_install)).to eq true }
+        specify { expect(subject.send(:install_package)).to eq true }
       end
     end
   end
 
-  describe '#_installed?' do
-    context 'not a package' do
-      before do
-        allow(shell).to receive(:last_exit_status) { 1 }
-        expect(shell).to receive(:exec).with('/usr/local/bin/brew info thing') {
-          'Error: No available formula for thing'
-        }
-      end
-
-      specify { expect(subject).to_not be__installed }
-    end
-
-    context 'not installed' do
-      before do
-        allow(shell).to receive(:last_exit_status) { 0 }
-        expect(shell).to receive(:exec).with('/usr/local/bin/brew info thing') {
-          %[garmintools: stable 0.10
-http://code.google.com/p/garmintools/
-Not installed
-From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/garmintools.rb
-==> Dependencies
-Required: libusb-compat]
-        }
-      end
-
-      specify { expect(subject).to_not be__installed }
-    end
-
-    context 'installed' do
-      before do
-        allow(shell).to receive(:last_exit_status) { 0 }
-        expect(shell).to receive(:exec).with('/usr/local/bin/brew info thing') {
-          %[git: stable 1.8.3.4, HEAD
-http://git-scm.com
-/usr/local/Cellar/git/1.8.3.1 (1324 files, 28M)
-  Built from source
-/usr/local/Cellar/git/1.8.3.3 (1326 files, 29M)
-  Built from source
-From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
-==> Dependencies
-Optional: pcre, gettext
-==> Options
---with-blk-sha1
-	Compile with the block-optimized SHA1 implementation
---with-gettext
-	Build with gettext support
---with-pcre
-	Build with pcre support
---without-completions
-	Disable bash/zsh completions from "contrib" directory
-==> Caveats
-The OS X keychain credential helper has been installed to:
-  /usr/local/bin/git-credential-osxkeychain
-
-The 'contrib' directory has been installed to:
-  /usr/local/share/git-core/contrib]
-        }
-      end
-
-      specify { expect(subject).to be__installed }
-    end
-  end
-
-  describe '#_remove' do
-    before do
-      expect(shell).to receive(:exec).with('/usr/local/bin/brew remove thing')
-    end
-
-    context 'failed removal' do
-      before { allow(shell).to receive(:last_exit_status) { 1 } }
-      specify { expect(subject.send(:_remove)).to eq false }
-    end
-
-    context 'successful removal' do
-      before { allow(shell).to receive(:last_exit_status) { 0 } }
-      specify { expect(subject.send(:_remove)).to eq true }
-    end
-  end
-
-  describe '#_upgrade' do
+  describe '#upgrade_package' do
     before do
       expect(shell).to receive(:exec).with('/usr/local/bin/brew upgrade thing')
     end
 
     context 'failed upgrade' do
       before { allow(shell).to receive(:last_exit_status) { 1 } }
-      specify { expect(subject.send(:_upgrade)).to eq false }
+      specify { expect(subject.send(:upgrade_package)).to eq false }
     end
 
     context 'successful upgrade' do
       before { allow(shell).to receive(:last_exit_status) { 0 } }
-      specify { expect(subject.send(:_upgrade)).to eq true }
+      specify { expect(subject.send(:upgrade_package)).to eq true }
+    end
+  end
+
+  describe '#remove_package' do
+    before do
+      expect(shell).to receive(:exec).with('/usr/local/bin/brew remove thing')
+    end
+
+    context 'failed removal' do
+      before { allow(shell).to receive(:last_exit_status) { 1 } }
+      specify { expect(subject.send(:remove_package)).to eq false }
+    end
+
+    context 'successful removal' do
+      before { allow(shell).to receive(:last_exit_status) { 0 } }
+      specify { expect(subject.send(:remove_package)).to eq true }
     end
   end
 

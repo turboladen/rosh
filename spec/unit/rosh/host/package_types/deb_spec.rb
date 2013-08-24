@@ -11,7 +11,7 @@ describe Rosh::Host::PackageTypes::Deb do
     subject.instance_variable_set(:@name, 'thing')
   end
 
-  describe '#_info' do
+  describe '#info' do
     let(:output) do
       <<-OUTPUT
 Package: zlib1g-dev
@@ -35,7 +35,7 @@ Homepage: http://zlib.net/
     end
 
     it 'parses each field and value to a Hash' do
-      subject.send(:_info).should == {
+      subject.info.should == {
         package: 'zlib1g-dev',
         status: 'install ok installed',
         multi_arch: 'same',
@@ -53,50 +53,21 @@ files.",
     end
   end
 
-  describe '#_install' do
-    context 'with version' do
-      it 'adds -version to the install command' do
-        allow(shell).to receive(:last_exit_status) { 0 }
-        expect(shell).to receive(:exec).
-          with('DEBIAN_FRONTEND=noninteractive apt-get install thing=0.1.2 -y')
-
-        subject.send(:_install, '0.1.2')
-      end
-    end
-
-    context 'no version' do
-      before do
-        expect(shell).to receive(:exec).
-          with('DEBIAN_FRONTEND=noninteractive apt-get install thing -y')
-      end
-
-      context 'failed install' do
-        before { allow(shell).to receive(:last_exit_status) { 1 } }
-        specify { expect(subject.send(:_install)).to eq false }
-      end
-
-      context 'successful install' do
-        before { allow(shell).to receive(:last_exit_status) { 0 } }
-        specify { expect(subject.send(:_install)).to eq true }
-      end
-    end
-  end
-
-  describe '#_installed?' do
+  describe '#installed?' do
     before { expect(shell).to receive(:exec).with('dpkg --status thing') }
 
     context 'not installed' do
       before { allow(shell).to receive(:last_exit_status) { 1 } }
-      specify { expect(subject).to_not be__installed }
+      specify { expect(subject).to_not be_installed }
     end
 
     context 'installed' do
       before { allow(shell).to receive(:last_exit_status) { 0 } }
-      specify { expect(subject).to be__installed }
+      specify { expect(subject).to be_installed }
     end
   end
 
-  describe '#_at_latest_version?' do
+  describe '#at_latest_version?' do
     before { shell.should_receive(:exec).and_return result }
 
     context 'not a package' do
@@ -106,7 +77,7 @@ N: Unable to locate package meow
         RESULT
       end
 
-      specify { subject.send(:_at_latest_version?).should be_nil }
+      specify { subject.at_latest_version?.should be_nil }
     end
 
     context 'not installed' do
@@ -122,7 +93,7 @@ git:
         RESULT
       end
 
-      specify { subject.send(:_at_latest_version?).should be_false }
+      specify { subject.at_latest_version?.should be_false }
     end
 
     context 'installed' do
@@ -143,7 +114,7 @@ apt:
           RESULT
         end
 
-        specify { subject.send(:_at_latest_version?).should be_false }
+        specify { subject.at_latest_version?.should be_false }
       end
 
       context 'at latest' do
@@ -162,12 +133,12 @@ curl:
           RESULT
         end
 
-        specify { subject.send(:_at_latest_version?).should be_true }
+        specify { subject.send(:at_latest_version?).should be_true }
       end
     end
   end
 
-  describe '#_current_version' do
+  describe '#current_version' do
     before { shell.should_receive(:exec).and_return result }
 
     context 'when not installed' do
@@ -183,7 +154,7 @@ git:
         RESULT
       end
 
-      specify { subject.send(:_current_version).should be_nil }
+      specify { subject.current_version.should be_nil }
     end
 
     context 'when installed' do
@@ -204,7 +175,7 @@ apt:
           RESULT
         end
 
-        specify { subject.send(:_current_version).should == '0.8.16~exp12ubuntu10' }
+        specify { subject.current_version.should == '0.8.16~exp12ubuntu10' }
       end
 
       context 'and current' do
@@ -222,12 +193,51 @@ curl:
         500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
           RESULT
         end
-
       end
     end
   end
 
-  describe '#_remove' do
+  describe 'default_bin_path' do
+    specify { expect(subject.send(:default_bin_path)).to eq '/usr/local' }
+  end
+
+  describe '#install_package' do
+    context 'with version' do
+      it 'adds -version to the install command' do
+        allow(shell).to receive(:last_exit_status) { 0 }
+        expect(shell).to receive(:exec).
+          with('DEBIAN_FRONTEND=noninteractive apt-get install thing=0.1.2 -y')
+
+        subject.send(:install_package, '0.1.2')
+      end
+    end
+
+    context 'no version' do
+      before do
+        expect(shell).to receive(:exec).
+          with('DEBIAN_FRONTEND=noninteractive apt-get install thing -y')
+      end
+
+      context 'failed install' do
+        before { allow(shell).to receive(:last_exit_status) { 1 } }
+        specify { expect(subject.send(:install_package)).to eq false }
+      end
+
+      context 'successful install' do
+        before { allow(shell).to receive(:last_exit_status) { 0 } }
+        specify { expect(subject.send(:install_package)).to eq true }
+      end
+    end
+  end
+
+  describe '#upgrade_package' do
+    it 'calls #install_package' do
+      subject.should_receive(:install_package)
+      subject.send(:upgrade_package)
+    end
+  end
+
+  describe '#remove_package' do
     before do
       expect(shell).to receive(:exec).
         with('DEBIAN_FRONTEND=noninteractive apt-get remove thing')
@@ -235,19 +245,12 @@ curl:
 
     context 'failed removal' do
       before { allow(shell).to receive(:last_exit_status) { 1 } }
-      specify { expect(subject.send(:_remove)).to eq false }
+      specify { expect(subject.send(:remove_package)).to eq false }
     end
 
     context 'successful removal' do
       before { allow(shell).to receive(:last_exit_status) { 0 } }
-      specify { expect(subject.send(:_remove)).to eq true }
-    end
-  end
-
-  describe '#_upgrade' do
-    it 'calls #_install' do
-      subject.should_receive(:_install)
-      subject.send(:_upgrade)
+      specify { expect(subject.send(:remove_package)).to eq true }
     end
   end
 end

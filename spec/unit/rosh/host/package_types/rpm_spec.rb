@@ -11,7 +11,7 @@ describe Rosh::Host::PackageTypes::Rpm do
     subject.instance_variable_set(:@name, 'thing')
   end
 
-  describe '#_info' do
+  describe '#info' do
     let(:output) do
       <<-OUTPUT
 Available Packages
@@ -38,7 +38,7 @@ Description: The zsh shell is a command interpreter usable as an interactive log
     end
 
     it 'parses each field and value to a Hash' do
-      subject.send(:_info).should == {
+      subject.info.should == {
         name: 'zsh',
         arch: 'x86_64',
         version: '4.2.6',
@@ -58,46 +58,21 @@ Description: The zsh shell is a command interpreter usable as an interactive log
     end
   end
 
-  describe '#_install' do
-    context 'with version' do
-      it 'adds -version to the install command' do
-        allow(shell).to receive(:last_exit_status) { 0 }
-        expect(shell).to receive(:exec).with('yum install -y thing-0.1.2')
-
-        subject.send(:_install, '0.1.2')
-      end
-    end
-
-    context 'no version' do
-      before { expect(shell).to receive(:exec).with('yum install -y thing') }
-
-      context 'failed install' do
-        before { allow(shell).to receive(:last_exit_status) { 1 } }
-        specify { expect(subject.send(:_install)).to eq false }
-      end
-
-      context 'successful install' do
-        before { allow(shell).to receive(:last_exit_status) { 0 } }
-        specify { expect(subject.send(:_install)).to eq true }
-      end
-    end
-  end
-
-  describe '_installed?' do
+  describe 'installed?' do
     before { expect(shell).to receive(:exec).with('yum info thing') }
 
     context 'is not installed' do
       before { allow(shell).to receive(:last_exit_status) { 1 } }
-      specify { expect(subject).to_not be__installed }
+      specify { expect(subject).to_not be_installed }
     end
 
     context 'is installed' do
       before { allow(shell).to receive(:last_exit_status) { 0 } }
-      specify { expect(subject).to be__installed }
+      specify { expect(subject).to be_installed }
     end
   end
 
-  describe '#_at_latest_version?' do
+  describe '#at_latest_version?' do
     before { allow(shell).to receive(:exec).and_return(result1, result2) }
 
     context 'not a package' do
@@ -115,7 +90,7 @@ Error: No matching Packages to list
         RESULT
       end
 
-      specify { expect(subject.send(:_at_latest_version?)).to be_nil }
+      specify { expect(subject.send(:at_latest_version?)).to be_nil }
     end
 
     context 'not installed' do
@@ -147,7 +122,7 @@ Description: Zope is an application server framework that enables developers to 
         RESULT
       end
 
-      specify { expect(subject).to_not be__at_latest_version }
+      specify { expect(subject).to_not be_at_latest_version }
     end
 
     context 'installed but not latest' do
@@ -161,7 +136,7 @@ curl.x86_64            7.15.5-17.el5_9                updates
       end
 
       let(:result2) {}
-      specify { expect(subject).to_not be__at_latest_version }
+      specify { expect(subject).to_not be_at_latest_version }
     end
 
     context 'installed and latest' do
@@ -194,41 +169,52 @@ Description: GNU Wget is a file retrieval utility which can use either the HTTP 
         RESULT
       end
 
-      specify { expect(subject).to be__at_latest_version }
+      specify { expect(subject).to be_at_latest_version }
     end
   end
 
-  describe '#_current_version' do
+  describe '#current_version' do
     before do
       expect(shell).to receive(:exec).with('rpm -qa thing') { result }
     end
 
     context 'not a package or not installed' do
       let(:result) { '' }
-      specify { expect(subject.send(:_current_version)).to be_nil }
+      specify { expect(subject.send(:current_version)).to be_nil }
     end
 
     context 'installed' do
       let(:result) { 'thing-1.11.4-3.el5_8.2' }
-      specify { expect(subject.send(:_current_version)).to eq '1.11.4-3.el5_8.2' }
+      specify { expect(subject.send(:current_version)).to eq '1.11.4-3.el5_8.2' }
     end
   end
 
-  describe '#_remove' do
-    before { expect(shell).to receive(:exec).with('yum remove -y thing') }
+  describe '#install_package' do
+    context 'with version' do
+      it 'adds -version to the install command' do
+        allow(shell).to receive(:last_exit_status) { 0 }
+        expect(shell).to receive(:exec).with('yum install -y thing-0.1.2')
 
-    context 'failed removal' do
-      before { allow(shell).to receive(:last_exit_status) { 1 } }
-      specify { expect(subject.send(:_remove)).to eq false }
+        subject.send(:install_package, '0.1.2')
+      end
     end
 
-    context 'successful removal' do
-      before { allow(shell).to receive(:last_exit_status) { 0 } }
-      specify { expect(subject.send(:_remove)).to eq true }
+    context 'no version' do
+      before { expect(shell).to receive(:exec).with('yum install -y thing') }
+
+      context 'failed install' do
+        before { allow(shell).to receive(:last_exit_status) { 1 } }
+        specify { expect(subject.send(:install_package)).to eq false }
+      end
+
+      context 'successful install' do
+        before { allow(shell).to receive(:last_exit_status) { 0 } }
+        specify { expect(subject.send(:install_package)).to eq true }
+      end
     end
   end
 
-  describe '#_upgrade' do
+  describe '#upgrade_package' do
     before do
       expect(shell).to receive(:exec).with('yum upgrade -y thing') { output }
       expect(shell).to receive(:last_exit_status) { 0 }
@@ -252,7 +238,7 @@ No Packages marked for Update
         OUTPUT
       end
 
-      specify { expect(subject.send(:_upgrade)).to eq false }
+      specify { expect(subject.send(:upgrade_package)).to eq false }
     end
 
     context 'already at latest version' do
@@ -268,7 +254,7 @@ No Packages marked for Update
         OUTPUT
       end
 
-      specify { expect(subject.send(:_upgrade)).to eq false }
+      specify { expect(subject.send(:upgrade_package)).to eq false }
     end
 
     context 'installed but not at latest version' do
@@ -340,7 +326,21 @@ Complete!
         OUTPUT
       end
 
-      specify { expect(subject.send(:_upgrade)).to eq true }
+      specify { expect(subject.send(:upgrade_package)).to eq true }
+    end
+  end
+
+  describe '#remove_package' do
+    before { expect(shell).to receive(:exec).with('yum remove -y thing') }
+
+    context 'failed removal' do
+      before { allow(shell).to receive(:last_exit_status) { 1 } }
+      specify { expect(subject.send(:remove_package)).to eq false }
+    end
+
+    context 'successful removal' do
+      before { allow(shell).to receive(:last_exit_status) { 0 } }
+      specify { expect(subject.send(:remove_package)).to eq true }
     end
   end
 end
