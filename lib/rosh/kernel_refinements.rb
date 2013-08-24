@@ -1,12 +1,15 @@
 module Kernel
 
-  # Returns the Rosh::Host::Shells::* shell based on the host label.
+  # Returns the Rosh::Host::Shells::* shell based on the host name.
   #
   # @return [Rosh::Host::Shells::*]
   def current_shell
     current_host.shell
   end
 
+  # Returns the Rosh::Host base on the current @host_name.
+  #
+  # @return [Rosh::Host]
   def current_host
     host = Rosh.find_by_hostname @host_name
 
