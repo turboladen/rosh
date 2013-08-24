@@ -24,8 +24,8 @@ describe Rosh::Host::PackageManager do
   end
 
   describe '#installed_packages' do
-    it 'calls #_installed_packages on the adapter' do
-      expect(subject).to receive(:_installed_packages)
+    it 'warns about not being implemented' do
+      expect(subject).to receive(:warn).with 'Not implemented!'
 
       subject.installed_packages
     end
@@ -34,8 +34,9 @@ describe Rosh::Host::PackageManager do
   describe '#update_definitions' do
     context 'no definitions updated' do
       before do
-        expect(subject).to receive(:_update_definitions) { '' }
-        expect(subject).to receive(:_extract_updated_definitions) { [] }
+        expect(subject).to receive(:update_definitions_command) { 'cmd' }
+        expect(shell).to receive(:exec).with('cmd') { 'output' }
+        expect(subject).to receive(:extract_updated_definitions) { [] }
       end
 
       context 'failed command' do
@@ -66,8 +67,9 @@ describe Rosh::Host::PackageManager do
       let(:command_output) { double 'command output' }
 
       before do
-        expect(subject).to receive(:_update_definitions) { command_output }
-        expect(subject).to receive(:_extract_updated_definitions) { [updated_definition] }
+        expect(subject).to receive(:update_definitions_command) { command_output }
+        expect(shell).to receive(:exec).with(command_output) { 'output' }
+        expect(subject).to receive(:extract_updated_definitions) { [updated_definition] }
       end
 
       context 'failed command' do
@@ -106,9 +108,10 @@ describe Rosh::Host::PackageManager do
   describe '#upgrade_packages' do
     context 'no packages upgraded' do
       before do
-        expect(subject).to receive(:_installed_packages) { [] }
-        expect(subject).to receive(:_upgrade_packages) { [] }
-        expect(subject).to receive(:_extract_upgraded_packages) { [] }
+        expect(subject).to receive(:installed_packages) { [] }
+        expect(subject).to receive(:upgrade_packages_command) { 'cmd' }
+        expect(shell).to receive(:exec).with('cmd') { 'output' }
+        expect(subject).to receive(:extract_upgraded_packages) { [] }
       end
 
       context 'failed command' do
@@ -139,9 +142,10 @@ describe Rosh::Host::PackageManager do
       let(:command_output) { double 'command output' }
 
       before do
-        expect(subject).to receive(:_installed_packages) { [] }
-        expect(subject).to receive(:_upgrade_packages) { command_output }
-        expect(subject).to receive(:_extract_upgraded_packages) { [upgraded_package] }
+        expect(subject).to receive(:installed_packages) { [] }
+        expect(subject).to receive(:upgrade_packages_command) { command_output }
+        expect(shell).to receive(:exec).with(command_output) { 'output' }
+        expect(subject).to receive(:extract_upgraded_packages) { [upgraded_package] }
       end
 
       context 'failed command' do
@@ -165,7 +169,7 @@ describe Rosh::Host::PackageManager do
           expect(subject).to receive(:changed)
           expect(subject).to receive(:notify_observers).
             with(subject,
-            attribute: :_installed_packages,
+            attribute: :installed_packages,
             old: [],
             new: [upgraded_package],
             as_sudo: false

@@ -18,7 +18,7 @@ class Rosh
         # Lists all installed Brew packages.
         #
         # @return [Array<Rosh::Host::PackageTypes::Brew>]
-        def _installed_packages
+        def installed_packages
           output = current_shell.exec("#{bin_path}/brew list")
 
           output.split(/\s+/).map do |pkg|
@@ -29,9 +29,18 @@ class Rosh
         # Updates homebrew's formula index using `brew update`.
         #
         # @return [String] Output from the shell command.
-        def _update_definitions
-          current_shell.exec("#{bin_path}/brew update")
+        def update_definitions_command
+          "#{bin_path}/brew update"
         end
+
+        # Upgrades outdated packages using `brew upgrade`.
+        #
+        # @return [String] Output of the upgrade command.
+        def upgrade_packages_command
+          "#{bin_path}/brew upgrade"
+        end
+
+        private
 
         # Extracts the list of updated package definitions from the output of
         # a #update_definitions call.
@@ -39,7 +48,7 @@ class Rosh
         # @param [String] output from the #update_defintions call.
         # @return [Array<Hash{new_formulae: Array, updated_formulae: Array, deleted_formulae: Array}>]
         # TODO: How to deal with output being an Exception?
-        def _extract_updated_definitions(output)
+        def extract_updated_definitions(output)
           return [] unless output.is_a? String
 
           /==> New Formulae\n(?<new_formulae>[^=>]*)/m =~ output
@@ -60,19 +69,12 @@ class Rosh
           updated
         end
 
-        # Upgrades outdated packages using `brew upgrade`.
-        #
-        # @return [String] Output of the upgrade command.
-        def _upgrade_packages
-          current_shell.exec("#{bin_path}/brew upgrade")
-        end
-
         # Extracts Brew package names for #upgrade_packages from the command
         # output.
         #
         # @param [String] output Output from the brew upgrade command.
         # @return [Array<String>]
-        def _extract_upgraded_packages(output)
+        def extract_upgraded_packages(output)
           /Upgrading \d+ outdated packages, with result:\n(?<list>[^=>]+)/ =~ output
 
           name_and_version = list.split(', ')

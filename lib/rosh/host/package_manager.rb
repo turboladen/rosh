@@ -29,8 +29,8 @@ class Rosh
       #   Look at the list of PackageManagers.
       # @param [String] host_name
       def initialize(manager_type, host_name)
-        @host_name = host_name
         @manager_type = manager_type
+        @host_name = host_name
         load_adapter(manager_type)
       end
 
@@ -42,13 +42,17 @@ class Rosh
         create_package(package_name)
       end
 
+      def bin_path
+        warn 'Not implemented!'
+      end
+
       def installed_packages
-        _installed_packages
+        warn 'Not implemented!'
       end
 
       def update_definitions
-        output = _update_definitions
-        updated = _extract_updated_definitions(output)
+        output = current_shell.exec(update_definitions_command)
+        updated = extract_updated_definitions(output)
         success = current_shell.last_exit_status.zero?
 
         if success && !updated.empty?
@@ -67,15 +71,15 @@ class Rosh
       #
       # @return [Boolean] +true+ if exit status was 0; +false+ if not.
       def upgrade_packages
-        old_packages = _installed_packages
-        output = _upgrade_packages
-        new_packages = _extract_upgraded_packages(output)
+        old_packages = installed_packages
+        output = current_shell.exec(upgrade_packages_command)
+        new_packages = extract_upgraded_packages(output)
         success = current_shell.last_exit_status.zero?
 
         if success && !new_packages.empty?
           changed
           notify_observers(self,
-            attribute: :_installed_packages, old: old_packages,
+            attribute: :installed_packages, old: old_packages,
             new: new_packages, as_sudo: current_shell.su?)
         end
 
@@ -86,6 +90,26 @@ class Rosh
       # PRIVATES
       #-------------------------------------------------------------------------
       private
+
+      def create_package(*_)
+        warn 'Not implemented!'
+      end
+
+      def update_definitions_command
+        warn 'Not implemented!'
+      end
+
+      def extract_updated_definitions(*_)
+        warn 'Not implemented!'
+      end
+
+      def upgrade_packages_command
+        warn 'Not implemented!'
+      end
+
+      def extract_upgraded_packages(*_)
+        warn 'Not implemented!'
+      end
 
       # Mixes in the +manager_type+'s methods.
       #

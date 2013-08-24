@@ -3,19 +3,10 @@ require 'rosh/host/package_managers/brew'
 
 
 describe Rosh::Host::PackageManagers::Brew do
-  let(:shell) { double 'Rosh::Host::Shell', :su? => false }
-
-  let(:observer) do
-    o = double 'Observer'
-    o.define_singleton_method(:update) do |one, two|
-      #
-    end
-
-    o
-  end
+  let(:shell) { double 'Rosh::Host::Shell' }
+  before { allow(subject).to receive(:current_shell) { shell } }
 
   subject { Object.new.extend(Rosh::Host::PackageManagers::Brew) }
-  before { allow(subject).to receive(:current_shell) { shell } }
 
   describe '#bin_path' do
     context 'default' do
@@ -43,24 +34,24 @@ atk				freetype			intltool
       subject.should_receive(:create_package).with('freetype')
       subject.should_receive(:create_package).with('intltool')
 
-      subject._installed_packages
+      subject.installed_packages
     end
   end
 
-  describe '#_update_definitions' do
+  describe '#update_definitions_command' do
     context 'default path' do
-      it 'calls `brew update`' do
-        expect(shell).to receive(:exec).with '/usr/local/bin/brew update'
-        subject._update_definitions
+      specify do
+        expect(subject.update_definitions_command).
+          to eq '/usr/local/bin/brew update'
       end
     end
   end
 
-  describe '#_extract_update_definitions' do
+  describe '#extract_update_definitions' do
     context 'output is an Exception' do
       it 'returns an empty Array' do
         output = RuntimeError.new
-        expect(subject._extract_updated_definitions(output)).to eq []
+        expect(subject.send(:extract_updated_definitions, output)).to eq []
       end
     end
 
@@ -72,7 +63,7 @@ Already up-to-date.
       end
 
       it 'returns an empty Array' do
-        expect(subject._extract_updated_definitions(output)).to eq []
+        expect(subject.send(:extract_updated_definitions, output)).to eq []
       end
     end
 
@@ -106,19 +97,19 @@ wp-cli
       end
 
       it 'returns an Array of Hashes containing the updated package defs' do
-        expect(subject._extract_updated_definitions(output)).to eq updated
+        expect(subject.send(:extract_updated_definitions, output)).to eq updated
       end
     end
   end
 
-  describe '#_upgrade_packages' do
-    it 'runs `brew upgrade`' do
-      shell.should_receive(:exec).with('/usr/local/bin/brew upgrade')
-      subject._upgrade_packages
+  describe '#upgrade_packages_command' do
+    specify do
+      expect(subject.upgrade_packages_command).
+        to eq '/usr/local/bin/brew upgrade'
     end
   end
 
-  describe '#_extract_upgraded_packages' do
+  describe '#extract_upgraded_packages' do
     let(:output) do
       <<-EOF
       ==> Upgrading 17 outdated packages, with result:
@@ -127,7 +118,7 @@ atk 2.8.0, gmp 5.1.1, gtk+ 2.24.17, hub 1.10.6
     end
 
     it 'returns an array of new Brew packages' do
-      result = subject.send(:_extract_upgraded_packages, output)
+      result = subject.send(:extract_upgraded_packages, output)
       result.should  eq %w[atk gmp gtk+ hub]
     end
   end

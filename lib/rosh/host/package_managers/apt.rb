@@ -25,9 +25,18 @@ class Rosh
         # Updates Apt's package index using `apt-get update`.
         #
         # @return [String] Output from the shell command.
-        def _update_definitions
-          current_shell.exec 'apt-get update'
+        def update_definitions_command
+          'apt-get update'
         end
+
+        # Upgrades outdated packages using `apt-get upgrade -y`.
+        #
+        # @return [String] Output of the upgrade command.
+        def upgrade_packages_command
+          'apt-get upgrade -y DEBIAN_FRONTEND=noninteractive'
+        end
+
+        private
 
         # Extracts the list of updated package definitions from the output of
         # a #update_definitions call.
@@ -35,7 +44,7 @@ class Rosh
         # @param [String] output from the #update_defintions call.
         # @return [Array<Hash{source: String, distribution: String, components: Array, size: String}]
         # TODO: How to deal with output being an Exception?
-        def _extract_updated_definitions(output)
+        def extract_updated_definitions(output)
           return [] unless output.is_a? String
 
           updated = []
@@ -56,19 +65,12 @@ class Rosh
           updated.compact
         end
 
-        # Upgrades outdated packages using `apt-get upgrade -y`.
-        #
-        # @return [String] Output of the upgrade command.
-        def _upgrade_packages
-          current_shell.exec 'apt-get upgrade -y DEBIAN_FRONTEND=noninteractive'
-        end
-
         # Extracts Deb package names for #upgrade_packages from the command
         # output.
         #
         # @param [String] output Output from the apt-get upgrade command.
         # @return [Array<String>]
-        def _extract_upgraded_packages(output)
+        def extract_upgraded_packages(output)
           new_packages = []
 
           output.each_line do |line|
