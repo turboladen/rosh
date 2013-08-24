@@ -52,13 +52,13 @@ class Rosh
 
       @package_manager = case operating_system
       when :darwin
-        Rosh::Host::PackageManager.new(:brew, @name)
+        Rosh::Host::PackageManager.new(@name, :brew)
       when :linux
         case distribution
         when :ubuntu
-          Rosh::Host::PackageManager.new(:apt, @name)
+          Rosh::Host::PackageManager.new(@name, :apt, :dpkg)
         when :centos
-          Rosh::Host::PackageManager.new(:yum, @name)
+          Rosh::Host::PackageManager.new(@name, :yum)
         end
       end
     end

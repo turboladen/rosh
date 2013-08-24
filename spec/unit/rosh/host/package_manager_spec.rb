@@ -10,7 +10,7 @@ describe Rosh::Host::PackageManager do
   end
 
   subject do
-    allow_any_instance_of(Rosh::Host::PackageManager).to receive(:load_adapter)
+    allow_any_instance_of(Rosh::Host::PackageManager).to receive(:load_strategy)
     pm = Rosh::Host::PackageManager.new('testie', 'example.com')
 
     pm

@@ -6,7 +6,7 @@ describe Rosh::Host::Package do
   let(:shell) { double 'Rosh::Host::Shells::Fakie', :su? => false }
 
   before do
-    Rosh::Host::Package.any_instance.stub(:load_adapter)
+    Rosh::Host::Package.any_instance.stub(:load_strategy)
     allow(subject).to receive(:current_shell) { shell }
   end
 
@@ -207,16 +207,16 @@ describe Rosh::Host::Package do
     end
   end
 
-  describe '#load_adapter' do
+  describe '#load_strategy' do
     before do
-      subject.stub(:load_adapter).and_call_original
+      subject.stub(:load_strategy).and_call_original
     end
 
     context 'brew' do
       it 'extends self with Brew methods' do
         require 'rosh/host/package_types/brew'
         expect(subject).to receive(:extend).with Rosh::Host::PackageTypes::Brew
-        subject.send(:load_adapter, :brew)
+        subject.send(:load_strategy, :brew)
       end
     end
   end

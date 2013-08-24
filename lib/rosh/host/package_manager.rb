@@ -24,13 +24,12 @@ class Rosh
 
       attr_writer :bin_path
 
-      # @param [Symbol] manager_type The PackageManager types to delegate to.
+      # @param [Array<Symbol>] manager_types The PackageManager types to delegate to.
       #   Look at the list of PackageManagers.
       # @param [String] host_name
-      def initialize(manager_type, host_name)
-        @manager_type = manager_type
+      def initialize(host_name, *manager_types)
         @host_name = host_name
-        load_adapter(manager_type)
+        manager_types.each { |manager_type| load_strategy(manager_type) }
       end
 
       # Use for managing a single package.
@@ -113,7 +112,7 @@ class Rosh
       # Mixes in the +manager_type+'s methods.
       #
       # @param [Symbol, String] manager_type
-      def load_adapter(manager_type)
+      def load_strategy(manager_type)
         require_relative "package_managers/#{manager_type}"
 
         package_manager_klass =

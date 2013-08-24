@@ -50,7 +50,7 @@ class Rosh
         @architecture = architecture
         @bin_path = bin_path
 
-        load_adapter(@type)
+        load_strategy(@type)
       end
 
       def bin_path
@@ -146,7 +146,7 @@ class Rosh
       # Loads the adapter object based on the given +type+.
       #
       # @param [Symbol, String] type
-      def load_adapter(type)
+      def load_strategy(type)
         require_relative "package_types/#{type}"
         package_klass = Rosh::Host::PackageTypes.const_get(type.to_s.classify)
 
