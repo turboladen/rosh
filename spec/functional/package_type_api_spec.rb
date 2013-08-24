@@ -22,14 +22,14 @@ describe 'Package type API' do
     end
   end
 
-  %i[Brew Deb Rpm].each do |package_type|
+  %i[brew deb rpm].each do |package_type|
     describe package_type do
       let(:shell) { double 'Rosh::Host::Shells::AShell' }
       before { allow(subject).to receive(:current_shell) { shell } }
 
       subject do
         allow_any_instance_of(Rosh::Host::Package).to receive(:load_adapter)
-        Rosh::Host::Package.new('test', 'api_test', 'example.com')
+        Rosh::Host::Package.new(package_type, 'api_test', 'example.com')
       end
 
 
