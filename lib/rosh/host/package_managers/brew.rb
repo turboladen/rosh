@@ -1,3 +1,4 @@
+require_relative '../package'
 require_relative '../package_types/brew'
 
 

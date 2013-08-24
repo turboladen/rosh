@@ -1,4 +1,5 @@
 require_relative '../package_types/rpm'
+require_relative '../package'
 
 
 class Rosh
