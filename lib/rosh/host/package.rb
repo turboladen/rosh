@@ -30,6 +30,7 @@ class Rosh
       #   @return [Symbol]
 
       attr_writer :bin_path
+      attr_reader :type
 
       # @param [Symbol] type
       # @param [String] name Name of the package.
