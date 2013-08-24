@@ -38,9 +38,9 @@ describe 'Package manager API' do
     end
   end
 
-  %i[apt brew yum].each do |package_manager|
+  %i[apt dpkg brew yum].each do |package_manager|
     describe package_manager do
-      subject { Rosh::Host::PackageManager.new(package_manager, 'example.com') }
+      subject { Rosh::Host::PackageManager.new('example.com', package_manager) }
       it_behaves_like 'a package manager'
     end
   end

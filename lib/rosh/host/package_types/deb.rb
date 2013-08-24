@@ -15,7 +15,7 @@ class Rosh
           info_hash = {}
 
           output.each_line do |line|
-            %r[(?<key>.+): (?<value>[^\n]*)] =~ line
+            %r[(?<key>.+): (?<value>[^\r\n]*)] =~ line
 
             if key
               info_hash[key.to_safe_down_sym] = value
@@ -43,7 +43,7 @@ class Rosh
         def at_latest_version?
           cmd = "apt-cache policy #{@name}"
           result = current_shell.exec(cmd)
-          %r[Installed: (?<current>\S+)\n\s*Candidate: (?<candidate>\S+)] =~ result
+          %r[Installed: (?<current>\S+)\r\n\s*Candidate: (?<candidate>\S+)] =~ result
 
           if $~
             $~[:current] == $~[:candidate]

@@ -1,19 +1,18 @@
+require_relative '../package'
 require_relative '../package_types/deb'
-require_relative 'dpkg'
 
 
 class Rosh
   class Host
     module PackageManagers
       module Apt
-        include Dpkg
         DEFAULT_BIN_PATH = '/usr/bin'
 
         def bin_path
           @bin_path ||= DEFAULT_BIN_PATH
         end
 
-        # Creates a new Apt package by name.
+        # Creates a new deb package by name.
         #
         # @param [String] name
         #

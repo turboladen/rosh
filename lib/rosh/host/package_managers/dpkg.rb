@@ -1,3 +1,4 @@
+require_relative '../package'
 require_relative '../package_types/deb'
 
 
@@ -6,8 +7,17 @@ class Rosh
     module PackageManagers
       module Dpkg
 
+        # Creates a new deb package by name.
+        #
+        # @param [String] name
+        #
+        # @return [Rosh::Host::PackageTypes::Deb]
+        def create_package(name, **options)
+          Rosh::Host::Package.new(:deb, name, @host_name, **options)
+        end
+
         # @return [Array<Rosh::Host::PackageTypes::Deb>]
-        def _installed_packages
+        def installed_packages
           result = current_shell.exec 'dpkg --list'
 
           result.split("\n").map do |pkg|

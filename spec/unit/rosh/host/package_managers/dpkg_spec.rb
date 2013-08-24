@@ -36,7 +36,7 @@ ii  apparmor                                     2.7.102-0ubuntu3.7             
         with('apparmor', version: '2.7.102-0ubuntu3.7', status: 'ii').
         and_return 'third package'
 
-      packages = subject._installed_packages
+      packages = subject.installed_packages
       packages.should be_an Array
       packages.size.should == 3
     end
