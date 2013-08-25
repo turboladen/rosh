@@ -1,15 +1,11 @@
 require 'plist'
-require_relative '../user_types/open_directory'
+require_relative '../user'
 
 
 class Rosh
   class Host
     module UserManagers
-      class OpenDirectory
-        def initialize(host_name)
-          @host_name = host_name
-        end
-
+      module OpenDirectory
         def list
           result = current_shell.exec 'dscacheutil -q user'
           user_texts = result.split("\r\n\r\n")
@@ -31,7 +27,7 @@ class Rosh
         end
 
         def create_user(name, **options)
-          Rosh::Host::UserTypes::OpenDirectory.new(name, @host_name, **options)
+          Rosh::Host::User.new(:open_directory, name, @host_name, **options)
         end
       end
     end
