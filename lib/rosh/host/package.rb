@@ -45,13 +45,12 @@ class Rosh
       )
         @host_name = host_name
         @name = name
-        @type = type
         @version = version
         @status = status
         @architecture = architecture
         @bin_path = bin_path
 
-        load_strategy(@type)
+        load_strategy(type)
       end
 
       def bin_path

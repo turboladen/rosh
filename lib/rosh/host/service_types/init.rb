@@ -1,23 +1,9 @@
-require_relative '../../command_result'
-require_relative 'base'
-
-
 class Rosh
   class Host
     module ServiceTypes
-      class Init < Base
-
-        # @param [String] name
-        # @param [String] host_name
-        # @param [Symbol] os_type
-        # @param [Number] pid
-        def initialize(name, os_type, host_name, pid=nil)
-          super(name, host_name, pid)
-
-          @host_name = host_name
-          @os_type = os_type
-
-          @script_dir = case @os_type
+      module Init
+        def script_dir
+          @script_dir ||= case current_host.operating_system
           when :linux
             '/etc/init.d'
           when :freebsd
@@ -41,7 +27,7 @@ class Rosh
 
         # @return [Symbol]
         def status
-          result = current_shell.exec("#{@script_dir}/#{@name} #{status_command}")
+          result = current_shell.exec("#{script_dir}/#{@name} #{status_command}")
 
           if current_shell.last_exit_status.zero?
             pid = fetch_pid
@@ -61,7 +47,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def start
-          current_shell.exec("#{@script_dir}/#{@name} start")
+          current_shell.exec("#{script_dir}/#{@name} start")
 
           current_shell.last_exit_status.zero?
         end
@@ -72,7 +58,7 @@ class Rosh
         # @raise [Rosh::PermissionDenied]
         # @raise [Rosh::UnrecognizedService]
         def start!
-          result = current_shell.exec("#{@script_dir}/#{@name} start")
+          result = current_shell.exec("#{script_dir}/#{@name} start")
 
           if current_shell.last_exit_status.zero?
             if permission_denied? result
@@ -105,7 +91,7 @@ class Rosh
         #
         # @return [String]
         def status_command
-          case @os_type
+          case current_host.operating_system
           when :linux
             'status'
           when :freebsd

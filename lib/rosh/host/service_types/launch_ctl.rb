@@ -1,18 +1,10 @@
 require 'plist'
-require_relative 'base'
 
 
 class Rosh
   class Host
     module ServiceTypes
-      class LaunchCTL < Base
-
-        # @param [String] name
-        # @param [String] host_name
-        # @param [Fixnum] pid
-        def initialize(name, host_name, pid=nil)
-          super(name, host_name, pid)
-        end
+      module LaunchCtl
 
         # @return [Rosh::CommandResult] #ruby_object is a Hash containing +:name+
         #   +:status+, +:processes+, and +:plist+; #exit_code is 0.

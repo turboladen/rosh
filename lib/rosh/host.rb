@@ -4,8 +4,8 @@ require 'log_switch'
 require_relative 'host/attributes'
 Dir[File.dirname(__FILE__) + '/host/shells/*.rb'].each(&method(:require))
 require_relative 'host/file_system'
-Dir[File.dirname(__FILE__) + '/host/service_managers/*.rb'].each(&method(:require))
 require_relative 'host/package_manager'
+require_relative 'host/service_manager'
 require_relative 'host/group_manager'
 require_relative 'host/user_manager'
 
@@ -68,11 +68,11 @@ class Rosh
 
       @service_manager = case operating_system
       when :darwin
-        Rosh::Host::ServiceManagers::LaunchCTL.new(@name)
+        Rosh::Host::ServiceManager.new(@name, :launch_ctl)
       when :linux
-        Rosh::Host::ServiceManagers::Init.new(:linux, @name)
+        Rosh::Host::ServiceManager.new(@name, :init)
       when :freebsd
-        Rosh::Host::ServiceManagers::Init.new(:freebsd, @name)
+        Rosh::Host::ServiceManager.new(@name, :init)
       end
     end
 

@@ -2,20 +2,14 @@ require 'spec_helper'
 require 'rosh/host/service_types/launch_ctl'
 
 
-describe Rosh::Host::ServiceTypes::LaunchCTL do
-  let(:name) { 'com.thing' }
+describe Rosh::Host::ServiceTypes::LaunchCtl do
   let(:shell) { double 'Rosh::Host::Shell' }
-  before { allow(subject).to receive(:current_shell) { shell } }
-
-  let(:result) do
-    r = double 'Rosh::CommandResult'
-    r.stub(:stdout).and_return 'output'
-    r.stub(:stderr)
-
-    r
+  before do
+    allow(subject).to receive(:current_shell) { shell }
+    subject.instance_variable_set(:@name, 'com.thing')
   end
 
-  subject { Rosh::Host::ServiceTypes::LaunchCTL.new(name, 'example.com') }
+  subject { Object.new.extend Rosh::Host::ServiceTypes::LaunchCtl }
 
   describe '#info' do
     let(:info) { {} }

@@ -1,14 +1,10 @@
-require_relative '../service_types/launch_ctl'
+require_relative '../service'
 
 
 class Rosh
   class Host
     module ServiceManagers
-      class LaunchCTL
-        def initialize(host_name)
-          @host_name = host_name
-        end
-
+      module LaunchCtl
         def list
           result = current_shell.exec 'launchctl list'
 
@@ -21,23 +17,19 @@ class Rosh
             if $~
               pid = $~[:pid].to_i
             else
-              puts "no match data for line:", line
+              puts 'no match data for line:', line
             end
 
-            services << create($~[:name], pid)
+            services << create_service($~[:name], pid)
           end
 
           services
         end
 
-        def [](name)
-          create(name, nil)
-        end
-
         private
 
-        def create(name, pid)
-          Rosh::Host::ServiceTypes::LaunchCTL.new(name, @host_name, pid)
+        def create_service(name, pid)
+          Rosh::Host::Service.new(:launch_ctl, name, @host_name, pid: pid)
         end
       end
     end

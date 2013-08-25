@@ -1,42 +1,37 @@
-require_relative '../service_types/init'
+require_relative '../service'
 
 
 class Rosh
   class Host
     module ServiceManagers
-      class Init
-        def initialize(os_type, host_name)
+      module Init
+        def initialize(host_name)
           @host_name = host_name
-          @os_type = os_type
         end
 
         def list
-          case @os_type
+          case current_host.operating_system
           when :linux then linux_list
           when :freebsd then freebsd_list
           end
         end
 
-        def [](name)
-          create(name)
-        end
-
         private
 
-        def create(name)
-          Rosh::Host::ServiceTypes::Init.new(name, @os_type, @host_name)
+        def create_service(name)
+          Rosh::Host::Service.new(:init, name, @host_name)
         end
 
         def linux_list
           result = current_shell.ls '/etc/init.d'
 
-          result.map { |file| create(file.basename) }
+          result.map { |file| create_service(file.basename) }
         end
 
         def freebsd_list
           result = current_shell.ls '/etc/rc.d'
 
-          result.map { |file| create(file.basename) }
+          result.map { |file| create_service(file.basename) }
         end
       end
     end
