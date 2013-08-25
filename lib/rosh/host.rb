@@ -3,7 +3,7 @@ require 'socket'
 require 'log_switch'
 require_relative 'host/attributes'
 Dir[File.dirname(__FILE__) + '/host/shells/*.rb'].each(&method(:require))
-require_relative 'host/file_system'
+require_relative 'host/file_manager'
 require_relative 'host/package_manager'
 require_relative 'host/service_manager'
 require_relative 'host/group_manager'
@@ -40,7 +40,7 @@ class Rosh
     end
 
     def fs
-      @fs ||= Rosh::Host::FileSystem.new(@name)
+      @fs ||= Rosh::Host::FileManager.new(@name)
     end
 
     # Access to the PackageManager for the Host's OS type.

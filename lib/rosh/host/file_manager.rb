@@ -4,7 +4,7 @@ require_relative 'file_system_objects/remote_base'
 
 class Rosh
   class Host
-    class FileSystem
+    class FileManager
       def initialize(host_name)
         @host_name = host_name
       end
