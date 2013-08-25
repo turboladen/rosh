@@ -14,19 +14,19 @@ describe Rosh::Host::PackageTypes::Deb do
   describe '#info' do
     let(:output) do
       <<-OUTPUT
-Package: zlib1g-dev
-Status: install ok installed
-Multi-Arch: same
-Installed-Size: 388
-Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
-Architecture: amd64
-Version: 1:1.2.3.4.dfsg-3ubuntu4
-Depends: zlib1g (= 1:1.2.3.4.dfsg-3ubuntu4), libc6-dev | libc-dev
-Description: compression library - development
- zlib is a library implementing the deflate compression method found
- in gzip and PKZIP.  This package includes the development support
- files.
-Homepage: http://zlib.net/
+Package: zlib1g-dev\r
+Status: install ok installed\r
+Multi-Arch: same\r
+Installed-Size: 388\r
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>\r
+Architecture: amd64\r
+Version: 1:1.2.3.4.dfsg-3ubuntu4\r
+Depends: zlib1g (= 1:1.2.3.4.dfsg-3ubuntu4), libc6-dev | libc-dev\r
+Description: compression library - development\r
+ zlib is a library implementing the deflate compression method found\r
+ in gzip and PKZIP.  This package includes the development support\r
+ files.\r
+Homepage: http://zlib.net/\r
       OUTPUT
     end
 
@@ -83,13 +83,13 @@ N: Unable to locate package meow
     context 'not installed' do
       let(:result) do
         <<-RESULT
-git:
-  Installed: (none)
-  Candidate: 1:1.7.9.5-1
-  Version table:
-     1:1.7.9.5-1 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
-        100 /var/lib/dpkg/status
+git:\r
+  Installed: (none)\r
+  Candidate: 1:1.7.9.5-1\r
+  Version table:\r
+     1:1.7.9.5-1 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages\r
+        100 /var/lib/dpkg/status\r
         RESULT
       end
 
@@ -100,17 +100,17 @@ git:
       context 'not at latest' do
         let(:result) do
           <<-RESULT
-apt:
-  Installed: 0.8.16~exp12ubuntu10
-  Candidate: 0.8.16~exp12ubuntu10.12
-  Version table:
-     0.8.16~exp12ubuntu10.12 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages
-     0.8.16~exp12ubuntu10.10 0
-        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages
- *** 0.8.16~exp12ubuntu10 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
-        100 /var/lib/dpkg/status
+apt:\r
+  Installed: 0.8.16~exp12ubuntu10\r
+  Candidate: 0.8.16~exp12ubuntu10.12\r
+  Version table:\r
+     0.8.16~exp12ubuntu10.12 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages\r
+     0.8.16~exp12ubuntu10.10 0\r
+        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages\r
+ *** 0.8.16~exp12ubuntu10 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages\r
+        100 /var/lib/dpkg/status\r
           RESULT
         end
 
@@ -120,16 +120,16 @@ apt:
       context 'at latest' do
         let(:result) do
           <<-RESULT
-curl:
-  Installed: 7.22.0-3ubuntu4.2
-  Candidate: 7.22.0-3ubuntu4.2
-  Version table:
- *** 7.22.0-3ubuntu4.2 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages
-        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages
-        100 /var/lib/dpkg/status
-     7.22.0-3ubuntu4 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
+curl:\r
+  Installed: 7.22.0-3ubuntu4.2\r
+  Candidate: 7.22.0-3ubuntu4.2\r
+  Version table:\r
+ *** 7.22.0-3ubuntu4.2 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages\r
+        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages\r
+        100 /var/lib/dpkg/status\r
+     7.22.0-3ubuntu4 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages\r
           RESULT
         end
 
@@ -144,13 +144,13 @@ curl:
     context 'when not installed' do
       let(:result) do
         <<-RESULT
-git:
-  Installed: (none)
-  Candidate: 1:1.7.9.5-1
-  Version table:
-     1:1.7.9.5-1 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
-        100 /var/lib/dpkg/status
+git:\r
+  Installed: (none)\r
+  Candidate: 1:1.7.9.5-1\r
+  Version table:\r
+     1:1.7.9.5-1 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages\r
+        100 /var/lib/dpkg/status\r
         RESULT
       end
 
@@ -161,17 +161,17 @@ git:
       context 'and not current' do
         let(:result) do
           <<-RESULT
-apt:
-  Installed: 0.8.16~exp12ubuntu10
-  Candidate: 0.8.16~exp12ubuntu10.12
-  Version table:
-     0.8.16~exp12ubuntu10.12 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages
-     0.8.16~exp12ubuntu10.10 0
-        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages
- *** 0.8.16~exp12ubuntu10 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
-        100 /var/lib/dpkg/status
+apt:\r
+  Installed: 0.8.16~exp12ubuntu10\r
+  Candidate: 0.8.16~exp12ubuntu10.12\r
+  Version table:\r
+     0.8.16~exp12ubuntu10.12 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages\r
+     0.8.16~exp12ubuntu10.10 0\r
+        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages\r
+ *** 0.8.16~exp12ubuntu10 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages\r
+        100 /var/lib/dpkg/status\r
           RESULT
         end
 
@@ -181,16 +181,16 @@ apt:
       context 'and current' do
         let(:result) do
           <<-RESULT
-curl:
-  Installed: 7.22.0-3ubuntu4.2
-  Candidate: 7.22.0-3ubuntu4.2
-  Version table:
- *** 7.22.0-3ubuntu4.2 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages
-        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages
-        100 /var/lib/dpkg/status
-     7.22.0-3ubuntu4 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
+curl:\r
+  Installed: 7.22.0-3ubuntu4.2\r
+  Candidate: 7.22.0-3ubuntu4.2\r
+  Version table:\r
+ *** 7.22.0-3ubuntu4.2 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages\r
+        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages\r
+        100 /var/lib/dpkg/status\r
+     7.22.0-3ubuntu4 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages\r
           RESULT
         end
       end

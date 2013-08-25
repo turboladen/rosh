@@ -1,5 +1,4 @@
 require 'observer'
-Dir[File.dirname(__FILE__) + '/package_managers/*.rb'].each(&method(:require))
 require_relative '../string_refinements'
 
 
