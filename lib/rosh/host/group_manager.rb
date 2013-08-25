@@ -5,25 +5,29 @@ require_relative 'group'
 class Rosh
   class Host
     class GroupManager
-      def initialize(host)
-        @host = host
+      def initialize(type, host_name)
+        @host_name = host_name
+
+        load_strategy(type)
       end
 
       def [](group_name)
-        create(group_name)
+        create_group(group_name)
       end
 
       def list
-        result = @host.shell.exec 'dscl -plist . -readall /Groups'
-        groups = Plist.parse_xml(result)
-
-        Rosh::CommandResult.new(groups, 0, result)
+        warn 'Not defined!  Define in group manager...'
       end
 
       private
 
-      def create(name)
-        Rosh::Host::Group.new(@host, name)
+      def load_strategy(type)
+        require_relative "group_managers/#{type}"
+
+        gm_klass =
+          Rosh::Host::GroupManagers.const_get(type.to_s.classify)
+
+        extend gm_klass
       end
     end
   end

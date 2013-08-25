@@ -11,8 +11,8 @@ class Rosh
       )
         @name = name
         @host_name = host_name
-        @user_id = uid.to_i
-        @group_id = gid.to_i
+        @user_id = uid.to_i if uid
+        @group_id = gid.to_i if gid
         @home_directory = dir
         @shell = shell
         @description = gecos
@@ -53,6 +53,7 @@ class Rosh
 
         @description
       end
+
       private
 
       def load_strategy(type)

@@ -86,7 +86,12 @@ class Rosh
     end
 
     def groups
-      @group_manager ||= Rosh::Host::GroupManager.new(self)
+      return @group_manager if @group_manager
+
+      @group_manager = case operating_system
+      when :darwin
+        Rosh::Host::GroupManager.new(:open_directory, @name)
+      end
     end
 
     def local?
