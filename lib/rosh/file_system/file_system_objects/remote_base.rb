@@ -2,7 +2,7 @@ require 'observer'
 
 
 class Rosh
-  class Host
+  class FileSystem
     module FileSystemObjects
 
       # This is a generic base class for representing file system objects: files,
@@ -14,7 +14,8 @@ class Rosh
       #
       # When serializing (i.e. dumping to YAML), it maintains only the path to the
       # object.
-      class RemoteBase
+      module RemoteBase
+=begin
         include Observable
 
         # @param [String] path Path to the object.
@@ -48,6 +49,7 @@ class Rosh
         def to_path
           @path
         end
+=end
 
         # @return [Boolean] +true+ if the object is a file; +false+ if not.
         def file?
@@ -169,6 +171,7 @@ class Rosh
               as_sudo: current_shell.su?)
           end
         end
+=begin
 
         # Just like Ruby's File#basename, returns the base name of the object.
         #
@@ -176,6 +179,7 @@ class Rosh
         def basename
           File.basename(@path)
         end
+=end
 
         # Removes the file system object from the remote host.  If the removal was
         # successful, the shell's #last_exit_status will be 0, which will be the
@@ -201,6 +205,7 @@ class Rosh
         end
 
         # Called by serializer when dumping.
+=begin
         def encode_with(coder)
           coder['path'] = @path
           coder['host_name'] = @host_name
@@ -211,6 +216,7 @@ class Rosh
           @path = coder['path']
           @host_name = coder['host_name']
         end
+=end
 
         #-------------------------------------------------------------------------
         # Privates

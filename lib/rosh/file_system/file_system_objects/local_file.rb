@@ -1,11 +1,10 @@
 require_relative 'local_base'
 
-
 class Rosh
-  class Host
+  class FileSystem
     module FileSystemObjects
-      class LocalFile < LocalBase
-        undef_method :readlink
+      module LocalFile
+        include LocalBase
       end
     end
   end

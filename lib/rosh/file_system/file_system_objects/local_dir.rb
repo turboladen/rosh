@@ -2,19 +2,17 @@ require_relative 'local_base'
 
 
 class Rosh
-  class Host
+  class FileSystem
     module FileSystemObjects
 
       # Represents a directory on the local file system.
-      class LocalDir < LocalBase
-        undef_method :readlink
-        undef_method :truncate
-
+      module LocalDir
+        include LocalBase
 
         # @return [Array<Rosh::Host::FileSystemObjects>]
         def entries
           Dir.entries(@path).map do |entry|
-            Rosh::Host::FileSystemObjects::LocalBase.create("#{@path}/#{entry}")
+            Rosh::FileSystem.create("#{@path}/#{entry}", @host_name)
           end.compact
         end
 

@@ -10,7 +10,8 @@ class Rosh
     module FileSystemObjects
 
       # Object representing a file on a remote file system.
-      class RemoteFile < RemoteBase
+      module RemoteFile
+        include RemoteBase
 
         # @param [String] path
         # @param [String,Symbol] host_name

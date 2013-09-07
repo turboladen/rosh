@@ -6,7 +6,8 @@ class Rosh
     module FileSystemObjects
 
       # Object representing a directory on a remote file system.
-      class RemoteDir < RemoteBase
+      module RemoteDir
+        include RemoteBase
 
         # @return [String] The owner of the remote directory.
         def owner

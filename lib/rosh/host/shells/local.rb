@@ -6,7 +6,7 @@ require 'pty'
 require 'awesome_print'
 
 require_relative 'base'
-require_relative '../file_system_objects/local_base'
+require_relative '../../file_system/directory'
 require_relative '../wrapper_methods/local'
 
 
@@ -141,11 +141,11 @@ class Rosh
           output
         end
 
-        # @return [Rosh::Host::FileSystemObjects::LocalDir] Returns the current
+        # @return [Rosh::Host::FileSystem::Directory] Returns the current
         #   working directory, but doesn't alter state of the shell (i.e. does
         #   not alter last_exit_status, etc).
         def _pwd
-          Rosh::Host::FileSystemObjects::LocalDir.new(@internal_pwd)
+          Rosh::Host::FileSystem::Directory.new(@internal_pwd, @host_name)
         end
 
         # Executes Ruby code in the context of an IRB::WorkSpace.  Thus, variables

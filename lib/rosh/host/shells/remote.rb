@@ -4,8 +4,7 @@ require 'net/scp'
 require 'yaml'
 
 require_relative 'base'
-require_relative '../file_system_objects/remote_base'
-require_relative '../file_system_objects/remote_dir'
+require_relative '../../file_system/directory'
 require_relative '../wrapper_methods/remote'
 
 
@@ -42,7 +41,7 @@ class Rosh
         #   and via #set.
         attr_reader :options
 
-        attr_reader :hostname
+        attr_reader :host_name
         attr_reader :user
 
         # @param [String] hostname Name or IP of the host to SSH in to.
@@ -52,12 +51,12 @@ class Rosh
         # @param [Hash] options Net::SSH options.
         def initialize(hostname, output_commands=true, **options)
           super(output_commands)
-          @hostname = hostname
+          @host_name = hostname
           @options = options
           @user = @options.delete(:user) || DEFAULT_USER
           log "New Remote shell.  options: #{@options}"
 
-          log "Net::SSH.configuration: #{Net::SSH.configuration_for(@hostname)}"
+          log "Net::SSH.configuration: #{Net::SSH.configuration_for(@host_name)}"
           @ssh = nil
 
           @internal_pwd = nil
@@ -69,7 +68,7 @@ class Rosh
             end
           end
 
-          log "Initialized for '#{@hostname}'"
+          log "Initialized for '#{@host_name}'"
         end
 
         # Easy way to set a(n) SSH option(s).
@@ -230,7 +229,7 @@ class Rosh
         end
 
         def _pwd
-          Rosh::Host::FileSystemObjects::RemoteDir.new(@internal_pwd, self)
+          Rosh::Host::FileSystem::Directory.new(@internal_pwd, @host_name)
         end
 
         def ruby(code)
@@ -239,7 +238,7 @@ class Rosh
 
         # Called by serializer when dumping.
         def encode_with(coder)
-          coder['hostname'] = @hostname
+          coder['host_name'] = @host_name
           coder['user'] = @user
           o = @options.dup
           o.delete(:password) if o[:password]
@@ -252,7 +251,7 @@ class Rosh
         def init_with(coder)
           @user = coder['user']
           @options = coder['options']
-          @hostname = coder['hostname']
+          @host_name = coder['host_name']
           @sudo = false
           @history = []
         end
@@ -267,7 +266,7 @@ class Rosh
         end
 
         def new_ssh
-          Net::SSH.start(@hostname, @user, @options)
+          Net::SSH.start(@host_name, @user, @options)
         end
 
         # Runs +command+ on the host for which this SSH object is connected to.
