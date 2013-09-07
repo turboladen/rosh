@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'rosh/host/file_system_objects/remote_dir'
+require 'rosh/host/adapters/remote_dir'
 
 
 describe Rosh::Host::FileSystemObjects::RemoteDir do

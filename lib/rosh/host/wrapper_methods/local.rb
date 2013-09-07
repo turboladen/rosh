@@ -12,7 +12,7 @@ class Rosh
         # @param [String] path Path to the directory to list its contents.  If no
         #   path given, lists the current working directory.
         #
-        # @return [Array<Rosh::Host::FileSystemObjects::LocalBase>] On success, returns an
+        # @return [Array<Rosh::Host::Adapters::LocalBase>] On success, returns an
         #   Array of Rosh::Host::FileSystemObjects.  On fail, #last_exit_status is
         #   1 and returns a Errno::ENOENT or Errno::ENOTDIR.
         def ls(path=nil)

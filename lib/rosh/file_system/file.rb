@@ -1,28 +1,21 @@
-require_relative 'file_system_object'
+require_relative 'file_controller'
+require_relative 'api_base'
+require_relative 'api_stat'
 
 
 class Rosh
   class FileSystem
     class File
-      include FileSystemObject
+      include APIBase
+      include APIStat
 
       def initialize(path, host_name)
         @path = path
         @host_name = host_name
-
-        load_strategy
       end
 
-      private
-
-      def load_strategy
-        if current_host.local?
-          require_relative 'file_system_objects/local_file'
-          extend FileSystem::FileSystemObjects::LocalFile
-        else
-          #require_relative 'file_system_objects/remote_file'
-          #extend FileSystemObjects::RemoteFile
-        end
+      def controller
+        @controller ||= FileController.new(@path, @host_name)
       end
     end
   end

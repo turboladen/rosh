@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'rosh/host/file_system_objects/remote_base'
+require 'rosh/host/adapters/remote_base'
 
 
 describe Rosh::Host::FileSystemObjects::RemoteBase do

@@ -3,13 +3,13 @@ require_relative 'local_base'
 
 class Rosh
   class FileSystem
-    module FileSystemObjects
+    module Adapters
 
       # Represents a directory on the local file system.
-      module LocalDir
+      class LocalDir
         include LocalBase
 
-        # @return [Array<Rosh::Host::FileSystemObjects>]
+        # @return [Array<Rosh::Host::Adapters>]
         def entries
           Dir.entries(@path).map do |entry|
             Rosh::FileSystem.create("#{@path}/#{entry}", @host_name)
