@@ -8,11 +8,11 @@ class Rosh
 
   # Adds a new Rosh::Host for Rosh to manage.
   #
-  # @param [String] hostname Name or IP of the host to add.
+  # @param [String] host_name Name or IP of the host to add.
   # @param host_label Any object to refer to the Host as.  Allows for shortcuts
-  #   to referring to the hostname.
+  #   to referring to the host_name.
   #
-  # @example Add by hostname only
+  # @example Add by host_name only
   #   Rosh.add_host 'super-duper-server.example.com', user: 'robby', password: 'stuff'
   #   Rosh.hosts['super-duper-server.example.com'].name   # => 'super-duper-server.example.com'
   #
@@ -20,11 +20,11 @@ class Rosh
   #   Rosh.add_host 'super-duper-server.example.com', host_label: :super,
   #     user: 'robby', password: 'stuff'
   #   Rosh.hosts[:super'].name      # => 'super-duper-server.example.com'
-  def self.add_host(hostname, host_label: nil, **ssh_options)
+  def self.add_host(host_name, host_label: nil, **ssh_options)
     if host_label.nil?
-      @hosts[hostname] = Rosh::Host.new(hostname, ssh_options)
+      @hosts[host_name] = Rosh::Host.new(host_name, ssh_options)
     else
-      @hosts[host_label] = Rosh::Host.new(hostname, ssh_options)
+      @hosts[host_label] = Rosh::Host.new(host_name, ssh_options)
     end
   end
 
@@ -35,13 +35,13 @@ class Rosh
     @hosts
   end
 
-  # Finds the registered Rosh::Host with the given +hostname+.
+  # Finds the registered Rosh::Host with the given +host_name+.
   #
-  # @param [String] hostname
-  # @return [Rosh::Host] +nil+ if hostname not registered.
-  def self.find_by_hostname(hostname)
+  # @param [String] host_name
+  # @return [Rosh::Host] +nil+ if host_name not registered.
+  def self.find_by_host_name(host_name)
     key_value_pair = @hosts.find do |_, host|
-      host.name == hostname
+      host.name == host_name
     end
 
     key_value_pair.last rescue nil

@@ -14,7 +14,7 @@ describe 'Serialization' do
       let(:yaml) do
         <<-SHELL
 --- !ruby/object:Rosh::Host::Shells::Remote
-hostname: example.com
+host_name: example.com
 user: bobo
 options:
   :keys:
@@ -29,7 +29,7 @@ options:
       it 'imports to a Rosh::Host::Shells::Remote' do
         new_shell = YAML.load(yaml)
         new_shell.should be_a Rosh::Host::Shells::Remote
-        new_shell.hostname.should eq 'example.com'
+        new_shell.host_name.should eq 'example.com'
         new_shell.options[:keys].should == %w[some_key]
         new_shell.instance_variable_get(:@user).should eq 'bobo'
         new_shell.instance_variable_get(:@sudo).should eq false

@@ -62,7 +62,7 @@ class Rosh
         @architecture
       end
 
-      # The name of the remote shell for the user on hostname that initiated the
+      # The name of the remote shell for the user on host_name that initiated the
       # Rosh::SSH connection for the host.
       #
       # @return [String] The shell type.

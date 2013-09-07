@@ -15,7 +15,7 @@ class Rosh
     module Shells
 
       # Wrapper for Net::SSH to allow for a) not having to pass in the
-      # hostname with every SSH call, and b) handle STDOUT and STDERR the same way
+      # host_name with every SSH call, and b) handle STDOUT and STDERR the same way
       # across SSH builtin_commands.
       #
       # Any options passed in to #initialize or set using #set will be used with
@@ -44,14 +44,14 @@ class Rosh
         attr_reader :host_name
         attr_reader :user
 
-        # @param [String] hostname Name or IP of the host to SSH in to.
+        # @param [String] host_name Name or IP of the host to SSH in to.
         # @param [String] output_commands Toggle for outputting all commands
         #   that were executed.  Note that some operations comprise of multiple
         #   commands.
         # @param [Hash] options Net::SSH options.
-        def initialize(hostname, output_commands=true, **options)
+        def initialize(host_name, output_commands=true, **options)
           super(output_commands)
-          @host_name = hostname
+          @host_name = host_name
           @options = options
           @user = @options.delete(:user) || DEFAULT_USER
           log "New Remote shell.  options: #{@options}"

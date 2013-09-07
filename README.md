@@ -104,7 +104,7 @@ you access to some attributes of that object:
 ```ruby
 Rosh.add_host('my_server.example.com', host_label: :box1, user: 'admin')
 Rosh[:box1].class                   # => Rosh::Host
-Rosh[:box1].hostname
+Rosh[:box1].host_name
 # (prompts for password)
 # => 'my_server.example.com'
 Rosh[:box1].user                    # => 'admin'

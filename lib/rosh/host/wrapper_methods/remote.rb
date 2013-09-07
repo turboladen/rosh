@@ -89,7 +89,7 @@ class Rosh
                 good_info entry
                 full_path = "#{base}/#{entry}"
 
-                Rosh::Host::FileSystemObjects::RemoteBase.create(full_path, @hostname)
+                Rosh::Host::FileSystemObjects::RemoteBase.create(full_path, @host_name)
               end
 
               [listing, 0, result.stdout, result.stderr]

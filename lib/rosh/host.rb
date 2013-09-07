@@ -24,8 +24,8 @@ class Rosh
     attr_reader :user
     attr_reader :package_manager
 
-    def initialize(hostname, **ssh_options)
-      @name = hostname
+    def initialize(host_name, **ssh_options)
+      @name = host_name
       @user = ssh_options[:user] || Etc.getlogin
 
       @shell = if local?
