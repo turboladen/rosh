@@ -77,6 +77,12 @@ class Rosh
       end
     end
 
+    def home
+      if current_host.local?
+        ::Dir.home
+      end
+    end
+
     def file(path)
       Rosh::FileSystem::File.new(path, @host_name)
     end
