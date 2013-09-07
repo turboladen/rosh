@@ -46,7 +46,7 @@ class Rosh
             end
           end
 
-          def _chmod(mode_int)
+          def chmod(mode_int)
             ::File.chmod(mode_int, @path)
           end
 
@@ -58,7 +58,7 @@ class Rosh
           # @param [String] :group_name Name of the group to make owner.
           # @param [Fixnum] :gid GID of the group to make owner.
           # @return [0]
-          def _chown(uid: nil, gid: nil)
+          def chown(uid: nil, gid: nil)
             ::File.chown(uid, gid, @path)
           end
 
@@ -66,7 +66,7 @@ class Rosh
             ::File.ctime(@path)
           end
 
-          def _delete
+          def delete
             ::File.delete(@path)
           end
 
@@ -87,15 +87,15 @@ class Rosh
             ::File.ftype(path)
           end
 
-          def _lchmod(mode_int)
+          def lchmod(mode_int)
             ::File.lchmod(mode_int, @path)
           end
 
-          def _lchown(new_uid: nil, new_gid: nil)
+          def lchown(new_uid: nil, new_gid: nil)
             ::File.lchown(new_uid, new_gid, @path)
           end
 
-          def _link(new_path)
+          def link(new_path)
             ::File.link(@path, new_path)
           end
 
@@ -129,7 +129,7 @@ class Rosh
             ::File.realpath(@path, dir_path)
           end
 
-          def _rename(new_name)
+          def rename(new_name)
             ::File.rename(@path, new_name)
           end
 
@@ -145,11 +145,11 @@ class Rosh
             ::File.symlink(@path, new_name)
           end
 
-          def _truncate(len)
+          def truncate(len)
             ::File.truncate(@path, len)
           end
 
-          def _utime(access_time, modification_time)
+          def utime(access_time, modification_time)
             ::File.utime(access_time, modification_time, @path)
           end
 
