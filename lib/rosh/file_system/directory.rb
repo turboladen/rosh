@@ -14,6 +14,29 @@ class Rosh
         @host_name = host_name
       end
 
+      def create
+        controller.mkdir(self)
+      end
+
+      def delete
+        controller.rmdir(self)
+      end
+      alias_method :remove, :delete
+      alias_method :unlink, :delete
+
+      def entries
+        controller.entries
+      end
+
+      def each(&block)
+        controller.entries.each(&block)
+      end
+
+      # @todo Add #glob.
+      def glob
+        warn 'Not implemented!'
+      end
+
       def controller
         @controller ||= DirectoryController.new(@path, @host_name)
       end

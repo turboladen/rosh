@@ -83,6 +83,13 @@ class Rosh
       end
     end
 
+    def working_directory
+      if current_host.local?
+        ::Dir.getwd
+      end
+    end
+    alias_method :getwd, :working_directory
+
     def file(path)
       Rosh::FileSystem::File.new(path, @host_name)
     end
