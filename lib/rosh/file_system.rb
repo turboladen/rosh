@@ -8,10 +8,14 @@ class Rosh
     include Observable
 
     def self.create(path, host_name)
-      if ::File.file?(path)
-        File.new(path, host_name)
-      elsif ::File.directory?(path)
-        Directory.new(path, host_name)
+      object = new(host_name)
+
+      if object.file?(path)
+        Rosh::FileSystem::File.new(path, host_name)
+      elsif object.directory?(path)
+        Rosh::FileSystem::Directory.new(path, host_name)
+      else
+        raise "Don't know what to do with #{path}"
       end
     end
 
@@ -68,12 +72,22 @@ class Rosh
     def file?(path)
       if current_host.local?
         ::File.file?(path)
+      else
+        cmd = "[ -f #{path} ]"
+        current_shell.exec(cmd)
+
+        current_shell.last_exit_status.zero?
       end
     end
 
     def directory?(path)
       if current_host.local?
         ::File.directory?(path)
+      else
+        cmd = "[ -d #{path} ]"
+        current_shell.exec(cmd)
+
+        current_shell.last_exit_status.zero?
       end
     end
 
