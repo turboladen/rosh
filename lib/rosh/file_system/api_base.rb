@@ -33,7 +33,7 @@ class Rosh
       def change_owner_to(uid: nil, gid: nil)
         controller.chown(self, uid: uid, gid: gid)
       end
-      alias_method :owner, :change_owner_to
+      alias_method :owner=, :change_owner_to
       alias_method :chown, :change_owner_to
 
       def change_time
