@@ -17,6 +17,10 @@ class Rosh
             @path = path
           end
 
+          def host_name=(host_name)
+            @host_name = host_name
+          end
+
           def create(&block)
             ::File.open(@path, ::File::CREAT, &block)
           end
@@ -358,7 +362,6 @@ class Rosh
               raise "Unable to chown using uid '#{uid}' and gid '#{gid}'."
             end
           end
-
 
 =begin
         # @return [Struct::Group]

@@ -55,6 +55,7 @@ class Rosh
         end
 
         @adapter.path = @path
+        @adapter.host_name = @host_name
 
         @adapter
       end
