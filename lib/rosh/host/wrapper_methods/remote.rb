@@ -86,11 +86,11 @@ class Rosh
               [error, result.exit_status, result.stdout, result.stderr]
             else
               listing = result.ruby_object.split.map do |entry|
-                good_info entry
                 full_path = "#{base}/#{entry}"
+                good_info full_path
 
-                Rosh::Host::FileSystemObjects::RemoteBase.create(full_path, @host_name)
-              end
+                Rosh::FileSystem.create(full_path, @host_name)
+              end.compact
 
               [listing, 0, result.stdout, result.stderr]
             end
