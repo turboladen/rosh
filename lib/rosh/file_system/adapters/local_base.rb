@@ -17,6 +17,10 @@ class Rosh
             @path = path
           end
 
+          def create(&block)
+            ::File.open(@path, ::File::CREAT, &block)
+          end
+
           # Returns the pathname used to create file as a String. Does not normalize
           # the name.
           #
@@ -222,9 +226,11 @@ class Rosh
           end
 
           # @todo Implement.
+=begin
           def initialize_copy
             # Implement
           end
+=end
 
           def ino
             ::File.stat(@path).ino

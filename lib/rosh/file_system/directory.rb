@@ -37,6 +37,8 @@ class Rosh
         warn 'Not implemented!'
       end
 
+      private
+
       def controller
         @controller ||= DirectoryController.new(@path, @host_name)
       end
