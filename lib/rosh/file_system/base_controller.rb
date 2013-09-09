@@ -95,6 +95,10 @@ class Rosh
         end
       end
 
+      def dirname
+        adapter.dirname
+      end
+
       def expand_path(dir_string=nil)
         if dir_string
           adapter.expand_path(dir_string)

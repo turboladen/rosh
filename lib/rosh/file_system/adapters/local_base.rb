@@ -78,6 +78,10 @@ class Rosh
             ::File.delete(@path)
           end
 
+          def dirname
+            ::File.dirname(@path)
+          end
+
           def expand_path(dir_string=nil)
             ::File.expand_path(@path, dir_string)
           end

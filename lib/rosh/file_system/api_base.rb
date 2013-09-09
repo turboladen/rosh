@@ -46,6 +46,10 @@ class Rosh
       end
       alias_method :unlink, :delete
 
+      def dirname
+        controller.dirname
+      end
+
       def expand_path(dir_string=nil)
         controller.expand_path(dir_string)
       end
