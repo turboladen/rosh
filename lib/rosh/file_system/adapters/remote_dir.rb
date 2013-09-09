@@ -2,12 +2,18 @@ require_relative 'remote_base'
 
 
 class Rosh
-  class Host
-    module FileSystemObjects
+  class FileSystem
+    module Adapters
 
       # Object representing a directory on a remote file system.
       module RemoteDir
         include RemoteBase
+
+        class << self
+          def entries(_)
+            current_shell.ls(@path)
+          end
+        end
 
         # @return [String] The owner of the remote directory.
         def owner

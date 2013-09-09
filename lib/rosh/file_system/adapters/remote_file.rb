@@ -6,29 +6,47 @@ require_relative 'remote_base'
 
 
 class Rosh
-  class Host
-    module FileSystemObjects
+  class FileSystem
+    module Adapters
 
       # Object representing a file on a remote file system.
-      module RemoteFile
+      class RemoteFile
         include RemoteBase
+
+        class << self
+          # @return [String] The contents of the remote file.
+          def read(length=nil, offset=nil)
+            return @unwritten_contents if @unwritten_contents
+
+            cmd = "dd bs=1 if=#{@path}"
+            cmd << " count=#{length}" if length
+            cmd << " skip=#{offset}" if offset
+            results = current_shell.exec(cmd)
+            contents = results.split /[^\n]+records in\r?\n/
+
+            current_shell.last_exit_status.zero? ? contents.first : nil
+          end
+
+          def readlines(separator)
+            contents = self.read
+            contents.lines(separator)
+          end
+
+          def copy(destination)
+            current_shell.cp(@path, destination)
+          end
+        end
+
 
         # @param [String] path
         # @param [String,Symbol] host_name
+=begin
         def initialize(path, host_name)
           super(path, host_name)
 
           @unwritten_contents = nil
         end
-
-        # @return [String] The contents of the remote file.
-        def contents
-          return @unwritten_contents if @unwritten_contents
-
-          results = current_shell.cat(@path)
-
-          current_shell.last_exit_status.zero? ? results : nil
-        end
+=end
 
         # Stores +new_contents+ in memory until #save is called.
         #
