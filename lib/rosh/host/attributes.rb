@@ -76,6 +76,14 @@ class Rosh
         shell.to_sym
       end
 
+      def darwin?
+        operating_system == :darwin
+      end
+
+      def linux?
+        operating_system == :linux
+      end
+
       #---------------------------------------------------------------------------
       # Privates
       #---------------------------------------------------------------------------
