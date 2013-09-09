@@ -17,20 +17,20 @@ class Rosh
             @path = path
           end
 
-          def host_name=(host_name)
-            @host_name = host_name
-          end
-
-          def create(&block)
-            ::File.open(@path, ::File::CREAT, &block)
-          end
-
           # Returns the pathname used to create file as a String. Does not normalize
           # the name.
           #
           # @return [String]
           def to_path
             @path
+          end
+
+          def host_name=(host_name)
+            @host_name = host_name
+          end
+
+          def create(&block)
+            ::File.open(@path, ::File::CREAT, &block)
           end
 
           # @param [String] dir_string
@@ -44,7 +44,7 @@ class Rosh
 
           # Just like Ruby's File#basename, returns the base name of the object.
           #
-          # @param [String] suffix
+          # @param [String] suffix Removes the file suffix, if given.
           # @return [String]
           def basename(suffix=nil)
             if suffix
@@ -66,7 +66,7 @@ class Rosh
           # @param [String] :group_name Name of the group to make owner.
           # @param [Fixnum] :gid GID of the group to make owner.
           # @return [0]
-          def chown(uid: nil, gid: nil)
+          def chown(uid: uid, gid: nil)
             ::File.chown(uid, gid, @path)
           end
 
@@ -137,7 +137,7 @@ class Rosh
             ::File.realdirpath(@path, dir_path)
           end
 
-          def real_path(dir_path=nil)
+          def realpath(dir_path=nil)
             ::File.realpath(@path, dir_path)
           end
 
