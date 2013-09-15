@@ -170,42 +170,7 @@ class Rosh
           end
 
           def stat
-            cmd = "stat -L -c '"
-            cmd << 'dev: %D ino: %i mode: %f nlink: %h uid: %u gid: %g rdev: %t '
-            cmd << 'size: %S blksize: %B blocks: %b atime: %X mtime: %Y ctime: %Z'
-            cmd << "' #{@path}"
-            result = current_shell.exec(cmd)
-
-            stat = RemoteStat.new
-            %r[dev: (?<dev>\S+)] =~ result
-            %r[ino: (?<ino>\S+)] =~ result
-            %r[mode: (?<mode>\S+)] =~ result
-            %r[nlink: (?<nlink>\S+)] =~ result
-            %r[uid: (?<uid>\S+)] =~ result
-            %r[gid: (?<gid>\S+)] =~ result
-            %r[rdev: (?<rdev>\S+)] =~ result
-            %r[size: (?<size>\S+)] =~ result
-            %r[blksize: (?<blksize>\S+)] =~ result
-            %r[blocks: (?<blocks>\S+)] =~ result
-            %r[atime: (?<atime>\S+)] =~ result
-            %r[mtime: (?<mtime>\S+)] =~ result
-            %r[ctime: (?<ctime>\S+)] =~ result
-
-            stat.dev = "0x#{dev}"
-            stat.ino = ino.to_i
-            stat.mode = sprintf('%o', mode.to_i(16))
-            stat.nlink = nlink.to_i
-            stat.uid = uid.to_i
-            stat.gid = gid.to_i
-            stat.rdev = "0x#{rdev}"
-            stat.size = size.to_i
-            stat.blksize = blksize.to_i
-            stat.blocks = blocks.to_i
-            stat.atime = Time.at(atime.to_i)
-            stat.mtime = Time.at(mtime.to_i)
-            stat.ctime = Time.at(ctime.to_i)
-
-            stat
+            RemoteStat.stat(@path, @host_name)
           end
 
           def symlink(new_name)
