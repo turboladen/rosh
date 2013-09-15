@@ -379,10 +379,10 @@ class Rosh
 
           # @return [Integer] The mode of the file system object.
           def mode
-            cmd = "ls -l #{@path} | awk '{print $1}'"
+            cmd = "stat -c '%f' #{@path}"
             letter_mode = current_shell.exec(cmd)
 
-            mode_to_i(letter_mode)
+            sprintf('%o', letter_mode.strip.to_i(16))
           end
 
           # Sets the mode on the file system object to +new_mode+.  If the update was a
