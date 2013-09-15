@@ -2,15 +2,47 @@ class Rosh
   class FileSystem
     class RemoteStat
 
-      CMD = %q[stat -L -c ] +
+      LINUX_CMD = %q[stat -L -c ] +
         %['dev: %D ino: %i mode: %f nlink: %h uid: %u gid: %g rdev: %t ] +
         %[size: %S blksize: %B blocks: %b atime: %X mtime: %Y ctime: %Z']
 
+      OSX_CMD = %q[stat -n -f ] +
+        %['dev: %d ino: %i mode: %p nlink: %l uid: %u gid: %g rdev: %r ] +
+        %[size: %z blksize: %k blocks: %b atime: %a mtime: %m ctime: %c']
+
       def self.stat(path, host_name)
         @host_name = host_name
-        result = current_shell.exec("#{CMD} #{path}")
+        result = if current_host.darwin?
+          current_shell.exec("#{OSX_CMD} #{path}")
+        else
+          current_shell.exec("#{LINUX_CMD} #{path}")
+        end
 
         new(result, @host_name)
+      end
+
+      def self.dev_major(path, host_name)
+        @host_name = host_name
+
+        cmd = if current_host.darwin?
+          "stat -n -f '%Hr' #{path}"
+        else
+          "stat -c '%t' #{path}"
+        end
+
+        current_shell.exec(cmd)
+      end
+
+      def self.dev_minor(path, host_name)
+        @host_name = host_name
+
+        cmd = if current_host.darwin?
+          "stat -n -f '%Lr' #{path}"
+        else
+          "stat -c '%T' #{path}"
+        end
+
+        current_shell.exec(cmd)
       end
 
       attr_reader :dev, :ino, :mode, :nlink, :uid, :gid, :rdev, :size, :blksize,
@@ -20,6 +52,7 @@ class Rosh
         @host_name = host_name
         parse_result(result)
       end
+
 
       private
 

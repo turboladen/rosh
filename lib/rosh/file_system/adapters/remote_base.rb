@@ -39,15 +39,7 @@ class Rosh
           end
 
           def atime
-            cmd = if current_host.darwin?
-              "stat -a #{@path}"
-            else
-              "stat -c '%X' #{@path}"
-            end
-
-            result = current_shell.exec(cmd)
-
-            Time.at(result.to_i)
+            RemoteStat.stat(@path, @host_name).atime
           end
 
           def basename(suffix=nil)
@@ -70,15 +62,7 @@ class Rosh
           end
 
           def ctime
-            cmd = if current_host.darwin?
-              "stat -f '%c' #{@path}"
-            else
-              "stat -c '%Z' #{@path}"
-            end
-
-            result = current_shell.exec(cmd)
-
-            Time.at(result.to_i)
+            RemoteStat.stat(@path, @host_name).ctime
           end
 
           def delete
@@ -104,7 +88,7 @@ class Rosh
 =end
           def ftype
             cmd = if current_host.darwin?
-              "stat -f '%HT' #{@path}"
+              "stat -n -f '%HT' #{@path}"
             else
               "stat -c '%F' #{@path}"
             end
@@ -129,15 +113,7 @@ class Rosh
           end
 
           def mtime
-            cmd = if current_host.darwin?
-              "stat -f '%m' #{@path}"
-            else
-              "stat -c '%Y' #{@path}"
-            end
-
-            result = current_shell.exec(cmd)
-
-            Time.at(result.to_i)
+            RemoteStat.stat(@path, @host_name).mtime
           end
 
           def path
@@ -205,6 +181,10 @@ class Rosh
             mtime <=> other_object.mtime
           end
 
+          def blksize
+            RemoteStat.stat(@path, @host_name).blksize
+          end
+
           def blockdev?
             cmd = "[ -b #{@path} ]"
             current_shell.exec(cmd)
@@ -212,11 +192,27 @@ class Rosh
             current_shell.last_exit_status.zero?
           end
 
+          def blocks
+            RemoteStat.stat(@path, @host_name).blocks
+          end
+
           def chardev?
             cmd = "[ -c #{@path} ]"
             current_shell.exec(cmd)
 
             current_shell.last_exit_status.zero?
+          end
+
+          def dev
+            RemoteStat.stat(@path, @host_name).dev
+          end
+
+          def dev_major
+            RemoteStat.dev_major(@path, @host_name)
+          end
+
+          def dev_minor
+            RemoteStat.dev_minor(@path, @host_name)
           end
 
           # @return [Boolean] +true+ if the object is a directory; +false+ if not.
@@ -234,12 +230,22 @@ class Rosh
             current_shell.last_exit_status.zero?
           end
 
+=begin
+          def executable_real?
+
+          end
+=end
+
           # @return [Boolean] +true+ if the object is a file; +false+ if not.
           def file?
             cmd = "[ -f #{@path} ]"
             current_shell.exec(cmd)
 
             current_shell.last_exit_status.zero?
+          end
+
+          def gid
+            RemoteStat.stat(@path, @host_name).gid
           end
 
           def grpowned?
@@ -249,6 +255,18 @@ class Rosh
             current_shell.last_exit_status.zero?
           end
 
+          def ino
+            RemoteStat.stat(@path, @host_name).ino
+          end
+
+          def mode
+            RemoteStat.stat(@path, @host_name).mode
+          end
+
+          def nlink
+            RemoteStat.stat(@path, @host_name).nlink
+          end
+
           def owned?
             cmd = "[ -O #{@path} ]"
             current_shell.exec(cmd)
@@ -256,6 +274,7 @@ class Rosh
             current_shell.last_exit_status.zero?
           end
 
+=begin
           # @return [String] The owner of the file system object.
           def owner
             cmd = "ls -l #{@path} | awk '{print $3}'"
@@ -284,6 +303,7 @@ class Rosh
                 as_sudo: current_shell.su?)
             end
           end
+=end
 
           def pipe?
             cmd = "[ -p #{@path} ]"
@@ -292,12 +312,30 @@ class Rosh
             current_shell.last_exit_status.zero?
           end
 
+          def rdev
+            RemoteStat.stat(@path, @host_name).rdev
+          end
+
+          def rdev_major
+            RemoteStat.dev_major(@path, @host_name)
+          end
+
+          def rdev_minor
+            RemoteStat.dev_minor(@path, @host_name)
+          end
+
           def readable?
             cmd = "[ -r #{@path} ]"
             current_shell.exec(cmd)
 
             current_shell.last_exit_status.zero?
           end
+
+=begin
+          def readable_real?
+
+          end
+=end
 
           def setgid?
             cmd = "[ -g #{@path} ]"
@@ -311,6 +349,10 @@ class Rosh
             current_shell.exec(cmd)
 
             current_shell.last_exit_status.zero?
+          end
+
+          def size
+            RemoteStat(@path, @host_name).size
           end
 
           def socket?
@@ -334,12 +376,32 @@ class Rosh
             current_shell.last_exit_status.zero?
           end
 
+          def uid
+            RemoteStat(@path, @host_name).uid
+          end
+
+=begin
+          def world_readable?
+
+          end
+
+          def world_writable?
+
+          end
+=end
+
           def writable?
             cmd = "[ -w #{@path} ]"
             current_shell.exec(cmd)
 
             current_shell.last_exit_status.zero?
           end
+
+=begin
+          def writable_real?
+
+          end
+=end
 
           def zero?
             cmd = "[ -s #{@path} ]"
@@ -375,14 +437,6 @@ class Rosh
                 attribute: :group, old: old_group, new: new_group,
                 as_sudo: current_shell.su?)
             end
-          end
-
-          # @return [Integer] The mode of the file system object.
-          def mode
-            cmd = "stat -c '%f' #{@path}"
-            letter_mode = current_shell.exec(cmd)
-
-            sprintf('%o', letter_mode.strip.to_i(16))
           end
 
           # Sets the mode on the file system object to +new_mode+.  If the update was a
