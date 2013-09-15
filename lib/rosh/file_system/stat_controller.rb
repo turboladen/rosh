@@ -7,7 +7,7 @@ class Rosh
 
       def_delegators :adapter,
         :exists?, :<=>,
-        :blksize, :blockdev?, :blocks, :chardev?, :dev, :device_major, :device_minor,
+        :blksize, :blockdev?, :blocks, :chardev?, :dev, :dev_major, :dev_minor,
         :directory?, :executable?, :executable_real?, :file?, :gid, :grpowned?,
         :ino, :mode, :nlink, :owned?, :pipe?,
         :rdev, :rdev_major, :rdev_minor,

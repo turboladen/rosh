@@ -186,10 +186,7 @@ class Rosh
           end
 
           def blockdev?
-            cmd = "[ -b #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.blockdev?(@path, @host_name)
           end
 
           def blocks
@@ -197,10 +194,7 @@ class Rosh
           end
 
           def chardev?
-            cmd = "[ -c #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.chardev?(@path, @host_name)
           end
 
           def dev
@@ -217,17 +211,11 @@ class Rosh
 
           # @return [Boolean] +true+ if the object is a directory; +false+ if not.
           def directory?
-            cmd = "[ -d #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.directory?(@path, @host_name)
           end
 
           def executable?
-            cmd = "[ -x #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.executable?(@path, @host_name)
           end
 
 =begin
@@ -238,10 +226,7 @@ class Rosh
 
           # @return [Boolean] +true+ if the object is a file; +false+ if not.
           def file?
-            cmd = "[ -f #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.file?(@path, @host_name)
           end
 
           def gid
@@ -249,10 +234,7 @@ class Rosh
           end
 
           def grpowned?
-            cmd = "[ -G #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.grpowned?(@path, @host_name)
           end
 
           def ino
@@ -268,10 +250,7 @@ class Rosh
           end
 
           def owned?
-            cmd = "[ -O #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.owned?(@path, @host_name)
           end
 
 =begin
@@ -306,10 +285,7 @@ class Rosh
 =end
 
           def pipe?
-            cmd = "[ -p #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.pipe?(@path, @host_name)
           end
 
           def rdev
@@ -325,10 +301,7 @@ class Rosh
           end
 
           def readable?
-            cmd = "[ -r #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.readable?(@path, @host_name)
           end
 
 =begin
@@ -338,76 +311,52 @@ class Rosh
 =end
 
           def setgid?
-            cmd = "[ -g #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.setgid?(@path, @host_name)
           end
 
           def setuid?
-            cmd = "[ -u #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.setuid?(@path, @host_name)
           end
 
           def size
-            RemoteStat(@path, @host_name).size
+            RemoteStat.stat(@path, @host_name).size
           end
 
           def socket?
-            cmd = "[ -S #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.socket?(@path, @host_name)
           end
 
           def sticky?
-            cmd = "[ -k #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.sticky?(@path, @host_name)
           end
 
           def symlink?
-            cmd = "[ -L #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.symlink?(@path, @host_name)
           end
 
           def uid
-            RemoteStat(@path, @host_name).uid
+            RemoteStat.stat(@path, @host_name).uid
           end
 
 =begin
           def world_readable?
-
           end
 
           def world_writable?
-
           end
 =end
 
           def writable?
-            cmd = "[ -w #{@path} ]"
-            current_shell.exec(cmd)
-
-            current_shell.last_exit_status.zero?
+            RemoteStat.writable?(@path, @host_name)
           end
 
 =begin
           def writable_real?
-
           end
 =end
 
           def zero?
-            cmd = "[ -s #{@path} ]"
-            current_shell.exec(cmd)
-
-            !current_shell.last_exit_status.zero?
+            RemoteStat.zero?(@path, @host_name)
           end
 
           # @return [String] The group of the file system object.

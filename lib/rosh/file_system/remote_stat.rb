@@ -11,39 +11,200 @@ class Rosh
         %[size: %z blksize: %k blocks: %b atime: %a mtime: %m ctime: %c']
 
       def self.stat(path, host_name)
-        @host_name = host_name
-        result = if current_host.darwin?
-          current_shell.exec("#{OSX_CMD} #{path}")
-        else
-          current_shell.exec("#{LINUX_CMD} #{path}")
-        end
+        run(path, host_name) do
+          result = if current_host.darwin?
+            current_shell.exec("#{OSX_CMD} #{path}")
+          else
+            current_shell.exec("#{LINUX_CMD} #{path}")
+          end
 
-        new(result, @host_name)
+          new(result, host_name)
+        end
+      end
+
+      def self.blockdev?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -b #{path} ]"
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
+      end
+
+      def self.chardev?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -c #{path} ]"
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
       end
 
       def self.dev_major(path, host_name)
-        @host_name = host_name
+        run(path, host_name) do
+          cmd = if current_host.darwin?
+            "stat -n -f '%Hr' #{path}"
+          else
+            "stat -c '%t' #{path}"
+          end
 
-        cmd = if current_host.darwin?
-          "stat -n -f '%Hr' #{path}"
-        else
-          "stat -c '%t' #{path}"
+          current_shell.exec(cmd).strip.to_i
         end
-
-        current_shell.exec(cmd)
       end
 
       def self.dev_minor(path, host_name)
+        run(path, host_name) do
+          cmd = if current_host.darwin?
+            "stat -n -f '%Lr' #{path}"
+          else
+            "stat -c '%T' #{path}"
+          end
+
+          current_shell.exec(cmd).strip.to_i
+        end
+      end
+
+      def self.directory?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -d #{path} ]"
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
+      end
+
+      def self.executable?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -x #{path} ]"
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
+      end
+
+      def self.file?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -f #{path} ]"
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
+      end
+
+      def self.grpowned?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -G #{path} ]"
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
+      end
+
+      def self.owned?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -O #{path} ]"
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
+      end
+
+      def self.pipe?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -p #{path} ]"
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
+      end
+
+      def self.readable?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -r #{path} ]"
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
+      end
+
+      def self.setgid?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -g #{path} ]"
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
+      end
+
+      def self.setuid?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -u #{path} ]"
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
+      end
+
+      def self.socket?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -S #{path} ]"
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
+      end
+
+      def self.sticky?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -k #{path} ]"
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
+      end
+
+      def self.symlink?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -L #{path} ]"
+          current_shell.exec(cmd)
+
+          current_shell.last_exit_status.zero?
+        end
+      end
+
+      def self.writable?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -s #{path} ]"
+          current_shell.exec(cmd)
+
+          !current_shell.last_exit_status.zero?
+        end
+      end
+
+      def self.zero?(path, host_name)
+        run(path, host_name) do
+          cmd = "[ -s #{path} ]"
+          current_shell.exec(cmd)
+
+          !current_shell.last_exit_status.zero?
+        end
+      end
+
+      #------------------------------------------------------------------------
+      # Class Privates
+      #------------------------------------------------------------------------
+      private
+
+      def self.run(path, host_name, &block)
         @host_name = host_name
 
-        cmd = if current_host.darwin?
-          "stat -n -f '%Lr' #{path}"
-        else
-          "stat -c '%T' #{path}"
-        end
-
-        current_shell.exec(cmd)
+        block.call(path)
       end
+
+      #------------------------------------------------------------------------
+      # Instance Publics
+      #------------------------------------------------------------------------
+      public
 
       attr_reader :dev, :ino, :mode, :nlink, :uid, :gid, :rdev, :size, :blksize,
         :blocks, :atime, :mtime, :ctime
@@ -54,6 +215,9 @@ class Rosh
       end
 
 
+      #------------------------------------------------------------------------
+      # Instance Privates
+      #------------------------------------------------------------------------
       private
 
       def parse_result(result)
