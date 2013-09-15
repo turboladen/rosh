@@ -356,13 +356,29 @@ class Rosh
             RemoteStat.stat(@path, @host_name).uid
           end
 
-=begin
           def world_readable?
+            cmd = if current_host.darwin?
+              "stat -f '%Sp' #{@path} | grep 'r\\S\\S$'"
+            else
+              "stat -c '%A' #{@path} | grep 'r\\S\\S$'"
+            end
+
+            current_shell.exec(cmd)
+
+            current_shell.last_exit_status.zero?
           end
 
           def world_writable?
+            cmd = if current_host.darwin?
+              "stat -f '%Sp' #{@path} | grep 'w\\S$'"
+            else
+              "stat -c '%A' #{@path} | grep 'w\\S$'"
+            end
+
+            current_shell.exec(cmd)
+
+            current_shell.last_exit_status.zero?
           end
-=end
 
           def writable?
             RemoteStat.writable?(@path, @host_name)
