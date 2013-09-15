@@ -177,9 +177,43 @@ class Rosh
             current_shell.exec("ln -s #{@path} #{new_name}")
           end
 
-          # @return [Boolean] +true+ if the object is a file; +false+ if not.
-          def file?
-            cmd = "[ -f #{@path} ]"
+          def truncate(len)
+            current_shell.exec("head --bytes=#{len} --silent #{@path} > #{@path}")
+          end
+
+=begin
+          def utime(access_time, modification_time)
+          end
+=end
+
+          # @return [Boolean] +true+ if the object exists on the file system;
+          #   +false+ if not.
+          def exists?
+            cmd = "[ -e #{@path} ]"
+            current_shell.exec(cmd)
+
+            current_shell.last_exit_status.zero?
+          end
+
+          #--------------------------------------------------------------------
+          # Stat methods
+          #--------------------------------------------------------------------
+
+          def <=>(other_file)
+            other_object = FileSystem.create(other_file)
+
+            mtime <=> other_object.mtime
+          end
+
+          def blockdev?
+            cmd = "[ -b #{@path} ]"
+            current_shell.exec(cmd)
+
+            current_shell.last_exit_status.zero?
+          end
+
+          def chardev?
+            cmd = "[ -c #{@path} ]"
             current_shell.exec(cmd)
 
             current_shell.last_exit_status.zero?
@@ -193,18 +227,30 @@ class Rosh
             current_shell.last_exit_status.zero?
           end
 
-          # @return [Boolean] +true+ if the object is a link; +false+ if not.
-          def link?
-            cmd = "[ -L #{@path} ]"
+          def executable?
+            cmd = "[ -x #{@path} ]"
             current_shell.exec(cmd)
 
             current_shell.last_exit_status.zero?
           end
 
-          # @return [Boolean] +true+ if the object exists on the file system;
-          #   +false+ if not.
-          def exists?
-            cmd = "[ -e #{@path} ]"
+          # @return [Boolean] +true+ if the object is a file; +false+ if not.
+          def file?
+            cmd = "[ -f #{@path} ]"
+            current_shell.exec(cmd)
+
+            current_shell.last_exit_status.zero?
+          end
+
+          def grpowned?
+            cmd = "[ -G #{@path} ]"
+            current_shell.exec(cmd)
+
+            current_shell.last_exit_status.zero?
+          end
+
+          def owned?
+            cmd = "[ -O #{@path} ]"
             current_shell.exec(cmd)
 
             current_shell.last_exit_status.zero?
@@ -237,6 +283,69 @@ class Rosh
                 attribute: :owner, old: old_owner, new: new_owner,
                 as_sudo: current_shell.su?)
             end
+          end
+
+          def pipe?
+            cmd = "[ -p #{@path} ]"
+            current_shell.exec(cmd)
+
+            current_shell.last_exit_status.zero?
+          end
+
+          def readable?
+            cmd = "[ -r #{@path} ]"
+            current_shell.exec(cmd)
+
+            current_shell.last_exit_status.zero?
+          end
+
+          def setgid?
+            cmd = "[ -g #{@path} ]"
+            current_shell.exec(cmd)
+
+            current_shell.last_exit_status.zero?
+          end
+
+          def setuid?
+            cmd = "[ -u #{@path} ]"
+            current_shell.exec(cmd)
+
+            current_shell.last_exit_status.zero?
+          end
+
+          def socket?
+            cmd = "[ -S #{@path} ]"
+            current_shell.exec(cmd)
+
+            current_shell.last_exit_status.zero?
+          end
+
+          def sticky?
+            cmd = "[ -k #{@path} ]"
+            current_shell.exec(cmd)
+
+            current_shell.last_exit_status.zero?
+          end
+
+          def symlink?
+            cmd = "[ -L #{@path} ]"
+            current_shell.exec(cmd)
+
+            current_shell.last_exit_status.zero?
+          end
+
+          def writable?
+            cmd = "[ -w #{@path} ]"
+            current_shell.exec(cmd)
+
+            current_shell.last_exit_status.zero?
+          end
+
+          def zero?
+            cmd = "[ -s #{@path} ]"
+            current_shell.exec(cmd)
+
+            !current_shell.last_exit_status.zero?
           end
 
           # @return [String] The group of the file system object.
