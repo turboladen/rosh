@@ -406,15 +406,6 @@ class Rosh
                 as_sudo: current_shell.su?)
             end
           end
-=begin
-
-        # Just like Ruby's File#basename, returns the base name of the object.
-        #
-        # @return [String]
-        def basename
-          File.basename(@path)
-        end
-=end
 
           # Removes the file system object from the remote host.  If the removal was
           # successful, the shell's #last_exit_status will be 0, which will be the
@@ -452,86 +443,7 @@ class Rosh
           @host_name = coder['host_name']
         end
 =end
-
-          #-------------------------------------------------------------------------
-          # Privates
-          #-------------------------------------------------------------------------
-          private
-
-          # Converts mode as letters ('-rwxr--r--') to numbers (744).  Returns +nil+
-          # if it can't determine numbers from +letter_mode+.
-          #
-          # @param [String] letter_mode
-          # @return [Integer]
-          def mode_to_i(letter_mode)
-            %r[^(?<type>.)(?<user>.{3})(?<group>.{3})(?<others>.{3})] =~ letter_mode.strip
-
-            converter = lambda do |letters|
-              value = 0
-
-              letters.chars do |char|
-                case char
-                when '-' then
-                  next
-                when 'x' then
-                  value += 1
-                when 'w' then
-                  value += 2
-                when 'r' then
-                  value += 4
-                end
-              end
-
-              value.to_s
-            end
-
-            if user && group && others
-              number_mode = ''
-              number_mode << converter.call(user)
-              number_mode << converter.call(group)
-              number_mode << converter.call(others)
-
-              number_mode.to_i
-            else
-              nil
-            end
-          end
         end
-=begin
-        include Observable
-
-        # @param [String] path Path to the object.
-        # @param [String,Symbol] host_name
-        # @return [Rosh::Host::FileSystemObjects::RemoteDir,Rosh::Host::FileSystemObjects::RemoteFile,Rosh::Host::FileSystemObjects::RemoteLink]
-        def self.create(path, host_name)
-          fso = new(path, host_name)
-
-          if fso.directory?
-            Rosh::Host::FileSystemObjects::RemoteDir.new(path, host_name)
-          elsif fso.file?
-            Rosh::Host::FileSystemObjects::RemoteFile.new(path, host_name)
-          elsif fso.link?
-            Rosh::Host::FileSystemObjects::RemoteLink.new(path, host_name)
-          end
-        end
-
-        attr_reader :path
-
-        # @param [String] path Path to the remote file system object.
-        # @param [String,Symbol] host_name
-        def initialize(path, host_name)
-          @path = path.strip
-          @host_name = host_name
-        end
-
-        # Returns the pathname used to create file as a String. Does not normalize
-        # the name.
-        #
-        # @return [String]
-        def to_path
-          @path
-        end
-=end
       end
     end
   end
