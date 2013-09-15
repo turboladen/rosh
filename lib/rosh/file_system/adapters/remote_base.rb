@@ -53,7 +53,7 @@ class Rosh
             current_shell.exec("chmod #{mode_int} #{@path}")
           end
 
-          def chown(uid: uid, gid: nil)
+          def chown(uid, gid=nil)
             cmd = "chown #{uid}"
             cmd << ":#{gid}" if gid
             cmd < " #{@path}"
@@ -72,20 +72,25 @@ class Rosh
           def dirname
             ::File.dirname(@path)
           end
-=begin
+
           def expand_path(dir_string=nil)
-            warn 'Not implemented!'
+            if current_host.darwin?
+              warn 'Not implemented'
+            else
+              cmd = "readlink -f #{@path}"
+              current_shell.exec(cmd).strip
+            end
           end
-=end
+
           def extname
             ::File.extname(basename)
           end
 
-=begin
+          # @todo Implement.
           def fnmatch(pattern, *flags)
-
+            warn 'Not implemented'
           end
-=end
+
           def ftype
             cmd = if current_host.darwin?
               "stat -n -f '%HT' #{@path}"
@@ -96,14 +101,18 @@ class Rosh
             current_shell.exec(cmd).strip.downcase
           end
 
-=begin
-          def lchmod
-            current_shell.exec("chmod #{mode_int} #{@path}")
+          def lchmod(mode_int)
+            current_shell.exec("chmod -h #{mode_int} #{@path}")
           end
 
-          def lchown
+          def lchown(uid, gid=nil)
+            cmd = "chown -h #{uid}"
+            cmd << ":#{gid}" if gid
+            cmd < " #{@path}"
+
+            current_shell.exec cmd
           end
-=end
+
           def link(new_path)
             current_shell.exec "ln #{@path} #{new_path}"
           end
@@ -157,10 +166,19 @@ class Rosh
             current_shell.exec("head --bytes=#{len} --silent #{@path} > #{@path}")
           end
 
-=begin
           def utime(access_time, modification_time)
+            atime_cmd = "touch -a --no-create --date=#{access_time}"
+            mtime_cmd = "touch -m --no-create --date=#{modification_time}"
+
+            current_shell.exec(atime_cmd)
+            atime_ok = current_shell.last_exit_status.zero?
+
+            current_shell.exec(mtime_cmd)
+            mtime_ok = current_shell.last_exit_status.zero?
+
+            (atime_ok && mtime_ok) ? 1 : 0
           end
-=end
+
 
           # @return [Boolean] +true+ if the object exists on the file system;
           #   +false+ if not.
