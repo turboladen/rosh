@@ -21,6 +21,10 @@ class Rosh
 
     def initialize(host_name)
       @host_name = host_name
+
+      unless current_host.local?
+        require_relative 'file_system/remote_stat'
+      end
     end
 
     def [](path)
@@ -65,7 +69,7 @@ class Rosh
       if current_host.local?
         ::Dir.chroot(new_root)
       else
-        #current_shell.exec "umask #{new_umask}"
+        current_shell.exec "chroot #{new_root}"
       end
     end
 
@@ -73,10 +77,7 @@ class Rosh
       if current_host.local?
         ::File.file?(path)
       else
-        cmd = "[ -f #{path} ]"
-        current_shell.exec(cmd)
-
-        current_shell.last_exit_status.zero?
+        RemoteStat.file?(path, @host_name)
       end
     end
 
@@ -84,22 +85,23 @@ class Rosh
       if current_host.local?
         ::File.directory?(path)
       else
-        cmd = "[ -d #{path} ]"
-        current_shell.exec(cmd)
-
-        current_shell.last_exit_status.zero?
+        RemoteStat.directory?(path, @host_name)
       end
     end
 
     def home
       if current_host.local?
         ::Dir.home
+      else
+        current_shell.exec('echo ~').strip
       end
     end
 
     def working_directory
       if current_host.local?
         ::Dir.getwd
+      else
+        current_shell.exec('pwd').strip
       end
     end
     alias_method :getwd, :working_directory
