@@ -1,4 +1,3 @@
-require 'observer'
 require_relative '../string_refinements'
 
 
@@ -6,7 +5,6 @@ class Rosh
   class FileSystem
     # TODO: Add IO methods.
     module BaseController
-      include Observable
 
       # @return [String] The path that was used to initialize the object.
       attr_reader :path

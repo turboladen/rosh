@@ -1,10 +1,6 @@
-require 'observer'
-
-
 class Rosh
   class FileSystem
     module APIBase
-      include Observable
 
       # @param [String] dir_string
       def absolute_path(dir_string=nil)

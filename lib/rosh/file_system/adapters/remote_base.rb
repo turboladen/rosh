@@ -1,4 +1,3 @@
-require 'observer'
 require_relative '../remote_stat'
 
 
@@ -9,9 +8,6 @@ class Rosh
       # This is a generic base class for representing file system objects: files,
       # directories, and links.  It implements what's pretty close to Ruby's
       # +File+ class.
-      #
-      # Objects of this type are Observable and will notify observers with:
-      # self, attribute: [changed attribute], old: [old value], new: [new value]
       #
       # When serializing (i.e. dumping to YAML), it maintains only the path to the
       # object.

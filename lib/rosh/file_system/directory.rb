@@ -1,3 +1,4 @@
+require 'observer'
 require_relative 'directory_controller'
 require_relative 'api_base'
 require_relative 'api_stat'
@@ -6,6 +7,7 @@ require_relative 'api_stat'
 class Rosh
   class FileSystem
     class Directory
+      include Observable
       include APIBase
       include APIStat
 

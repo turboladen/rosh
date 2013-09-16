@@ -1,5 +1,4 @@
 require_relative 'local_base'
-require 'fileutils'
 
 
 class Rosh
