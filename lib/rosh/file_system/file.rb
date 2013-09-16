@@ -36,6 +36,23 @@ class Rosh
     #   #     "  old value:  755"
     #   #     "  new value:  644"
     #   #     "  using sudo? false"
+    #
+    # The following File attributes can be observed:
+    #   * :mode
+    #   * :lmode
+    #   * :owner
+    #   * :lowner
+    #   * :exists
+    #   * :hard_link
+    #   * :symbolic_link
+    #   * :name
+    #   * :size
+    #   * :access_time
+    #   * :modification_time
+    #
+    # Note that notifications/observations are only triggered when made through
+    # Rosh--changes external to Rosh are not detected.
+    #
     class File
       include Observable
       include APIBase

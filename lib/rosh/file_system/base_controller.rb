@@ -145,7 +145,7 @@ class Rosh
           if (uid && uid != old_uid) || (gid && gid != old_gid)
             watched_object.changed
             watched_object.notify_observers(watched_object,
-              attribute: :owner,
+              attribute: :lowner,
               old: { uid: old_uid, gid: old_gid }, new: { uid: uid, gid: gid },
               as_sudo: nil
             )
