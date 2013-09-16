@@ -1,5 +1,6 @@
 require 'observer'
 require_relative 'kernel_refinements'
+require_relative 'file_system/file_system_controller'
 require_relative 'file_system/file'
 require_relative 'file_system/directory'
 
@@ -49,69 +50,47 @@ class Rosh
       end
     end
 
-    def umask
-      if current_host.local?
-        sprintf('%o', ::File.umask)
-      else
-        current_shell.exec 'umask'
-      end
-    end
-
-    def umask=(new_umask)
-      if current_host.local?
-        sprintf('%o', ::File.umask(new_umask))
-      else
-        current_shell.exec "umask #{new_umask}"
-      end
-    end
-
     def chroot(new_root)
-      if current_host.local?
-        ::Dir.chroot(new_root)
-      else
-        current_shell.exec "chroot #{new_root}"
-      end
+      controller.chroot(new_root, self)
     end
-
-    def file?(path)
-      if current_host.local?
-        ::File.file?(path)
-      else
-        RemoteStat.file?(path, @host_name)
-      end
-    end
-
-    def directory?(path)
-      if current_host.local?
-        ::File.directory?(path)
-      else
-        RemoteStat.directory?(path, @host_name)
-      end
-    end
-
-    def home
-      if current_host.local?
-        ::Dir.home
-      else
-        current_shell.exec('echo ~').strip
-      end
-    end
-
-    def working_directory
-      if current_host.local?
-        ::Dir.getwd
-      else
-        current_shell.exec('pwd').strip
-      end
-    end
-    alias_method :getwd, :working_directory
 
     def file(path)
       Rosh::FileSystem::File.new(path, @host_name)
     end
 
+    def file?(path)
+      controller.file?(path)
+    end
+
+    def directory?(path)
+      controller.directory?(path)
+    end
+
     def directory(path)
       Rosh::FileSystem::Directory.new(path, @host_name)
+    end
+
+    def home
+      controller.home
+    end
+
+    def umask
+      controller.umask
+    end
+
+    def umask=(new_umask)
+      controller.umask(new_umask, self)
+    end
+
+    def working_directory
+      controller.getwd
+    end
+    alias_method :getwd, :working_directory
+
+    private
+
+    def controller
+      @controller ||= FileSystemController.new(@host_name)
     end
   end
 end
