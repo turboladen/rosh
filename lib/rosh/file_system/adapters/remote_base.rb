@@ -462,20 +462,6 @@ class Rosh
 
             success
           end
-
-          # Called by serializer when dumping.
-=begin
-        def encode_with(coder)
-          coder['path'] = @path
-          coder['host_name'] = @host_name
-        end
-
-        # Called by serializer when loading.
-        def init_with(coder)
-          @path = coder['path']
-          @host_name = coder['host_name']
-        end
-=end
         end
       end
     end

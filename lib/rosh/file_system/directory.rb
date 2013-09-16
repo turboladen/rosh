@@ -39,6 +39,18 @@ class Rosh
         warn 'Not implemented!'
       end
 
+      # Called by serializer when dumping.
+      def encode_with(coder)
+        coder['path'] = @path
+        coder['host_name'] = @host_name
+      end
+
+      # Called by serializer when loading.
+      def init_with(coder)
+        @path = coder['path']
+        @host_name = coder['host_name']
+      end
+
       private
 
       def controller

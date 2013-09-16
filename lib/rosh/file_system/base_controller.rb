@@ -284,21 +284,6 @@ class Rosh
       def flock(lock_types)
         adapter.flock(lock_types)
       end
-
-      # Called by serializer when dumping.
-      def encode_with(coder)
-        coder['type'] = @type
-        coder['path'] = @path
-        coder['host_name'] = @host_name
-      end
-
-      # Called by serializer when loading.
-      def init_with(coder)
-        @type = coder['type']
-        @path = coder['path']
-        @host_name = coder['host_name']
-      end
-
     end
   end
 end
