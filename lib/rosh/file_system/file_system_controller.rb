@@ -3,16 +3,21 @@ class Rosh
     class FileSystemController
       def initialize(host_name)
         @host_name = host_name
+        @root_directory = '/'
       end
 
       def chroot(new_root, watched_object)
+        old_root = @root_directory
         adapter.chroot(new_root)
+        @root_directory = new_root
 
-        watched_object.changed
-        watched_object.notify_observers(watched_object,
-          attribute: :fs_root,
-          old: '/', new: new_root, as_sudo: current_shell.su?
-        )
+        unless old_root == new_root
+          watched_object.changed
+          watched_object.notify_observers(watched_object,
+            attribute: :fs_root,
+            old: old_root, new: new_root, as_sudo: current_shell.su?
+          )
+        end
       end
 
       def directory?(path)
