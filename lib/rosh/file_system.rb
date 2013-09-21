@@ -12,9 +12,9 @@ class Rosh
       object = new(host_name)
 
       if object.file?(path)
-        Rosh::FileSystem::File.new(path, host_name)
+        object.file(path)
       elsif object.directory?(path)
-        Rosh::FileSystem::Directory.new(path, host_name)
+        object.directory(path)
       else
         raise "Don't know what to do with #{path}"
       end
