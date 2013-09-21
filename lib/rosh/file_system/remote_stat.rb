@@ -214,7 +214,6 @@ class Rosh
         parse_result(result)
       end
 
-
       #------------------------------------------------------------------------
       # Instance Privates
       #------------------------------------------------------------------------
@@ -237,7 +236,7 @@ class Rosh
 
         @dev = "0x#{dev}"
         @ino = ino.to_i
-        @mode = sprintf('%o', mode.to_i(16))
+        @mode = current_host.darwin? ? mode : sprintf('%o', mode.to_i(16))
         @nlink = nlink.to_i
         @uid = uid.to_i
         @gid = gid.to_i
