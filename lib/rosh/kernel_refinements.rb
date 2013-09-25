@@ -1,4 +1,4 @@
-require 'rosh'
+require_relative '../rosh'
 
 
 module Kernel

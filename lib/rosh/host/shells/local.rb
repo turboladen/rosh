@@ -76,7 +76,7 @@ class Rosh
           {
             path: @path,
             shell: File.expand_path(File.basename($0), File.dirname($0)),
-            pwd: _pwd.to_path
+            pwd: _pwd.path
           }
         end
 
@@ -136,16 +136,16 @@ class Rosh
           log 'pwd called'
 
           output = process(:pwd) { [_pwd, 0] }
-          puts File.expand_path(output)
+          puts ::File.expand_path(output.to_s)
 
           output
         end
 
-        # @return [Rosh::Host::FileSystem::Directory] Returns the current
+        # @return [Rosh::FileSystem::Directory] Returns the current
         #   working directory, but doesn't alter state of the shell (i.e. does
         #   not alter last_exit_status, etc).
         def _pwd
-          Rosh::Host::FileSystem::Directory.new(@internal_pwd, @host_name)
+          Rosh::FileSystem::Directory.new(@internal_pwd, @host_name)
         end
 
         # Executes Ruby code in the context of an IRB::WorkSpace.  Thus, variables

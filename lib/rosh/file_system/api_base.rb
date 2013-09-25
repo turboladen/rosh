@@ -125,6 +125,10 @@ class Rosh
       end
       alias_method :symlink, :symbolic_link_to
 
+      def to_s
+        @path.to_s
+      end
+
       def truncate(new_length)
         controller.truncate(new_length, self)
       end
