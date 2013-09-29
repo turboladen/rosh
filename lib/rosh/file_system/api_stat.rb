@@ -3,6 +3,10 @@ require 'forwardable'
 
 class Rosh
   class FileSystem
+
+    # Defines File::Stat methods on including objects.  The includer must define
+    # `#controller`, as all methods will delegate to the object returned by
+    # that method.
     module APIStat
       extend Forwardable
 
