@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'rosh/host/shells/remote'
-require 'rosh/host/adapters/remote_base'
+require 'rosh/file_system/adapters/remote_base'
 
 
 describe 'Serialization' do

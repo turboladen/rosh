@@ -1,5 +1,5 @@
 require 'observer'
-require_relative 'file_controller'
+require_relative 'controllers/file_controller'
 require_relative 'api_base'
 require_relative 'api_stat'
 

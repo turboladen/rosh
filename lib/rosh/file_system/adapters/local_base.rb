@@ -161,6 +161,10 @@ class Rosh
             ::File.truncate(@path, len)
           end
 
+          def unlink
+            ::File.unlink(@path)
+          end
+
           def utime(access_time, modification_time)
             ::File.utime(access_time, modification_time, @path)
           end

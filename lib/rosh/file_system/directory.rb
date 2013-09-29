@@ -1,5 +1,5 @@
 require 'observer'
-require_relative 'directory_controller'
+require_relative 'controllers/directory_controller'
 require_relative 'api_base'
 require_relative 'api_stat'
 

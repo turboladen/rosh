@@ -14,8 +14,7 @@ class Rosh
           # @return [Array<Rosh::Host::Adapters>]
           def entries(host_name)
             ::Dir.entries(@path).map do |entry|
-              next if entry == '.'
-              next if entry == '..'
+              next if %w[. ..].include?(entry)
               Rosh::FileSystem.create("#{@path}/#{entry}", host_name)
             end.compact
           end

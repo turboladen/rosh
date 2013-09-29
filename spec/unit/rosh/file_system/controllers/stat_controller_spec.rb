@@ -1,11 +1,11 @@
 require 'spec_helper'
-require 'rosh/file_system/stat_controller'
+require 'rosh/file_system/controllers/stat_methods'
 
-describe Rosh::FileSystem::StatController do
+describe Rosh::FileSystem::Controllers::StatMethods do
   let(:fake_adapter) { double 'Adapter' }
 
   subject do
-    o = Object.new.extend(Rosh::FileSystem::StatController)
+    o = Object.new.extend(described_class)
     o.stub(:adapter) { fake_adapter }
 
     o

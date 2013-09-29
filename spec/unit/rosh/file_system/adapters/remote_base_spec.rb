@@ -1,10 +1,10 @@
 require 'spec_helper'
-require 'rosh/host/adapters/remote_base'
+require 'rosh/file_system/adapters/remote_base'
 
 
-describe Rosh::Host::FileSystemObjects::RemoteBase do
+describe Rosh::FileSystem::Adapters::RemoteBase do
   subject do
-    Rosh::Host::FileSystemObjects::RemoteBase.new(path, 'test_host')
+    described_class.new(path, 'test_host')
   end
 
   let(:path) { '/file' }
@@ -13,46 +13,41 @@ describe Rosh::Host::FileSystemObjects::RemoteBase do
 
   describe '.create' do
     before do
-      Rosh::Host::FileSystemObjects::RemoteBase.should_receive(:new).
-        and_return fso
+      described_class.should_receive(:new).and_return fso
     end
 
     context 'path is a directory' do
       let(:fso) do
-        f = double 'Rosh::Host::FileSystemObjects::RemoteDir'
+        f = double 'Rosh::FileSystem::Adapters::RemoteDir'
         f.should_receive(:directory?).and_return true
 
         f
       end
 
-      it 'returns a new Rosh::Host::FileSystemObjects::RemoteDir' do
-        Rosh::Host::FileSystemObjects::RemoteDir.should_receive(:new).
-          with('dir', shell).and_return 'the dir'
-        Rosh::Host::FileSystemObjects::RemoteBase.create('dir', shell).
-          should eq 'the dir'
+      it 'returns a new Rosh::FileSystem::Adapters::RemoteDir' do
+        described_class.should_receive(:new).with('dir', shell).and_return 'the dir'
+        described_class.create('dir', shell).should eq 'the dir'
       end
     end
 
     context 'path is a file' do
       let(:fso) do
-        f = double 'Rosh::Host::FileSystemObjects::RemoteFile'
+        f = double 'Rosh::FileSystem::Adapters::RemoteFile'
         f.should_receive(:directory?).and_return false
         f.should_receive(:file?).and_return true
 
         f
       end
 
-      it 'returns a new Rosh::Host::FileSystemObjects::RemoteFile' do
-        Rosh::Host::FileSystemObjects::RemoteFile.should_receive(:new).
-          with('file', shell).and_return 'the file'
-        Rosh::Host::FileSystemObjects::RemoteBase.create('file', shell).
-          should eq 'the file'
+      it 'returns a new Rosh::FileSystem::Adapters::RemoteFile' do
+        described_class.should_receive(:new).with('file', shell).and_return 'the file'
+        described_class.create('file', shell).should eq 'the file'
       end
     end
 
     context 'path is a link' do
       let(:fso) do
-        f = double 'Rosh::Host::FileSystemObjects::RemoteLink'
+        f = double 'Rosh::FileSystem::Adapters::RemoteLink'
         f.should_receive(:directory?).and_return false
         f.should_receive(:file?).and_return false
         f.should_receive(:link?).and_return true
@@ -60,11 +55,9 @@ describe Rosh::Host::FileSystemObjects::RemoteBase do
         f
       end
 
-      it 'returns a new Rosh::Host::FileSystemObjects::RemoteLink' do
-        Rosh::Host::FileSystemObjects::RemoteLink.should_receive(:new).
-          with('link', shell).and_return 'the link'
-        Rosh::Host::FileSystemObjects::RemoteBase.create('link', shell).
-          should eq 'the link'
+      it 'returns a new Rosh::FileSystem::Adpaters::RemoteLink' do
+        described_class.should_receive(:new).with('link', shell).and_return 'the link'
+        described_class.create('link', shell).should eq 'the link'
       end
     end
   end
