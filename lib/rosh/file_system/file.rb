@@ -112,7 +112,7 @@ class Rosh
       private
 
       def controller
-        @controller ||= FileController.new(@path, @host_name)
+        @controller ||= Controllers::FileController.new(@path, @host_name)
       end
     end
   end

@@ -54,7 +54,7 @@ class Rosh
       private
 
       def controller
-        @controller ||= DirectoryController.new(@path, @host_name)
+        @controller ||= Controllers::DirectoryController.new(@path, @host_name)
       end
     end
   end

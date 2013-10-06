@@ -57,10 +57,10 @@ class Rosh
           return @adapter if @adapter
 
           @adapter = if current_host.local?
-            require_relative 'adapters/local_file'
+            require_relative '../adapters/local_file'
             FileSystem::Adapters::LocalFile
           else
-            require_relative 'adapters/remote_file'
+            require_relative '../adapters/remote_file'
             FileSystem::Adapters::RemoteFile
           end
 

@@ -48,10 +48,10 @@ class Rosh
           return @adapter if @adapter
 
           @adapter = if current_host.local?
-            require_relative 'adapters/local_dir'
+            require_relative '../adapters/local_dir'
             FileSystem::Adapters::LocalDir
           else
-            require_relative 'adapters/remote_dir'
+            require_relative '../adapters/remote_dir'
             FileSystem::Adapters::RemoteDir
           end
 
