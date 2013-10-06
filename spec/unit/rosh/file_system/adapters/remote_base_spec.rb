@@ -4,60 +4,185 @@ require 'rosh/file_system/adapters/remote_base'
 
 describe Rosh::FileSystem::Adapters::RemoteBase do
   subject do
-    described_class.new(path, 'test_host')
+    k = Class.new { include(Rosh::FileSystem::Adapters::RemoteBase) }
+    k.instance_variable_set(:@path, path)
+    k.instance_variable_set(:@host_name, host_name)
+
+    k
   end
 
   let(:path) { '/file' }
+  let(:host_name) { 'hostname' }
   let(:shell) { double 'Rosh::Host::Shells::Remote', :su? => false }
   before { allow(subject).to receive(:current_shell) { shell } }
 
-  describe '.create' do
+  describe '#create' do
     before do
-      described_class.should_receive(:new).and_return fso
+      allow(shell).to receive(:last_exit_status) { 0 }
     end
 
-    context 'path is a directory' do
-      let(:fso) do
-        f = double 'Rosh::FileSystem::Adapters::RemoteDir'
-        f.should_receive(:directory?).and_return true
-
-        f
-      end
-
-      it 'returns a new Rosh::FileSystem::Adapters::RemoteDir' do
-        described_class.should_receive(:new).with('dir', shell).and_return 'the dir'
-        described_class.create('dir', shell).should eq 'the dir'
+    context 'without a block' do
+      it 'runs "touch" on the remote file' do
+        expect(shell).to receive(:exec).with('touch /file')
+        subject.create
       end
     end
 
-    context 'path is a file' do
-      let(:fso) do
-        f = double 'Rosh::FileSystem::Adapters::RemoteFile'
-        f.should_receive(:directory?).and_return false
-        f.should_receive(:file?).and_return true
+    context 'with a block' do
+      pending 'Implementation'
+    end
 
-        f
-      end
+    context 'shell exits with 0' do
+      it 'returns true' do
+        allow(shell).to receive(:exec)
+        expect(shell).to receive(:last_exit_status) { 0 }
 
-      it 'returns a new Rosh::FileSystem::Adapters::RemoteFile' do
-        described_class.should_receive(:new).with('file', shell).and_return 'the file'
-        described_class.create('file', shell).should eq 'the file'
+        expect(subject.create).to eq true
       end
     end
 
-    context 'path is a link' do
-      let(:fso) do
-        f = double 'Rosh::FileSystem::Adapters::RemoteLink'
-        f.should_receive(:directory?).and_return false
-        f.should_receive(:file?).and_return false
-        f.should_receive(:link?).and_return true
+    context 'shell exits with non-zero' do
+      it 'returns false' do
+        allow(shell).to receive(:exec)
+        expect(shell).to receive(:last_exit_status) { 1 }
 
-        f
+        expect(subject.create).to eq false
       end
+    end
+  end
 
-      it 'returns a new Rosh::FileSystem::Adpaters::RemoteLink' do
-        described_class.should_receive(:new).with('link', shell).and_return 'the link'
-        described_class.create('link', shell).should eq 'the link'
+  describe '#absolute_path' do
+    pending 'Implementation'
+  end
+
+  describe '#atime' do
+    it 'delegates to RemoteStat' do
+      stat = double 'Rosh::FileSystem::RemoteStat'
+      expect(stat).to receive(:atime)
+      expect(Rosh::FileSystem::RemoteStat).to receive(:stat).
+        with('/file', 'hostname') { stat }
+
+      subject.atime
+    end
+  end
+
+  describe '#basename' do
+    context 'with suffix' do
+      it 'runs the "basename" command on the remote path' do
+        expect(shell).to receive(:exec).with('basename /file suffix') { "/file\r\n" }
+
+        expect(subject.basename('suffix')).to eq '/file'
+      end
+    end
+
+    context 'without suffix' do
+      it 'runs the "basename" command on the remote path' do
+        expect(shell).to receive(:exec).with('basename /file') { "/file\r\n" }
+
+        expect(subject.basename).to eq '/file'
+      end
+    end
+  end
+
+  describe '#chmod' do
+    it 'runs chmod on the path' do
+      allow(shell).to receive(:last_exit_status) { 0 }
+      expect(shell).to receive(:exec).with('chmod 123 /file')
+      subject.chmod(123)
+    end
+
+    context 'successful' do
+      it 'returns true' do
+        allow(shell).to receive(:exec)
+        allow(shell).to receive(:last_exit_status) { 0 }
+
+        expect(subject.chmod(123)).to eq true
+      end
+    end
+
+    context 'unsuccessful' do
+      it 'returns false' do
+        allow(shell).to receive(:exec)
+        allow(shell).to receive(:last_exit_status) { 1 }
+
+        expect(subject.chmod(123)).to eq false
+      end
+    end
+  end
+
+  describe '#chown' do
+    context 'no gid given' do
+      it 'calls chown with only the uid' do
+        expect(shell).to receive(:exec).with 'chown 123 /file'
+        allow(shell).to receive(:last_exit_status) { 0 }
+        subject.chown 123
+      end
+    end
+
+    context 'gid given' do
+      it 'calls chown with the uid and gid' do
+        expect(shell).to receive(:exec).with 'chown 123:456 /file'
+        allow(shell).to receive(:last_exit_status) { 0 }
+        subject.chown 123, 456
+      end
+    end
+
+    context 'successful' do
+      before { expect(shell).to receive(:last_exit_status) { 0 } }
+
+      it 'returns true' do
+        allow(shell).to receive(:exec)
+        expect(subject.chown(123)).to eq true
+      end
+    end
+
+    context 'unsuccessful' do
+      before { expect(shell).to receive(:last_exit_status) { 1 } }
+
+      it 'returns false' do
+        allow(shell).to receive(:exec)
+        expect(subject.chown(123)).to eq false
+      end
+    end
+  end
+
+  describe '#delete' do
+    context 'successful' do
+      it 'returns true' do
+        expect(shell).to receive(:exec).with 'rm /file'
+        expect(shell).to receive(:last_exit_status) { 0 }
+        expect(subject.delete).to eq true
+      end
+    end
+
+    context 'unsuccessful' do
+      it 'returns false' do
+        expect(shell).to receive(:exec).with 'rm /file'
+        expect(shell).to receive(:last_exit_status) { 1 }
+        expect(subject.delete).to eq false
+      end
+    end
+  end
+
+  describe '#dirname' do
+    it 'returns the directory part of the path' do
+      expect(subject.dirname).to eq '/'
+    end
+  end
+
+  describe '#expand_path' do
+    context 'darwin' do
+      it 'returns the full path' do
+        pending 'Implementation'
+      end
+    end
+
+    context 'not darwin' do
+      before { subject.stub_chain(:current_host, :darwin?).and_return false }
+
+      it 'returns the result of the readlink command' do
+        expect(shell).to receive(:exec).with('readlink -f /file') { "stuff\r\n" }
+        expect(subject.expand_path).to eq 'stuff'
       end
     end
   end
@@ -192,6 +317,7 @@ describe Rosh::FileSystem::Adapters::RemoteBase do
     end
   end
 
+=begin
   describe '#owner=' do
     before do
       subject.stub(:owner).and_return 'person'
@@ -251,6 +377,7 @@ describe Rosh::FileSystem::Adapters::RemoteBase do
       end
     end
   end
+=end
 
   describe '#group' do
     context 'command output is empty' do
@@ -398,12 +525,6 @@ describe Rosh::FileSystem::Adapters::RemoteBase do
 
         subject.mode = 111
       end
-    end
-  end
-
-  describe '#basename' do
-    it 'returns the base name of the object' do
-      subject.basename.should eq 'file'
     end
   end
 

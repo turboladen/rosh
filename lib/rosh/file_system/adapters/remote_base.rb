@@ -26,18 +26,24 @@ class Rosh
           end
 
           # @todo Do something with the block.
+          # @return [Boolean]
           def create(&block)
             current_shell.exec "touch #{@path}"
+
+            current_shell.last_exit_status.zero?
           end
 
           def absolute_path(dir_string=nil)
             warn 'Not implemented!'
           end
 
+          # @return [Time]
           def atime
             RemoteStat.stat(@path, @host_name).atime
           end
 
+          # @param [String] suffix
+          # @return [String]
           def basename(suffix=nil)
             cmd = "basename #{@path}"
             cmd << " #{suffix}" if suffix
@@ -45,30 +51,46 @@ class Rosh
             current_shell.exec(cmd).strip
           end
 
+          # @param [String,Integer] mode_int
+          # @return [Boolean]
           def chmod(mode_int)
             current_shell.exec("chmod #{mode_int} #{@path}")
+
+            current_shell.last_exit_status.zero?
           end
 
+          # @param [String,Integer] uid
+          # @param [String,Integer] gid
+          # @return [Boolean]
           def chown(uid, gid=nil)
             cmd = "chown #{uid}"
             cmd << ":#{gid}" if gid
-            cmd < " #{@path}"
+            cmd << " #{@path}"
 
             current_shell.exec cmd
+
+            current_shell.last_exit_status.zero?
           end
 
+          # @return [Time]
           def ctime
             RemoteStat.stat(@path, @host_name).ctime
           end
 
+          # @return [Boolean]
           def delete
             current_shell.exec "rm #{@path}"
+
+            current_shell.last_exit_status.zero?
           end
 
+          # @return [String]
           def dirname
             ::File.dirname(@path)
           end
 
+          # @param [String] dir_string
+          # @return [String]
           def expand_path(dir_string=nil)
             if current_host.darwin?
               warn 'Not implemented'
@@ -78,6 +100,7 @@ class Rosh
             end
           end
 
+          # @return [String]
           def extname
             ::File.extname(basename)
           end
