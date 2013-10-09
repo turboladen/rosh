@@ -200,8 +200,12 @@ class Rosh
             RemoteStat.stat(@path, @host_name)
           end
 
+          # @param [String] new_name
+          # @return [Boolean]
           def symlink(new_name)
             current_shell.exec("ln -s #{@path} #{new_name}")
+
+            current_shell.last_exit_status.zero?
           end
 
           def truncate(len)
