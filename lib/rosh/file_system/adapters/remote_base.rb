@@ -180,8 +180,12 @@ class Rosh
             current_shell.exec("readlink -f #{@path}").strip
           end
 
+          # @param [String] new_name
+          # @return [Boolean]
           def rename(new_name)
             current_shell.exec("mv #{@path} #{new_name}")
+
+            current_shell.last_exit_status.zero?
           end
 
           def split

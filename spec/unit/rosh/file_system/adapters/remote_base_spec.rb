@@ -347,6 +347,30 @@ describe Rosh::FileSystem::Adapters::RemoteBase do
     end
   end
 
+  describe '#rename' do
+    it 'moves the object to the new location' do
+      expect(shell).to receive(:exec).with('mv /file /new_file')
+      expect(shell).to receive(:last_exit_status) { 0 }
+      subject.rename('/new_file')
+    end
+
+    context 'success' do
+      it 'returns true' do
+        allow(shell).to receive(:exec)
+        allow(shell).to receive(:last_exit_status) { 0 }
+        expect(subject.rename('/new_file')).to eq true
+      end
+    end
+
+    context 'failure' do
+      it 'returns false' do
+        allow(shell).to receive(:exec)
+        allow(shell).to receive(:last_exit_status) { 1 }
+        expect(subject.rename('/new_file')).to eq false
+      end
+    end
+  end
+
   describe '#to_path' do
     it 'returns the path that the object was created with' do
       subject.to_path.should == path
