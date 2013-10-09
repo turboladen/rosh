@@ -24,6 +24,7 @@ class Rosh
       def change_mode_to(new_mode)
         controller.chmod(new_mode, self)
       end
+      alias_method :mode=, :change_mode_to
       alias_method :chmod, :change_mode_to
 
       def change_owner_to(uid: nil, gid: nil)
@@ -110,6 +111,7 @@ class Rosh
       def rename_to(new_name)
         controller.rename(new_name, self)
       end
+      alias_method :name=, :rename_to
       alias_method :rename, :rename_to
 
       def split
