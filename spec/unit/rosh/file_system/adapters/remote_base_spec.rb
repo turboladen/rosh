@@ -301,6 +301,36 @@ describe Rosh::FileSystem::Adapters::RemoteBase do
     end
   end
 
+  describe '#link' do
+    it 'links the files' do
+      expect(shell).to receive(:exec).with 'ln /file new_file'
+      expect(shell).to receive(:last_exit_status) { 0 }
+      subject.link 'new_file'
+    end
+
+    context 'success' do
+      before do
+        allow(shell).to receive(:exec)
+        allow(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      it 'returns true' do
+        expect(subject.link('new_file')).to eq true
+      end
+    end
+
+    context 'fail' do
+      before do
+        allow(shell).to receive(:exec)
+        allow(shell).to receive(:last_exit_status) { 1 }
+      end
+
+      it 'returns true' do
+        expect(subject.link('new_file')).to eq false
+      end
+    end
+  end
+
   describe '#to_path' do
     it 'returns the path that the object was created with' do
       subject.to_path.should == path

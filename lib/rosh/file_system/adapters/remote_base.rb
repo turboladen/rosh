@@ -144,8 +144,12 @@ class Rosh
             current_shell.last_exit_status.zero?
           end
 
+          # @param [String] new_path
+          # @return [Boolean]
           def link(new_path)
             current_shell.exec "ln #{@path} #{new_path}"
+
+            current_shell.last_exit_status.zero?
           end
 
           def lstat
