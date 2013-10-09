@@ -208,8 +208,12 @@ class Rosh
             current_shell.last_exit_status.zero?
           end
 
+          # @param [Integer] len
+          # @return [Boolean]
           def truncate(len)
             current_shell.exec("head --bytes=#{len} --silent #{@path} > #{@path}")
+
+            current_shell.last_exit_status.zero?
           end
 
           def utime(access_time, modification_time)
