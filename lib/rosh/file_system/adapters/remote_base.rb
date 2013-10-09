@@ -152,10 +152,12 @@ class Rosh
             current_shell.last_exit_status.zero?
           end
 
+          # @return [String]
           def lstat
             current_shell.exec "stat #{@path}"
           end
 
+          # @return [Time]
           def mtime
             RemoteStat.stat(@path, @host_name).mtime
           end

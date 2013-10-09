@@ -331,6 +331,15 @@ describe Rosh::FileSystem::Adapters::RemoteBase do
     end
   end
 
+  describe '#mtime' do
+    it 'gets mtime from a RemoteStat' do
+      stat = double 'Rosh::FileSystem::RemoteStat', mtime: nil
+      expect(Rosh::FileSystem::RemoteStat).to receive(:stat).
+        with('/file', host_name) { stat }
+      subject.mtime
+    end
+  end
+
   describe '#to_path' do
     it 'returns the path that the object was created with' do
       subject.to_path.should == path
