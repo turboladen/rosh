@@ -166,6 +166,7 @@ class Rosh
             @path
           end
 
+          # @return [String]
           def readlink
             current_shell.exec("readlink #{@path}").strip
           end

@@ -340,6 +340,13 @@ describe Rosh::FileSystem::Adapters::RemoteBase do
     end
   end
 
+  describe '#readlink' do
+    it 'returns the output of the readlink command' do
+      expect(shell).to receive(:exec).with('readlink /file') { "file\r\n" }
+      expect(subject.readlink).to eq 'file'
+    end
+  end
+
   describe '#to_path' do
     it 'returns the path that the object was created with' do
       subject.to_path.should == path
