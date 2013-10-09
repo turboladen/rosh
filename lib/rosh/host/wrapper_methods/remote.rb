@@ -83,17 +83,19 @@ class Rosh
             if result.stderr.match %r[No such file or directory]
               error = Rosh::ErrorENOENT.new(result.stderr)
 
-              [error, result.exit_status, result.stdout, result.stderr]
-            else
-              listing = result.ruby_object.split.map do |entry|
-                full_path = "#{base}/#{entry}"
-                good_info full_path
-
-                Rosh::FileSystem.create(full_path, @host_name)
-              end.compact
-
-              [listing, 0, result.stdout, result.stderr]
+              return [error, result.exit_status, result.stdout, result.stderr]
             end
+
+            return([]) if result.ruby_object.nil?
+
+            listing = result.ruby_object.split.map do |entry|
+              full_path = "#{base}/#{entry}"
+              good_info full_path
+
+              Rosh::FileSystem.create(full_path, @host_name)
+            end.compact
+
+            [listing, 0, result.stdout, result.stderr]
           end
         end
 

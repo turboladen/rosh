@@ -37,9 +37,11 @@ options:
     end
   end
 
-  describe Rosh::Host::FileSystemObjects::RemoteBase do
+  describe Rosh::FileSystem::Adapters::RemoteBase do
+    pending
+
     subject do
-      Rosh::Host::FileSystemObjects::RemoteBase.new(__FILE__, 'example.com')
+      Rosh::FileSystem::Adapters::RemoteBase.new(__FILE__, 'example.com')
     end
 
     before do

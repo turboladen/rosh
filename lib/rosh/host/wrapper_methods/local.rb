@@ -21,7 +21,7 @@ class Rosh
 
           process(:ls, path: path) do
             if File.file? full_path
-              fso = Rosh::Host::FileSystemObjects::LocalBase.create(full_path)
+              fso = Rosh::FileSystem.create(full_path, @host_name)
               good_info full_path
 
               [fso, 0]
@@ -29,7 +29,7 @@ class Rosh
               begin
                 fso_array = Dir.entries(full_path).map do |entry|
                   good_info entry
-                  Rosh::Host::FileSystemObjects::LocalBase.create("#{full_path}/#{entry}")
+                  Rosh::FileSystem.create("#{full_path}/#{entry}", @host_name)
                 end
 
                 [fso_array, 0]

@@ -192,8 +192,7 @@ describe Rosh::Host::WrapperMethods::Remote do
       end
 
       before do
-        Rosh::Host::FileSystemObjects::RemoteBase.should_receive(:create).
-          and_return file_system_object
+        Rosh::FileSystem.should_receive(:create).and_return file_system_object
       end
 
       context 'path is relative' do
