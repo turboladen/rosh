@@ -20,6 +20,24 @@ describe Rosh::FileSystem::RemoteStat do
       allow(subject).to receive(:run).and_yield
     end
 
+    describe '.blockdev?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -b fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      specify { expect(subject.blockdev?(path, 'testhost')).to eq true }
+    end
+
+    describe '.chardev?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -c fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      specify { expect(subject.chardev?(path, 'testhost')).to eq true }
+    end
+
     describe '.dev_major' do
       before do
         expect(shell).to receive(:exec) { "0\r\n"}
@@ -36,6 +54,123 @@ describe Rosh::FileSystem::RemoteStat do
       end
 
       specify { expect(subject.dev_minor(path, 'testhost')).to eq 0 }
+    end
+
+    describe '.directory?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -d fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      specify { expect(subject.directory?(path, 'testhost')).to eq true }
+    end
+
+    describe '.executable?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -x fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      specify { expect(subject.directory?(path, 'testhost')).to eq true }
+    end
+
+    describe '.file?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -f fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      specify { expect(subject.file?(path, 'testhost')).to eq true }
+    end
+
+    describe '.grpowned?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -G fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      specify { expect(subject.grpowned?(path, 'testhost')).to eq true }
+    end
+
+    describe '.owned?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -O fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      specify { expect(subject.owned?(path, 'testhost')).to eq true }
+    end
+
+    describe '.pipe?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -p fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      specify { expect(subject.pipe?(path, 'testhost')).to eq true }
+    end
+
+    describe '.readable?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -r fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      specify { expect(subject.readable?(path, 'testhost')).to eq true }
+    end
+
+    describe '.setgid?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -g fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      specify { expect(subject.setgid?(path, 'testhost')).to eq true }
+    end
+
+    describe '.socket?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -S fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      specify { expect(subject.socket?(path, 'testhost')).to eq true }
+    end
+
+    describe '.sticky?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -k fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      specify { expect(subject.sticky?(path, 'testhost')).to eq true }
+    end
+
+    describe '.symlink?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -L fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      specify { expect(subject.symlink?(path, 'testhost')).to eq true }
+    end
+
+    describe '.writable?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -w fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 0 }
+      end
+
+      specify { expect(subject.symlink?(path, 'testhost')).to eq true }
+    end
+
+    describe '.zero?' do
+      before do
+        expect(shell).to receive(:exec) { '[ -s fake path ]'}
+        expect(shell).to receive(:last_exit_status) { 1 }
+      end
+
+      specify { expect(subject.zero?(path, 'testhost')).to eq true }
     end
   end
 

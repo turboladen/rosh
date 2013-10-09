@@ -174,10 +174,10 @@ class Rosh
 
       def self.writable?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -s #{path} ]"
+          cmd = "[ -w #{path} ]"
           current_shell.exec(cmd)
 
-          !current_shell.last_exit_status.zero?
+          current_shell.last_exit_status.zero?
         end
       end
 
