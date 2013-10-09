@@ -265,6 +265,42 @@ describe Rosh::FileSystem::Adapters::RemoteBase do
     end
   end
 
+  describe '#lchown' do
+    context 'no gid given' do
+      it 'calls lchown with only the uid' do
+        expect(shell).to receive(:exec).with 'chown -h 123 /file'
+        allow(shell).to receive(:last_exit_status) { 0 }
+        subject.lchown 123
+      end
+    end
+
+    context 'gid given' do
+      it 'calls lchown with the uid and gid' do
+        expect(shell).to receive(:exec).with 'chown -h 123:456 /file'
+        allow(shell).to receive(:last_exit_status) { 0 }
+        subject.lchown 123, 456
+      end
+    end
+
+    context 'successful' do
+      before { expect(shell).to receive(:last_exit_status) { 0 } }
+
+      it 'returns true' do
+        allow(shell).to receive(:exec)
+        expect(subject.lchown(123)).to eq true
+      end
+    end
+
+    context 'unsuccessful' do
+      before { expect(shell).to receive(:last_exit_status) { 1 } }
+
+      it 'returns false' do
+        allow(shell).to receive(:exec)
+        expect(subject.lchown(123)).to eq false
+      end
+    end
+  end
+
   describe '#to_path' do
     it 'returns the path that the object was created with' do
       subject.to_path.should == path

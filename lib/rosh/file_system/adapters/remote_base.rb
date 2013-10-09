@@ -131,12 +131,17 @@ class Rosh
             current_shell.last_exit_status.zero?
           end
 
+          # @param [String,Integer] uid
+          # @param [String,Integer] gid
+          # @return [Boolean]
           def lchown(uid, gid=nil)
             cmd = "chown -h #{uid}"
             cmd << ":#{gid}" if gid
-            cmd < " #{@path}"
+            cmd << " #{@path}"
 
             current_shell.exec cmd
+
+            current_shell.last_exit_status.zero?
           end
 
           def link(new_path)
