@@ -56,3 +56,5 @@
 # TODO: Serialization of a full Host object (instead of just FileSystemObjects)
 # TODO: Handle uninstalled package manager (i.e. brew)
 # TODO: Groups
+
+# TODO: Use Shellwords.escape to escape paths that get passed to shell commands.
