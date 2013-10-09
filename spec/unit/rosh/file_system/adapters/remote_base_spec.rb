@@ -239,6 +239,32 @@ describe Rosh::FileSystem::Adapters::RemoteBase do
     end
   end
 
+  describe '#lchmod' do
+    it 'runs lchmod on the path' do
+      allow(shell).to receive(:last_exit_status) { 0 }
+      expect(shell).to receive(:exec).with('chmod -h 123 /file')
+      subject.lchmod(123)
+    end
+
+    context 'successful' do
+      it 'returns true' do
+        allow(shell).to receive(:exec)
+        allow(shell).to receive(:last_exit_status) { 0 }
+
+        expect(subject.lchmod(123)).to eq true
+      end
+    end
+
+    context 'unsuccessful' do
+      it 'returns false' do
+        allow(shell).to receive(:exec)
+        allow(shell).to receive(:last_exit_status) { 1 }
+
+        expect(subject.lchmod(123)).to eq false
+      end
+    end
+  end
+
   describe '#to_path' do
     it 'returns the path that the object was created with' do
       subject.to_path.should == path

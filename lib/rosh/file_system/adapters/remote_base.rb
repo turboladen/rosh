@@ -123,8 +123,12 @@ class Rosh
             output_string.gsub(/ /, '_').to_sym
           end
 
+          # @param [String,Integer] mode_int
+          # @return [Boolean]
           def lchmod(mode_int)
             current_shell.exec("chmod -h #{mode_int} #{@path}")
+
+            current_shell.last_exit_status.zero?
           end
 
           def lchown(uid, gid=nil)
