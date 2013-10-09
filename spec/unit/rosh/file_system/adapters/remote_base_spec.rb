@@ -187,6 +187,58 @@ describe Rosh::FileSystem::Adapters::RemoteBase do
     end
   end
 
+  describe 'ftype' do
+    context 'darwin' do
+      before { subject.stub_chain(:current_host, :darwin?).and_return true }
+
+      context 'file' do
+        it 'returns :regular_file' do
+          expect(shell).to receive(:exec).with("stat -n -f '%HT' /file") { "Regular File\r\n"}
+          expect(subject.ftype).to eq :regular_file
+        end
+      end
+
+      context 'directory' do
+        it 'returns :directory' do
+          expect(shell).to receive(:exec).with("stat -n -f '%HT' /file") { "Directory\r\n"}
+          expect(subject.ftype).to eq :directory
+        end
+      end
+
+      context 'symbolic link' do
+        it 'returns :symbolic_link' do
+          expect(shell).to receive(:exec).with("stat -n -f '%HT' /file") { "Symbolic Link\r\n"}
+          expect(subject.ftype).to eq :symbolic_link
+        end
+      end
+    end
+
+    context 'not darwin' do
+      before { subject.stub_chain(:current_host, :darwin?).and_return false }
+
+      context 'file' do
+        it 'returns :regular_file' do
+          expect(shell).to receive(:exec).with("stat -c '%F' /file") { "regular file\r\n"}
+          expect(subject.ftype).to eq :regular_file
+        end
+      end
+
+      context 'directory' do
+        it 'returns :directory' do
+          expect(shell).to receive(:exec).with("stat -c '%F' /file") { "directory\r\n"}
+          expect(subject.ftype).to eq :directory
+        end
+      end
+
+      context 'symbolic link' do
+        it 'returns :symbolic_link' do
+          expect(shell).to receive(:exec).with("stat -c '%F' /file") { "symbolic link\r\n"}
+          expect(subject.ftype).to eq :symbolic_link
+        end
+      end
+    end
+  end
+
   describe '#to_path' do
     it 'returns the path that the object was created with' do
       subject.to_path.should == path

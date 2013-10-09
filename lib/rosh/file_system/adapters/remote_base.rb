@@ -110,6 +110,7 @@ class Rosh
             warn 'Not implemented'
           end
 
+          # @return [Symbol]
           def ftype
             cmd = if current_host.darwin?
               "stat -n -f '%HT' #{@path}"
@@ -117,7 +118,9 @@ class Rosh
               "stat -c '%F' #{@path}"
             end
 
-            current_shell.exec(cmd).strip.downcase
+            output_string = current_shell.exec(cmd).strip.downcase
+
+            output_string.gsub(/ /, '_').to_sym
           end
 
           def lchmod(mode_int)
