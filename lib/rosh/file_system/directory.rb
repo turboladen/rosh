@@ -1,7 +1,7 @@
 require 'observer'
-require_relative 'controllers/directory_controller'
 require_relative 'api_base'
 require_relative 'api_stat'
+require_relative '../changeable'
 
 
 class Rosh
@@ -10,6 +10,7 @@ class Rosh
       include Observable
       include APIBase
       include APIStat
+      include Rosh::Changeable
 
       def initialize(path, host_name)
         @path = path
@@ -17,21 +18,25 @@ class Rosh
       end
 
       def create
-        controller.mkdir(self)
+        change(self, :exists?, from: false, to: true, criteria: exists?) do
+          adapter.mkdir
+        end
       end
 
       def delete
-        controller.rmdir(self)
+        change(self, :exists?, from: true, to: false, criteria: !exists?) do
+          adapter.rmdir
+        end
       end
       alias_method :remove, :delete
       alias_method :unlink, :delete
 
       def entries
-        controller.entries
+        adapter.entries
       end
 
       def each(&block)
-        controller.entries.each(&block)
+        adapter.entries.each(&block)
       end
 
       # @todo Add #glob.
@@ -53,8 +58,21 @@ class Rosh
 
       private
 
-      def controller
-        @controller ||= Controllers::DirectoryController.new(@path, @host_name)
+      def adapter
+        return @adapter if @adapter
+
+        @adapter = if current_host.local?
+          require_relative 'adapters/local_dir'
+          FileSystem::Adapters::LocalDir
+        else
+          require_relative 'adapters/remote_dir'
+          FileSystem::Adapters::RemoteDir
+        end
+
+        @adapter.path = @path
+        @adapter.host_name = @host_name
+
+        @adapter
       end
     end
   end

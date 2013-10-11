@@ -13,8 +13,25 @@ class Rosh
           def entries(_)
             current_shell.ls(@path)
           end
+
+          def open
+            warn 'Not implemented!'
+          end
+
+          def mkdir
+            current_shell.exec "mkdir #{@path}"
+
+            current_shell.last_exit_status.zero?
+          end
+
+          def rmdir
+            current_shell.exec "rmdir #{@path}"
+
+            current_shell.last_exit_status.zero?
+          end
         end
 
+=begin
         # @return [String] The owner of the remote directory.
         def owner
           cmd = "ls -ld #{@path} | awk '{print $3}'"
@@ -59,6 +76,7 @@ class Rosh
 
           success
         end
+=end
       end
     end
   end

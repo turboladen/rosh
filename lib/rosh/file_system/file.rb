@@ -65,7 +65,7 @@ class Rosh
       end
 
       def create
-        change(self, :exists?, from: true, to: false, criteria: exists?) do
+        change(self, :exists?, from: false, to: true, criteria: exists?) do
           adapter.create
         end
       end
