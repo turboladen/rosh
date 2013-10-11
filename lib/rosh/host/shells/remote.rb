@@ -388,8 +388,8 @@ class Rosh
         end
 
         def preprocess_path(path)
-          path = '' unless path
-          path.strip!
+          #path ||= ''
+          path = path.to_s.strip
           @internal_pwd = run('pwd').ruby_object.strip
 
           unless path.start_with?('/') || path.start_with?('$')

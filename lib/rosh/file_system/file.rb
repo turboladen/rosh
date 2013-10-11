@@ -1,6 +1,7 @@
 require 'observer'
 require_relative 'api_base'
 require_relative 'api_stat'
+require_relative '../changeable'
 
 
 class Rosh
@@ -56,6 +57,7 @@ class Rosh
       include Observable
       include APIBase
       include APIStat
+      include Rosh::Changeable
 
       def initialize(path, host_name)
         @path = path
@@ -63,7 +65,9 @@ class Rosh
       end
 
       def create
-        controller.create(self)
+        change(self, :exists?, from: true, to: false, criteria: exists?) do
+          adapter.create
+        end
       end
 
       def contents
@@ -73,10 +77,18 @@ class Rosh
       def copy_to(destination)
         the_copy = self.class.new(destination, @host_name)
 
-        controller.copy(the_copy, self)
+        criteria = [
+          lambda { the_copy.exists? },
+          lambda { the_copy.contents == self.contents }
+        ]
+
+        change(the_copy, :exists?, from: true, to: false, criteria: criteria) do
+          adapter.copy(the_copy)
+        end
       end
 
       def read(length=nil, offset=nil)
+        adapter.read(length, offset)
       end
 
       def readlines(separator=$/)
