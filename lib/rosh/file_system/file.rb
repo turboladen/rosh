@@ -65,8 +65,10 @@ class Rosh
       end
 
       def create
-        change(self, :exists?, from: false, to: true, criteria: exists?) do
-          adapter.create
+        change_if(exists?) do
+          notify_about(self, :exists?, from: false, to: true) do
+            adapter.create
+          end
         end
       end
 
@@ -82,8 +84,10 @@ class Rosh
           lambda { the_copy.contents == self.contents }
         ]
 
-        change(the_copy, :exists?, from: true, to: false, criteria: criteria) do
-          adapter.copy(the_copy)
+        change_if(criteria) do
+          notify_about(the_copy, :exists?, from: true, to: false) do
+            adapter.copy(the_copy)
+          end
         end
       end
 

@@ -18,14 +18,18 @@ class Rosh
       end
 
       def create
-        change(self, :exists?, from: false, to: true, criteria: exists?) do
-          adapter.mkdir
+        change_if(exists?) do
+          notify_about(self, :exists?, from: false, to: true) do
+            adapter.mkdir
+          end
         end
       end
 
       def delete
-        change(self, :exists?, from: true, to: false, criteria: !exists?) do
-          adapter.rmdir
+        change_if(!exists?) do
+          notify_about(self, :exists?, from: true, to: false) do
+            adapter.rmdir
+          end
         end
       end
       alias_method :remove, :delete

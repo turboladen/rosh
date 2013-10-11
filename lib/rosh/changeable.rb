@@ -1,43 +1,33 @@
 class Rosh
   module Changeable
-    def change(watched_object, attribute, from: from, to: to, criteria: criteria, &block)
+    def change_if(criteria, &block)
       if skip_action?(criteria)
         puts 'Check state first and criteria met.  Returning.'
         return
       end
 
-      result = block.call
-
-      watched_object.changed
-      watched_object.notify_observers(watched_object,
-        attribute: attribute,
-        old_value: from,
-        new_value: to,
-        as_sudo: current_shell.su?
-      )
-
-      result
+      block.call
     end
 
     private
 
     def skip_action?(criteria)
-      if current_shell.check_state_first?
-        puts 'Checking state before changes...'
+      return unless current_shell.check_state_first?
 
-        if criteria.is_a?(Array)
-          criteria.each do |c|
-            return true if c.call
-          end
+      puts 'Checking state before changes...'
 
-          return false
+      if criteria.is_a? Array
+        criteria.each do |c|
+          return true if c.call
         end
 
-        if criteria.kind_of?(Proc) && criteria.call
-          return true
-        elsif !criteria.kind_of?(Proc) && criteria
-          return true
-        end
+        return false
+      end
+
+      if criteria.kind_of?(Proc) && criteria.call
+        return true
+      elsif !criteria.kind_of?(Proc) && criteria
+        return true
       end
 
       false
