@@ -10,7 +10,7 @@ class Rosh
     module APIStat
       extend Forwardable
 
-      def_delegators :controller,
+      def_delegators :adapter,
         :exists?, :<=>,
         :blksize, :blockdev?, :blocks, :chardev?, :dev, :dev_major, :dev_minor,
         :directory?, :executable?, :executable_real?, :file?, :gid, :grpowned?,

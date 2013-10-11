@@ -4,11 +4,11 @@ class Rosh
 
       # @param [String] dir_string
       def absolute_path(dir_string=nil)
-        controller.absolute_path(dir_string)
+        adapter.absolute_path(dir_string)
       end
 
       def access_time
-        controller.atime
+        adapter.atime
       end
       alias_method :atime, :access_time
 
@@ -17,113 +17,113 @@ class Rosh
       # @param [String] suffix
       # @return [String]
       def base_name(suffix=nil)
-        controller.basename(suffix)
+        adapter.basename(suffix)
       end
       alias_method :basename, :base_name
 
       def change_mode_to(new_mode)
-        controller.chmod(new_mode, self)
+        adapter.chmod(new_mode, self)
       end
       alias_method :mode=, :change_mode_to
       alias_method :chmod, :change_mode_to
 
       def change_owner_to(uid: nil, gid: nil)
-        controller.chown(self, uid: uid, gid: gid)
+        adapter.chown(self, uid: uid, gid: gid)
       end
       alias_method :owner=, :change_owner_to
       alias_method :chown, :change_owner_to
 
       def change_time
-        controller.ctime
+        adapter.ctime
       end
       alias_method :ctime, :change_time
 
       def delete
-        controller.delete(self)
+        adapter.delete
       end
       alias_method :unlink, :delete
 
       def dirname
-        controller.dirname
+        adapter.dirname
       end
 
       def expand_path(dir_string=nil)
-        controller.expand_path(dir_string)
+        adapter.expand_path(dir_string)
       end
 
       def extension
-        controller.extname
+        adapter.extname
       end
       alias_method :extname, :extension
 
       def file_name_match(pattern, *flags)
-        controller.fnmatch(pattern, *flags)
+        adapter.fnmatch(pattern, *flags)
       end
       alias_method :fnmatch, :file_name_match
       alias_method :fnmatch?, :file_name_match
 
       def file_type
-        controller.ftype
+        adapter.ftype
       end
       alias_method :ftype, :file_type
 
       def lchmod(mode_int)
-        controller.lchmod(mode_int, self)
+        adapter.lchmod(mode_int, self)
       end
 
       def lchown(uid: nil, gid: nil)
-        controller.lchown(uid, gid, self)
+        adapter.lchown(uid, gid, self)
       end
 
       def hard_link_to(new_path)
-        controller.link(new_path, self)
+        adapter.link(new_path, self)
       end
       alias_method :link, :hard_link_to
 
       def lstat
-        controller.lstat
+        adapter.lstat
       end
 
       def modification_time
-        controller.mtime
+        adapter.mtime
       end
       alias_method :mtime, :modification_time
 
       def path
-        controller.path
+        adapter.path
       end
 
       def read_link
-        controller.readlink
+        adapter.readlink
       end
       alias_method :readlink, :read_link
 
       def real_dir_path(dir_path=nil)
-        controller.realdirpath(dir_path)
+        adapter.realdirpath(dir_path)
       end
       alias_method :realdirpath, :real_dir_path
 
       def real_path(dir_path=nil)
-        controller.realpath(dir_path)
+        adapter.realpath(dir_path)
       end
       alias_method :realpath, :real_path
 
       def rename_to(new_name)
-        controller.rename(new_name, self)
+        adapter.rename(new_name, self)
       end
       alias_method :name=, :rename_to
       alias_method :rename, :rename_to
 
       def split
-        controller.split
+        adapter.split
       end
 
       def stat
-        controller.stat
+        adapter.stat
       end
 
       def symbolic_link_to(new_path)
-        controller.symlink(new_path, self)
+        adapter.symlink(new_path, self)
       end
       alias_method :symlink, :symbolic_link_to
 
@@ -132,16 +132,16 @@ class Rosh
       end
 
       def truncate(new_length)
-        controller.truncate(new_length, self)
+        adapter.truncate(new_length, self)
       end
 
       def file_times=(access_time, modification_time)
-        controller.utime(access_time, modification_time, self)
+        adapter.utime(access_time, modification_time, self)
       end
       alias_method :utime, :file_times=
 
       def lock(types)
-        controller.flock(types)
+        adapter.flock(types)
       end
       alias_method :flock, :lock
     end

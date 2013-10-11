@@ -1,5 +1,4 @@
 require 'observer'
-require_relative 'controllers/file_controller'
 require_relative 'api_base'
 require_relative 'api_stat'
 
@@ -68,7 +67,7 @@ class Rosh
       end
 
       def contents
-        controller.read
+        adapter.read
       end
 
       def copy_to(destination)
@@ -78,15 +77,14 @@ class Rosh
       end
 
       def read(length=nil, offset=nil)
-        controller.read(length, offset)
       end
 
       def readlines(separator=$/)
-        controller.readlines(separator)
+        adapter.readlines(separator)
       end
 
       def each_char(&block)
-        contents.each_char(&block)
+        adapter.each_char(&block)
       end
 
       def each_codepoint(&block)
@@ -111,8 +109,21 @@ class Rosh
 
       private
 
-      def controller
-        @controller ||= Controllers::FileController.new(@path, @host_name)
+      def adapter
+        return @adapter if @adapter
+
+        @adapter = if current_host.local?
+          require_relative 'adapters/local_file'
+          FileSystem::Adapters::LocalFile
+        else
+          require_relative 'adapters/remote_file'
+          FileSystem::Adapters::RemoteFile
+        end
+
+        @adapter.path = @path
+        @adapter.host_name = @host_name
+
+        @adapter
       end
     end
   end
