@@ -3,10 +3,12 @@ require_relative 'kernel_refinements'
 require_relative 'file_system/file_system_controller'
 require_relative 'file_system/file'
 require_relative 'file_system/directory'
+require_relative 'observable'
+
 
 class Rosh
   class FileSystem
-    include Observable
+    include Rosh::Observable
 
     def self.create(path, host_name)
       object = new(host_name)
@@ -29,7 +31,7 @@ class Rosh
     end
 
     def [](path)
-      if path.is_a? Hash
+      result = if path.is_a? Hash
         if path[:file]
           file(path[:file])
         elsif path[:dir]
@@ -48,6 +50,10 @@ class Rosh
           raise "Not sure what '#{path}' is."
         end
       end
+
+      result.add_observer(self)
+
+      result
     end
 
     def chroot(new_root)
@@ -86,6 +92,22 @@ class Rosh
       controller.getwd
     end
     alias_method :getwd, :working_directory
+
+    def update(obj, attribute, old_value, new_value, as_sudo)
+      puts "I got updated!"
+      puts  attribute
+      puts  old_value
+      puts  new_value
+      puts  as_sudo
+
+      self.changed
+      self.notify_observers(obj,
+        attribute,
+        old_value,
+        new_value,
+        as_sudo
+      )
+    end
 
     private
 
