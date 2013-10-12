@@ -2,6 +2,7 @@ require 'observer'
 require_relative 'api_base'
 require_relative 'api_stat'
 require_relative '../changeable'
+require_relative '../observable'
 
 
 class Rosh
@@ -54,10 +55,10 @@ class Rosh
     # Rosh--changes external to Rosh are not detected.
     #
     class File
-      include Observable
       include APIBase
       include APIStat
       include Rosh::Changeable
+      include Rosh::Observable
 
       def initialize(path, host_name)
         @path = path
@@ -77,8 +78,7 @@ class Rosh
       end
 
       def copy_to(destination)
-        the_copy = self.class.new(destination, @host_name)
-        the_copy.add_observer(current_host.fs)
+        the_copy = current_host.fs[file: destination]
 
         criteria = [
           lambda { !the_copy.exists? },

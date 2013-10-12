@@ -41,7 +41,24 @@ class Rosh
       alias_method :chmod, :change_mode_to
 
       def change_owner_to(uid: nil, gid: nil)
-        adapter.chown(self, uid: uid, gid: gid)
+        current_owner = self.uid
+        current_group = self.gid
+        criteria = []
+
+        if uid
+          criteria << -> { uid.to_i != current_owner }
+        end
+
+        if gid
+          criteria << -> { gid.to_i != current_group }
+        end
+
+        change_if criteria do
+          notify_about(self, :owner, from: { uid: current_owner, gid: current_group },
+            to: { uid: uid, gid: gid }) do
+            adapter.chown(uid: uid, gid: gid)
+          end
+        end
       end
       alias_method :owner=, :change_owner_to
       alias_method :chown, :change_owner_to
@@ -52,6 +69,11 @@ class Rosh
       alias_method :ctime, :change_time
 
       def delete
+        change_if(exists?) do
+          notify_about(self, :exists?, from: true, to: false) do
+            adapter.delete
+          end
+        end
       end
       alias_method :unlink, :delete
 
@@ -98,6 +120,10 @@ class Rosh
       end
       alias_method :mtime, :modification_time
 
+      # Returns the pathname used to create file as a String. Does not normalize
+      # the name.
+      #
+      # @return [String]
       def path
         adapter.path
       end
@@ -118,7 +144,14 @@ class Rosh
       alias_method :realpath, :real_path
 
       def rename_to(new_name)
-        adapter.rename(new_name, self)
+        new_object = current_host.fs[object: new_name]
+        current_path = self.expand_path
+
+        change_if !new_object.exists? do
+          notify_about(self, :path, from: current_path, to: new_name) do
+            adapter.rename(new_name)
+          end
+        end
       end
       alias_method :name=, :rename_to
       alias_method :rename, :rename_to
@@ -142,11 +175,11 @@ class Rosh
       end
 
       def truncate(new_length)
-        adapter.truncate(new_length, self)
+        adapter.truncate(new_length)
       end
 
       def file_times=(access_time, modification_time)
-        adapter.utime(access_time, modification_time, self)
+        adapter.utime(access_time, modification_time)
       end
       alias_method :utime, :file_times=
 
