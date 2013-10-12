@@ -123,38 +123,12 @@ class Rosh
             output_string.gsub(/ /, '_').to_sym
           end
 
-          # @param [String,Integer] mode_int
-          # @return [Boolean]
-          def lchmod(mode_int)
-            current_shell.exec("chmod -h #{mode_int} #{@path}")
-
-            current_shell.last_exit_status.zero?
-          end
-
-          # @param [String,Integer] uid
-          # @param [String,Integer] gid
-          # @return [Boolean]
-          def lchown(uid, gid=nil)
-            cmd = "chown -h #{uid}"
-            cmd << ":#{gid}" if gid
-            cmd << " #{@path}"
-
-            current_shell.exec cmd
-
-            current_shell.last_exit_status.zero?
-          end
-
           # @param [String] new_path
           # @return [Boolean]
           def link(new_path)
             current_shell.exec "ln #{@path} #{new_path}"
 
             current_shell.last_exit_status.zero?
-          end
-
-          # @return [String]
-          def lstat
-            current_shell.exec "stat #{@path}"
           end
 
           # @return [Time]

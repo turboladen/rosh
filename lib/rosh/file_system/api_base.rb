@@ -79,22 +79,19 @@ class Rosh
       end
       alias_method :ftype, :file_type
 
-      def lchmod(mode_int)
-        adapter.lchmod(mode_int, self)
-      end
-
-      def lchown(uid: nil, gid: nil)
-        adapter.lchown(uid, gid, self)
-      end
-
       def hard_link_to(new_path)
-        adapter.link(new_path, self)
+        new_link = current_host.fs[link: new_path]
+        criteria = [
+          lambda { !new_link.exists? }
+        ]
+
+        change_if criteria do
+          notify_about(new_link, :exists?, from: false, to: true) do
+            adapter.link(new_path)
+          end
+        end
       end
       alias_method :link, :hard_link_to
-
-      def lstat
-        adapter.lstat
-      end
 
       def modification_time
         adapter.mtime
@@ -134,8 +131,9 @@ class Rosh
         adapter.stat
       end
 
+      # @todo Deal with symlinks vs hard links.
       def symbolic_link_to(new_path)
-        adapter.symlink(new_path, self)
+        adapter.symlink(new_path)
       end
       alias_method :symlink, :symbolic_link_to
 
