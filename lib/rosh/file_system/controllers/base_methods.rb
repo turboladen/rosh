@@ -10,30 +10,6 @@ class Rosh
         # @return [String] The path that was used to initialize the object.
         attr_reader :path
 
-        # Returns the pathname used to create file as a String. Does not normalize
-        # the name.
-        #
-        # @return [String]
-        def to_path
-          @path
-        end
-
-        # @param [String] dir_string
-        def absolute_path(dir_string=nil)
-          adapter.absolute_path(dir_string)
-        end
-
-        def atime
-          adapter.atime
-        end
-
-        # Just like Ruby's File#basename, returns the base name of the object.
-        #
-        # @param [String] suffix
-        # @return [String]
-        def basename(suffix=nil)
-          adapter.basename(suffix)
-        end
 
         def chmod(mode_int, watched_object)
           old_mode = adapter.mode

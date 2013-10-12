@@ -1,6 +1,12 @@
+require_relative '../changeable'
+require_relative '../observable'
+
+
 class Rosh
   class FileSystem
     module APIBase
+      include Rosh::Changeable
+      include Rosh::Observable
 
       # @param [String] dir_string
       def absolute_path(dir_string=nil)
@@ -22,7 +28,14 @@ class Rosh
       alias_method :basename, :base_name
 
       def change_mode_to(new_mode)
-        adapter.chmod(new_mode, self)
+        current_mode = self.mode
+        criteria = -> { !current_mode.to_s.end_with?(new_mode.to_s) }
+
+        change_if(criteria) do
+          notify_about(self, :mode, from: current_mode, to: new_mode) do
+            adapter.chmod(new_mode)
+          end
+        end
       end
       alias_method :mode=, :change_mode_to
       alias_method :chmod, :change_mode_to
@@ -39,7 +52,6 @@ class Rosh
       alias_method :ctime, :change_time
 
       def delete
-        adapter.delete
       end
       alias_method :unlink, :delete
 
