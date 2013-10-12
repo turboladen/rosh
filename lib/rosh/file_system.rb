@@ -40,6 +40,8 @@ class Rosh
           directory(path[:directory])
         elsif path[:link]
           link(path[:link])
+        elsif path[:object]
+          object(path[:object])
         else
           raise "Not sure what '#{path}' is."
         end
@@ -51,7 +53,7 @@ class Rosh
         elsif link?(path)
           link(path)
         else
-          raise "Not sure what '#{path}' is."
+          object(path)
         end
       end
 
@@ -86,6 +88,10 @@ class Rosh
 
     def link?(path)
       controller.link?(path)
+    end
+
+    def object(path)
+      Rosh::FileSystem::Object.new(path, @host_name)
     end
 
     def home
