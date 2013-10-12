@@ -65,7 +65,7 @@ class Rosh
       end
 
       def create
-        change_if(exists?) do
+        change_if(!exists?) do
           notify_about(self, :exists?, from: false, to: true) do
             adapter.create
           end
@@ -78,14 +78,16 @@ class Rosh
 
       def copy_to(destination)
         the_copy = self.class.new(destination, @host_name)
+        the_copy.add_observer(current_host.fs)
 
         criteria = [
-          lambda { the_copy.exists? },
-          lambda { the_copy.contents == self.contents }
+          lambda { !the_copy.exists? },
+          lambda { the_copy.size != self.size },
+          lambda { the_copy.contents != self.contents }
         ]
 
         change_if(criteria) do
-          notify_about(the_copy, :exists?, from: true, to: false) do
+          notify_about(the_copy, :exists?, from: false, to: true) do
             adapter.copy(the_copy)
           end
         end

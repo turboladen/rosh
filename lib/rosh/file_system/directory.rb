@@ -18,7 +18,7 @@ class Rosh
       end
 
       def create
-        change_if(exists?) do
+        change_if(!exists?) do
           notify_about(self, :exists?, from: false, to: true) do
             adapter.mkdir
           end
@@ -26,7 +26,7 @@ class Rosh
       end
 
       def delete
-        change_if(!exists?) do
+        change_if(exists?) do
           notify_about(self, :exists?, from: true, to: false) do
             adapter.rmdir
           end

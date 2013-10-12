@@ -1,34 +1,26 @@
 class Rosh
   module Changeable
     def change_if(criteria, &block)
-      if skip_action?(criteria)
-        puts 'Check state first and criteria met.  Returning.'
-        return
+      if execute_action?(criteria)
+        return block.call
       end
 
-      block.call
+      puts 'Check state first and criteria met.  Returning.'
     end
 
     private
 
-    def skip_action?(criteria)
-      return unless current_shell.check_state_first?
+    def execute_action?(criteria)
+      return true unless current_shell.check_state_first?
 
       puts 'Checking state before changes...'
 
       if criteria.is_a? Array
-        criteria.each do |c|
-          return true if c.call
-        end
-
-        return false
+        return criteria.any?(&:call) ? true : false
       end
 
-      if criteria.kind_of?(Proc) && criteria.call
-        return true
-      elsif !criteria.kind_of?(Proc) && criteria
-        return true
-      end
+      return true if criteria.kind_of?(Proc) && criteria.call
+      return true if !criteria.kind_of?(Proc) && criteria
 
       false
     end
