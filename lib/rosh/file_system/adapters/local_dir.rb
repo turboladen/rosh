@@ -25,11 +25,15 @@ class Rosh
           end
 
           def mkdir
-            ::Dir.mkdir(@path)
+            result = ::Dir.mkdir(@path)
+
+            result.zero?
           end
 
           def rmdir
-            ::Dir.rmdir(@path)
+            result = ::Dir.rmdir(@path)
+
+            result.zero?
           end
         end
       end

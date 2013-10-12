@@ -1,3 +1,4 @@
+require 'fileutils'
 require_relative 'local_base'
 
 
@@ -17,7 +18,9 @@ class Rosh
           end
 
           def copy(destination)
-            ::FileUtils.cp(@path, destination)
+            result = ::FileUtils.cp(@path, destination)
+
+            result.nil?
           end
         end
       end

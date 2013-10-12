@@ -65,9 +65,11 @@ class Rosh
           # @param [Fixnum] :uid UID of the user to make owner.
           # @param [String] :group_name Name of the group to make owner.
           # @param [Fixnum] :gid GID of the group to make owner.
-          # @return [0]
+          # @return [Boolean] +true+ if successful, +false+ if not.
           def chown(uid: uid, gid: nil)
-            ::File.chown(uid, gid, @path)
+            result = ::File.chown(uid, gid, @path)
+
+            !result.zero?
           end
 
           def ctime
@@ -75,7 +77,9 @@ class Rosh
           end
 
           def delete
-            ::File.delete(@path)
+            result = ::File.delete(@path)
+
+            !result.zero?
           end
 
           def dirname
@@ -99,20 +103,10 @@ class Rosh
             ::File.ftype(path)
           end
 
-          def lchmod(mode_int)
-            ::File.lchmod(mode_int, @path)
-          end
-
-          def lchown(new_uid: nil, new_gid: nil)
-            ::File.lchown(new_uid, new_gid, @path)
-          end
-
           def link(new_path)
-            ::File.link(@path, new_path)
-          end
+            result = ::File.link(@path, new_path)
 
-          def lstat
-            ::File.lstat(@path)
+            result.zero?
           end
 
           def mtime
@@ -142,7 +136,9 @@ class Rosh
           end
 
           def rename(new_name)
-            ::File.rename(@path, new_name)
+            result = ::File.rename(@path, new_name)
+
+            result.zero?
           end
 
           def split
@@ -154,15 +150,21 @@ class Rosh
           end
 
           def symlink(new_name)
-            ::File.symlink(@path, new_name)
+            result = ::File.symlink(@path, new_name)
+
+            result.zero?
           end
 
           def truncate(len)
-            ::File.truncate(@path, len)
+            result = ::File.truncate(@path, len)
+
+            result.zero?
           end
 
           def unlink
-            ::File.unlink(@path)
+            result = ::File.unlink(@path)
+
+            !result.zero?
           end
 
           def utime(access_time, modification_time)
