@@ -88,7 +88,7 @@ class Rosh
 
         change_if(criteria) do
           notify_about(the_copy, :exists?, from: false, to: true) do
-            adapter.copy(the_copy)
+            adapter.copy(destination)
           end
         end
       end
