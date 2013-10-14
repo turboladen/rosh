@@ -93,6 +93,21 @@ class Rosh
         end
       end
 
+      def hard_link_from(new_path)
+        new_link = current_host.fs[file: new_path]
+
+        criteria = [
+          lambda { !new_link.exists? }
+        ]
+
+        change_if criteria do
+          notify_about(new_link, :exists?, from: false, to: true) do
+            adapter.link(new_path)
+          end
+        end
+      end
+      alias_method :link, :hard_link_from
+
       def read(length=nil, offset=nil)
         adapter.read(length, offset)
       end

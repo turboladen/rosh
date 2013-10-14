@@ -101,20 +101,6 @@ class Rosh
       end
       alias_method :ftype, :file_type
 
-      def hard_link_to(new_path)
-        new_link = current_host.fs[link: new_path]
-        criteria = [
-          lambda { !new_link.exists? }
-        ]
-
-        change_if criteria do
-          notify_about(new_link, :exists?, from: false, to: true) do
-            adapter.link(new_path)
-          end
-        end
-      end
-      alias_method :link, :hard_link_to
-
       def modification_time
         adapter.mtime
       end
