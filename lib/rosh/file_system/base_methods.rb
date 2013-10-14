@@ -51,29 +51,6 @@ class Rosh
       alias_method :mode=, :change_mode_to
       alias_method :chmod, :change_mode_to
 
-      def change_owner_to(uid: nil, gid: nil)
-        current_owner = self.uid
-        current_group = self.gid
-        criteria = []
-
-        if uid
-          criteria << -> { uid.to_i != current_owner }
-        end
-
-        if gid
-          criteria << -> { gid.to_i != current_group }
-        end
-
-        change_if criteria do
-          notify_about(self, :owner, from: { uid: current_owner, gid: current_group },
-            to: { uid: uid, gid: gid }) do
-            adapter.chown(uid: uid, gid: gid)
-          end
-        end
-      end
-      alias_method :owner=, :change_owner_to
-      alias_method :chown, :change_owner_to
-
       def change_time
         adapter.ctime
       end
@@ -113,6 +90,22 @@ class Rosh
       end
       alias_method :ftype, :file_type
 
+      # @todo Return a Rosh Group object.
+      def group
+        warn 'Not implemented'
+      end
+
+      def group=(new_group)
+        current_group = self.gid
+        new_group = new_group.to_i
+
+        change_if(new_group != current_group) do
+          notify_about(self, :group, from: current_group, to: new_group) do
+            adapter.chown(gid: new_group)
+          end
+        end
+      end
+
       def modification_time
         adapter.mtime
       end
@@ -125,6 +118,22 @@ class Rosh
         change_if current_mtime != new_time do
           notify_about(self, :modification_time, from: current_mtime, to: new_time) do
             adapter.utime(current_atime, new_time)
+          end
+        end
+      end
+
+      # @todo Return a Rosh User object.
+      def owner
+        warn 'Not implemented'
+      end
+
+      def owner=(new_owner)
+        current_owner = self.uid
+        new_owner = new_owner.to_i
+
+        change_if(new_owner != current_owner) do
+          notify_about(self, :owner, from: current_owner, to: new_owner) do
+            adapter.chown(uid: new_owner)
           end
         end
       end
