@@ -18,6 +18,17 @@ class Rosh
       end
       alias_method :atime, :access_time
 
+      def access_time=(new_time)
+        current_atime = self.access_time
+        current_mtime = self.modification_time
+
+        change_if current_atime != new_time do
+          notify_about(self, :access_time, from: current_atime, to: new_time) do
+            adapter.utime(new_time, current_mtime)
+          end
+        end
+      end
+
       # Just like Ruby's File#basename, returns the base name of the object.
       #
       # @param [String] suffix
@@ -107,6 +118,17 @@ class Rosh
       end
       alias_method :mtime, :modification_time
 
+      def modification_time=(new_time)
+        current_atime = self.access_time
+        current_mtime = self.modification_time
+
+        change_if current_mtime != new_time do
+          notify_about(self, :modification_time, from: current_mtime, to: new_time) do
+            adapter.utime(current_atime, new_time)
+          end
+        end
+      end
+
       # Returns the pathname used to create file as a String. Does not normalize
       # the name.
       #
@@ -174,14 +196,15 @@ class Rosh
         current_size = self.size
 
         change_if(new_size < current_size) do
-          notify_about(new_link, :size, from: current_size, to: new_size) do
+          notify_about(self, :size, from: current_size, to: new_size) do
             adapter.truncate(new_size)
           end
         end
       end
 
       def file_times=(access_time, modification_time)
-        adapter.utime(access_time, modification_time)
+        self.access_time = access_time
+        self.modification_time = modification_time
       end
       alias_method :utime, :file_times=
 
