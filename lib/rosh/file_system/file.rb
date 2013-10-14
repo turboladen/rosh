@@ -1,5 +1,5 @@
 require 'observer'
-require_relative 'api_base'
+require_relative 'base_methods'
 require_relative 'api_stat'
 require_relative '../changeable'
 require_relative '../observable'
@@ -55,7 +55,7 @@ class Rosh
     # Rosh--changes external to Rosh are not detected.
     #
     class File
-      include APIBase
+      include BaseMethods
       include APIStat
       include Rosh::Changeable
       include Rosh::Observable

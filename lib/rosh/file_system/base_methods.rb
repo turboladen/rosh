@@ -4,7 +4,7 @@ require_relative '../observable'
 
 class Rosh
   class FileSystem
-    module APIBase
+    module BaseMethods
       include Rosh::Changeable
       include Rosh::Observable
 

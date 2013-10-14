@@ -1,5 +1,5 @@
 require 'observer'
-require_relative 'api_base'
+require_relative 'base_methods'
 require_relative 'api_stat'
 require_relative '../changeable'
 
@@ -8,7 +8,7 @@ class Rosh
   class FileSystem
     class Directory
       include Observable
-      include APIBase
+      include BaseMethods
       include APIStat
       include Rosh::Changeable
 
