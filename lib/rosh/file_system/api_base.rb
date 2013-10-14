@@ -77,9 +77,10 @@ class Rosh
       end
       alias_method :unlink, :delete
 
-      def dirname
+      def directory_name
         adapter.dirname
       end
+      alias_method :dirname, :directory_name
 
       def expand_path(dir_string=nil)
         adapter.expand_path(dir_string)
@@ -142,6 +143,10 @@ class Rosh
       alias_method :name=, :rename_to
       alias_method :rename, :rename_to
 
+      def size
+        adapter.size
+      end
+
       def split
         adapter.split
       end
@@ -150,18 +155,29 @@ class Rosh
         adapter.stat
       end
 
-      # @todo Deal with symlinks vs hard links.
-      def symbolic_link_to(new_path)
-        adapter.symlink(new_path)
+      def symbolic_link_from(new_path)
+        new_link = current_host.fs[link: new_path]
+
+        change_if !new_link.exists? do
+          notify_about(new_link, :exists?, from: false, to: true) do
+            adapter.symlink(new_path)
+          end
+        end
       end
-      alias_method :symlink, :symbolic_link_to
+      alias_method :symlink, :symbolic_link_from
 
       def to_s
-        @path.to_s
+        path.to_s
       end
 
-      def truncate(new_length)
-        adapter.truncate(new_length)
+      def truncate(new_size)
+        current_size = self.size
+
+        change_if(new_size < current_size) do
+          notify_about(new_link, :size, from: current_size, to: new_size) do
+            adapter.truncate(new_size)
+          end
+        end
       end
 
       def file_times=(access_time, modification_time)
