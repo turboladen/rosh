@@ -27,6 +27,10 @@ class Rosh
             ::Dir.home
           end
 
+          def symlink?(path)
+            ::File.symlink?(path)
+          end
+
           def umask(new_umask=nil)
             if new_umask
               sprintf('%o', ::File.umask(new_umask))

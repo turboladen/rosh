@@ -1,6 +1,5 @@
 require 'observer'
 require_relative 'kernel_refinements'
-require_relative 'file_system/file_system_controller'
 require_relative 'file_system/file'
 require_relative 'file_system/directory'
 require_relative 'observable'
@@ -24,6 +23,7 @@ class Rosh
 
     def initialize(host_name)
       @host_name = host_name
+      @root_directory = '/'
 
       unless current_host.local?
         require_relative 'file_system/remote_stat'
@@ -63,7 +63,13 @@ class Rosh
     end
 
     def chroot(new_root)
-      controller.chroot(new_root, self)
+      old_root = @root_directory
+
+      change_if(old_root != new_root) do
+        notify_about(self, :root_directory, from: old_root, to: new_root) do
+          adapter.chroot(new_root)
+        end
+      end
     end
 
     def file(path)
@@ -71,11 +77,11 @@ class Rosh
     end
 
     def file?(path)
-      controller.file?(path)
+      adapter.file?(path)
     end
 
     def directory?(path)
-      controller.directory?(path)
+      adapter.directory?(path)
     end
 
     def directory(path)
@@ -87,7 +93,7 @@ class Rosh
     end
 
     def link?(path)
-      controller.link?(path)
+      adapter.link?(path)
     end
 
     def object(path)
@@ -95,19 +101,25 @@ class Rosh
     end
 
     def home
-      controller.home
+      adapter.home
     end
 
     def umask
-      controller.umask
+      adapter.umask
     end
 
     def umask=(new_umask)
-      controller.umask(new_umask, self)
+      old_umask = self.umask
+
+      change_if(old_umask != new_umask) do
+        notify_about(self, :umask, from: old_umask, to: new_umask) do
+          adapter.umask(new_umask)
+        end
+      end
     end
 
     def working_directory
-      controller.getwd
+      adapter.getwd
     end
     alias_method :getwd, :working_directory
 
@@ -129,8 +141,20 @@ class Rosh
 
     private
 
-    def controller
-      @controller ||= FileSystemController.new(@host_name)
+    def adapter
+      return @adapter if @adapter
+
+      @adapter = if current_host.local?
+        require_relative 'file_system/adapters/local_file_system'
+        FileSystem::Adapters::LocalFileSystem
+      else
+        require_relative 'file_system/adapters/remote_file_system'
+        FileSystem::Adapters::RemoteFileSystem
+      end
+
+      @adapter.host_name = @host_name
+
+      @adapter
     end
   end
 end

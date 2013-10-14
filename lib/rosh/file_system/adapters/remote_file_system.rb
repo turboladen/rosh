@@ -27,6 +27,10 @@ class Rosh
             current_shell.exec('echo ~').strip
           end
 
+          def symlink?(path)
+            RemoteStat.symlink?(path, @host_name)
+          end
+
           def umask(new_umask=nil)
             if new_umask
               current_shell.exec("umask #{new_umask}").strip
