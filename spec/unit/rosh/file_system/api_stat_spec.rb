@@ -1,10 +1,10 @@
 require 'spec_helper'
-require 'rosh/file_system/api_stat'
+require 'rosh/file_system/stat_methods'
 
 
-describe Rosh::FileSystem::APIStat do
+describe Rosh::FileSystem::StatMethods do
   subject do
-    Object.new.extend Rosh::FileSystem::APIStat
+    Object.new.extend Rosh::FileSystem::StatMethods
   end
 
   it { should respond_to :<=> }

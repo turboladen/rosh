@@ -1,6 +1,6 @@
 require 'observer'
 require_relative 'base_methods'
-require_relative 'api_stat'
+require_relative 'stat_methods'
 require_relative '../changeable'
 require_relative '../observable'
 
@@ -9,7 +9,7 @@ class Rosh
   class FileSystem
     class Object
       include BaseMethods
-      include APIStat
+      include StatMethods
       include Rosh::Changeable
       include Rosh::Observable
 

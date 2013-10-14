@@ -7,7 +7,7 @@ class Rosh
     # Defines File::Stat methods on including objects.  The includer must define
     # `#controller`, as all methods will delegate to the object returned by
     # that method.
-    module APIStat
+    module StatMethods
       extend Forwardable
 
       def_delegators :adapter,
