@@ -58,3 +58,5 @@
 # TODO: Groups
 
 # TODO: Use Shellwords.escape to escape paths that get passed to shell commands.
+
+# TODO: Add IO and Enumerable methods to FileSystem.
