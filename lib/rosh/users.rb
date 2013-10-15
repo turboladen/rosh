@@ -33,12 +33,16 @@ class Rosh
       result
     end
 
+    def list
+      adapter.list
+    end
+
     def open_directory(name)
       Rosh::Users::User.new(name, :open_directory, @host_name)
     end
 
     def open_directory?
-      current_host.darwin?
+      adapter.open_directory?
     end
 
     def update(obj, attribute, old_value, new_value, as_sudo)
@@ -55,6 +59,19 @@ class Rosh
         new_value,
         as_sudo
       )
+    end
+
+    private
+
+    def adapter
+      return @adapter if @adapter
+
+      require_relative 'users/manager_adapters/open_directory'
+
+      @adapter = Users::ManagerAdapters::OpenDirectory
+      @adapter.host_name = @host_name
+
+      @adapter
     end
   end
 end
