@@ -16,28 +16,28 @@ class Rosh
       end
 
       def group_id
-        info['dsAttrTypeStandard:PrimaryGroupID'].first.to_i
+        adapter.gid
       end
       alias_method :gid, :group_id
 
       def home_directory
-        info['dsAttrTypeStandard:NFSHomeDirectory'].first
+        adapter.home_directory
       end
 
       def info
-        @info ||= adapter.info
+        adapter.info
       end
 
       def real_name
-        info['dsAttrTypeStandard:RealName'].first
+        adapter.real_name
       end
 
       def shell
-        info['dsAttrTypeStandard:UserShell'].first
+        adapter.shell
       end
 
       def user_id
-        info['dsAttrTypeStandard:UniqueID'].first.to_i
+        adapter.uid
       end
       alias_method :uid, :user_id
 
