@@ -7,8 +7,8 @@ class Rosh
         end
 
         module ClassMethods
-          def name=(name)
-            @name = name
+          def user_name=(user_name)
+            @user_name = user_name
           end
 
           def host_name=(host_name)

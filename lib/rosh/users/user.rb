@@ -9,9 +9,9 @@ class Rosh
       include Rosh::Observable
 
       # @todo Also accept UIDs.
-      def initialize(name, type, host_name)
+      def initialize(user_name, type, host_name)
         @host_name = host_name
-        @name = name
+        @user_name = user_name
         @type = type
       end
 
@@ -28,6 +28,10 @@ class Rosh
         adapter.info
       end
 
+      def reload!
+        adapter.reload!
+      end
+
       def real_name
         adapter.real_name
       end
@@ -41,6 +45,17 @@ class Rosh
       end
       alias_method :uid, :user_id
 
+      def user_id=(new_uid)
+        current_uid = self.user_id
+        new_uid = new_uid.to_i
+
+        change_if(current_uid != new_uid) do
+          notify_about(self, :user_id, from: current_uid, to: new_uid) do
+            adapter.uid = new_uid
+          end
+        end
+      end
+
       private
 
       def adapter
@@ -52,7 +67,7 @@ class Rosh
           Users::ObjectAdapters::OpenDirectory
         end
 
-        @adapter.name = @name
+        @adapter.user_name = @user_name
         @adapter.host_name = @host_name
 
         @adapter
