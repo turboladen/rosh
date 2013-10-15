@@ -6,8 +6,8 @@ Dir[File.dirname(__FILE__) + '/host/shells/*.rb'].each(&method(:require))
 require_relative 'file_system'
 require_relative 'host/package_manager'
 require_relative 'host/service_manager'
-require_relative 'host/group_manager'
-require_relative 'host/user_manager'
+#require_relative 'host/group_manager'
+require_relative 'users'
 
 require_relative 'kernel_refinements'
 require_relative 'string_refinements'
@@ -43,6 +43,10 @@ class Rosh
       @fs ||= Rosh::FileSystem.new(@name)
     end
 
+    def users
+      @users ||= Rosh::Users.new(@name)
+    end
+
     # Access to the PackageManager for the Host's OS type.
     #
     # @return [Rosh::Host::PackageManager]
@@ -76,15 +80,7 @@ class Rosh
       end
     end
 
-    def users
-      return @user_manager if @user_manager
-
-      @user_manager = case operating_system
-      when :darwin
-        Rosh::Host::UserManager.new(:open_directory, @name)
-      end
-    end
-
+=begin
     def groups
       return @group_manager if @group_manager
 
@@ -93,6 +89,7 @@ class Rosh
         Rosh::Host::GroupManager.new(:open_directory, @name)
       end
     end
+=end
 
     def local?
       @name == 'localhost'
