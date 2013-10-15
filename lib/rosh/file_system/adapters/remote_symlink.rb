@@ -4,7 +4,7 @@ require_relative 'remote_base'
 class Rosh
   class FileSystem
     module Adapters
-      class RemoteLink
+      class RemoteSymlink
         include RemoteBase
 
         class << self

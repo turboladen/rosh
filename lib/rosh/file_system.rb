@@ -1,7 +1,10 @@
-require 'observer'
 require_relative 'kernel_refinements'
-require_relative 'file_system/file'
+require_relative 'file_system/block_device'
+require_relative 'file_system/character_device'
 require_relative 'file_system/directory'
+require_relative 'file_system/file'
+require_relative 'file_system/object'
+require_relative 'file_system/symbolic_link'
 require_relative 'observable'
 
 
@@ -38,8 +41,12 @@ class Rosh
           directory(path[:dir])
         elsif path[:directory]
           directory(path[:directory])
-        elsif path[:link]
-          link(path[:link])
+        elsif path[:symbolic_link]
+          symbolic_link(path[:symbolic_link])
+        elsif path[:character_device]
+          character_device(path[:character_device])
+        elsif path[:block_device]
+          block_device(path[:block_device])
         elsif path[:object]
           object(path[:object])
         else
@@ -50,8 +57,12 @@ class Rosh
           file(path)
         elsif directory?(path)
           directory(path)
-        elsif link?(path)
-          link(path)
+        elsif symbolic_link?(path)
+          symbolic_link(path)
+        elsif character_device?(path)
+          character_device(path)
+        elsif block_device?(path)
+          block_device(path)
         else
           object(path)
         end
@@ -60,6 +71,22 @@ class Rosh
       result.add_observer(self)
 
       result
+    end
+
+    def block_device(path)
+      Rosh::FileSystem::BlockDevice.new(path, @host_name)
+    end
+
+    def block_device?(path)
+      adapter.blockdev?(path)
+    end
+
+    def character_device(path)
+      Rosh::FileSystem::CharacterDevice.new(path, @host_name)
+    end
+
+    def character_device?(path)
+      adapter.chardev?(path)
     end
 
     def chroot(new_root)
@@ -72,14 +99,6 @@ class Rosh
       end
     end
 
-    def file(path)
-      Rosh::FileSystem::File.new(path, @host_name)
-    end
-
-    def file?(path)
-      adapter.file?(path)
-    end
-
     def directory?(path)
       adapter.directory?(path)
     end
@@ -88,20 +107,28 @@ class Rosh
       Rosh::FileSystem::Directory.new(path, @host_name)
     end
 
-    def link(path)
-      Rosh::FileSystem::Link.new(path, @host_name)
+    def file(path)
+      Rosh::FileSystem::File.new(path, @host_name)
     end
 
-    def link?(path)
-      adapter.link?(path)
+    def file?(path)
+      adapter.file?(path)
+    end
+
+    def home
+      adapter.home
     end
 
     def object(path)
       Rosh::FileSystem::Object.new(path, @host_name)
     end
 
-    def home
-      adapter.home
+    def symbolic_link(path)
+      Rosh::FileSystem::SymbolicLink.new(path, @host_name)
+    end
+
+    def symbolic_link?(path)
+      adapter.symlink?(path)
     end
 
     def umask

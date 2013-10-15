@@ -11,7 +11,7 @@ class Rosh
       module LocalBase
         def self.included(base)
           base.extend ClassMethods
-          base.extend LocalStat
+          base.extend LocalStatMethods
         end
 
         module ClassMethods

@@ -7,6 +7,14 @@ class Rosh
             @host_name = host_name
           end
 
+          def blockdev?(path)
+            RemoteStat.blockdev?(path, @host_name)
+          end
+
+          def chardev?(path)
+            RemoteStat.chardev?(path, @host_name)
+          end
+
           def chroot(new_root)
             current_shell.exec "chroot #{new_root}"
           end

@@ -1,4 +1,3 @@
-require 'observer'
 require_relative 'base_methods'
 require_relative 'stat_methods'
 require_relative '../changeable'
@@ -18,9 +17,14 @@ class Rosh
         @host_name = host_name
       end
 
-      def to_file
-        require_relative 'file'
-        Rosh::FileSystem::File.new(@path, @host_name)
+      def to_blockdev
+        require_relative 'block_device'
+        Rosh::FileSystem::BlockDevice.new(@path, @host_name)
+      end
+
+      def to_chardev
+        require_relative 'character_device'
+        Rosh::FileSystem::CharacterDevice.new(@path, @host_name)
       end
 
       def to_directory
@@ -28,9 +32,14 @@ class Rosh
         Rosh::FileSystem::Directory.new(@path, @host_name)
       end
 
-      def to_link
-        require_relative 'link'
-        Rosh::FileSystem::Link.new(@path, @host_name)
+      def to_file
+        require_relative 'file'
+        Rosh::FileSystem::File.new(@path, @host_name)
+      end
+
+      def to_symlink
+        require_relative 'symbolic_link'
+        Rosh::FileSystem::SymbolicLink.new(@path, @host_name)
       end
     end
   end

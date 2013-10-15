@@ -1,4 +1,3 @@
-require 'observer'
 require_relative 'base_methods'
 require_relative 'stat_methods'
 require_relative '../changeable'

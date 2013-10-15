@@ -4,7 +4,7 @@ require_relative 'local_base'
 class Rosh
   class FileSystem
     module Adapters
-      class LocalLink
+      class LocalSymlink
         include LocalBase
 
         class << self

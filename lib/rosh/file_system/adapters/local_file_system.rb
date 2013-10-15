@@ -7,6 +7,14 @@ class Rosh
             @host_name = host_name
           end
 
+          def blockdev?(path)
+            ::File.blockdev?(path)
+          end
+
+          def chardev?(path)
+            ::File.chardev?(path)
+          end
+
           def chroot(new_root)
             ::Dir.chroot(new_root)
           end
