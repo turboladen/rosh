@@ -1,5 +1,6 @@
 require_relative 'kernel_refinements'
 require_relative 'observable'
+require_relative 'users/object'
 require_relative 'users/user'
 
 
@@ -7,6 +8,7 @@ class Rosh
   class Users
     include Rosh::Observable
 
+=begin
     def self.create(name, host_name)
       object = new(host_name)
 
@@ -16,14 +18,15 @@ class Rosh
         raise "Don't know what to do with #{name}"
       end
     end
+=end
 
     def initialize(host_name)
       @host_name = host_name
     end
 
     def [](name)
-      result = if open_directory?
-        open_directory name
+      result = if user?
+        user name
       else
         object name
       end
@@ -37,12 +40,16 @@ class Rosh
       adapter.list
     end
 
-    def open_directory(name)
-      Rosh::Users::User.new(name, :open_directory, @host_name)
+    def object(name)
+      Rosh::Users::Object.new(name, @host_name)
     end
 
-    def open_directory?
-      adapter.open_directory?
+    def user(name)
+      Rosh::Users::User.new(name, @host_name)
+    end
+
+    def user?
+      adapter.user?
     end
 
     def update(obj, attribute, old_value, new_value, as_sudo)
@@ -66,9 +73,19 @@ class Rosh
     def adapter
       return @adapter if @adapter
 
-      require_relative 'users/manager_adapters/open_directory'
+      @adapter = if current_host.local?
+        require_relative 'users/manager_adapters/local_manager'
+        Users::ManagerAdapters::LocalManager
+      else
+        if current_host.darwin?
+          require_relative 'users/manager_adapters/open_directory'
+          Users::ManagerAdapters::OpenDirectory
+        else
+          require_relative 'users/manager_adapters/unix'
+          Users::ManagerAdapters::Unix
+        end
+      end
 
-      @adapter = Users::ManagerAdapters::OpenDirectory
       @adapter.host_name = @host_name
 
       @adapter

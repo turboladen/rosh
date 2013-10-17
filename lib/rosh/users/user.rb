@@ -9,10 +9,9 @@ class Rosh
       include Rosh::Observable
 
       # @todo Also accept UIDs.
-      def initialize(user_name, type, host_name)
+      def initialize(user_name, host_name)
         @host_name = host_name
         @user_name = user_name
-        @type = type
       end
 
       def group_id
@@ -21,19 +20,37 @@ class Rosh
       alias_method :gid, :group_id
 
       def home_directory
-        adapter.home_directory
+        adapter.dir
       end
+      alias_method :dir, :home_directory
 
       def info
         adapter.info
       end
 
-      def reload!
-        adapter.reload!
+      def password
+        adapter.passwd
+      end
+
+      def password_age
+        adapter.age
+      end
+
+      def password_change_time
+        adapter.change
+      end
+
+      def password_expiration_time
+        adapter.expire
+      end
+
+      def quota
+        adapter.quota
       end
 
       def real_name
-        adapter.real_name
+        #adapter.real_name
+        adapter.gecos.split(',').first
       end
 
       def shell
@@ -61,10 +78,18 @@ class Rosh
       def adapter
         return @adapter if @adapter
 
-        @adapter = case @type
-        when :open_directory
-          require_relative 'object_adapters/open_directory'
-          Users::ObjectAdapters::OpenDirectory
+        @adapter = if current_host.local?
+          require_relative 'object_adapters/local_user'
+          Users::ObjectAdapters::LocalUser
+        else
+          case current_host.operating_system
+          when :linux
+            require_relative 'object_adapters/unix'
+            Users::ObjectAdapters::Unix
+          when :darwin
+            require_relative 'object_adapters/open_directory'
+            Users::ObjectAdapters::OpenDirectory
+          end
         end
 
         @adapter.user_name = @user_name

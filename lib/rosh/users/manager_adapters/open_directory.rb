@@ -26,7 +26,14 @@ class Rosh
 
               name = user.delete(:name)
               #Users::User.new(name, :open_directory, @host_name, user)
-              Users::User.new(name, :open_directory, @host_name)
+              Users::User.new(name, @host_name)
+            end
+
+            def user?
+              cmd = "dscl . -read /Users/#{@user_name}"
+              current_shell.exec cmd
+
+              current_shell.last_exit_status.zero?
             end
           end
         end
