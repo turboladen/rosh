@@ -73,10 +73,50 @@ class Rosh
         adapter.passwd
       end
 
-      # @todo Fix updating
+      # Takes a crypted (aka +crypt(3)+) password.
+      #
+      # On change: This will compare the existing encrypted password with the one
+      # given to determine if change should occur.  The new password needs to
+      # use the same style of password-ing as the host that you're working on
+      # uses.  Thus, if your Unix host uses SHA-512 encryption for passwords,
+      # the param given here should look something like:
+      #
+      #   $6$Mhlu.ZNL$BV9o4Xk8bJfwPypGA0H3gLVdAlUz/g8i3oNm2uoSFp8e/YN3GVp4ZaaU3/ND7loGJX2iYWQizcfDV9KPCCONe0
+      #
+      # Notification params: +:from+ will be the
+      #   * attribute: +:password+
+      #   * +:from+: The full shadow'ed passwd string, including id, salt, and
+      #     the encrypted string.
+      #   * +:to+: The +new_password+ parameter given.
+      #
+      # @param [String] new_password
       def password=(new_password)
+        current_hash = self.password
+
+        change_if(current_hash != new_password) do
+          notify_about(self, :password, from: current_hash, to: new_password) do
+            adapter.update_attribute(:passwd, new_password)
+          end
+        end
+      end
+
+      # Takes a plain-text password and sets the user's password as such.  Don't
+      # use this in scripts, of course, unless you're ok with letting others see
+      # the password for this user.
+      #
+      # On change: This will always try changing the password since there's no
+      # way to determine what the old password's plain text was.
+      #
+      # Notification notes: Will always use +********+ as the text for the old
+      # password, and will notify with the new password in plain text.  Again,
+      # be sure that objects that get notified are not storing this info unless,
+      # of course, you're ok with someone seeing what the password is for this
+      # user.
+      #
+      # @param [String] new_password
+      def password_in_plain_text=(new_password)
         change_if(true) do
-          notify_about(self, :password, from: 'xxx', to: 'xxx') do
+          notify_about(self, :password, from: '********', to: new_password) do
             adapter.update_attribute(:passwd, new_password)
           end
         end

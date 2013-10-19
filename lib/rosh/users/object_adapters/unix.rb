@@ -45,7 +45,7 @@ class Rosh
           end
 
           def dir
-            getent[:dir]
+            getent_passwd[:dir]
           end
 
           def exists?
@@ -62,7 +62,7 @@ class Rosh
           end
 
           def gecos
-            getent[:gecos]
+            getent_passwd[:gecos]
           end
 
           def gid
@@ -72,7 +72,7 @@ class Rosh
           end
 
           def info
-            getent
+            getent_passwd
           end
 
           def name
@@ -82,7 +82,7 @@ class Rosh
           end
 
           def passwd
-            getent[:passwd]
+            getent_shadow[:passwd]
           end
 
           # @todo Figure out what this should return.
@@ -95,7 +95,7 @@ class Rosh
           end
 
           def shell
-            getent[:shell]
+            getent_passwd[:shell]
           end
 
           def uid
@@ -106,7 +106,7 @@ class Rosh
 
           private
 
-          def getent
+          def getent_passwd
             result = current_shell.exec "getent passwd #{@user_name}"
             result_split = result.split(':')
 
@@ -118,6 +118,25 @@ class Rosh
               gecos: result_split[4],
               dir: result_split[5],
               shell: result_split[6].strip
+            }
+          end
+
+          def getent_shadow
+            result = current_shell.exec "getent shadow #{@user_name}"
+            result_split = result.split(':')
+
+            {
+              name: result_split[0],
+              passwd: result_split[1],
+              last_changed: Time.at(result_split[2].to_i * 86400),
+              days_before_can_change: result_split[3].to_i,
+              days_before_must_change: result_split[4].to_i,
+              days_before_change_warning: result_split[5].to_i,
+              days_before_disabled: result_split[6].strip.to_i,
+              days_since_disabled: result_split[7].empty? ? nil :Time.at(result_split[7].to_i * 86400),
+              encrypted_with: password_encryption_type(result_split[1]),
+              salt: password_salt(result_split[1]),
+              encrypted_passwd: password_encrypted(result_split[1])
             }
           end
 
@@ -162,6 +181,29 @@ class Rosh
             current_shell.exec "usermod --uid #{new_uid} #{@user_name}"
 
             current_shell.last_exit_status.zero?
+          end
+
+          private
+
+          def password_encryption_type(pass)
+            case pass[0..1]
+            when '$1'
+              :md5
+            when '$2a'
+              :blowfish
+            when '$5'
+              :sha256
+            when '$6'
+              :sha512
+            end
+          end
+
+          def password_salt(pass)
+            pass.split('$')[2]
+          end
+
+          def password_encrypted(pass)
+            pass.split('$')[3]
           end
         end
       end
