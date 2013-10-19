@@ -4,9 +4,13 @@ require_relative '../observable'
 
 class Rosh
   class Users
+    class UserNotFound < RuntimeError; end
+
     class User
       include Rosh::Changeable
       include Rosh::Observable
+
+      attr_reader :user_name
 
       # @todo Also accept UIDs.
       def initialize(user_name, host_name)
@@ -132,10 +136,6 @@ class Rosh
 
       def password_expiration_time
         adapter.expire
-      end
-
-      def quota
-        adapter.quota
       end
 
       def real_name
