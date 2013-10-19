@@ -1,4 +1,5 @@
 require 'time'
+require 'digest/md5'
 require_relative 'base'
 
 
@@ -9,6 +10,12 @@ class Rosh
         include Base
 
         class << self
+          def add_to_group(group)
+            current_shell.exec "usermod --append --groups #{group} #{@user_name}"
+
+            current_shell.last_exit_status.zero?
+          end
+
           def age
             Time.now - change
           end
@@ -25,8 +32,30 @@ class Rosh
 
           end
 
+          def create
+            current_shell.exec "useradd #{@user_name}"
+
+            current_shell.last_exit_status.zero?
+          end
+
+          def delete
+            current_shell.exec "userdel #{@user_name}"
+
+            current_shell.last_exit_status.zero?
+          end
+
           def dir
             getent[:dir]
+          end
+
+          def dir=(new_dir)
+            current_shell.exec "usermod --home #{new_dir} --move-home #{@user_name}"
+          end
+
+          def exists?
+            current_shell.exec "id #{@user_name}"
+
+            current_shell.last_exit_status.zero?
           end
 
           def expire
@@ -46,6 +75,13 @@ class Rosh
             result.to_i
           end
 
+          def gid=(new_gid)
+            current_shell.exec "usermod --gid #{new_gid} #{@user_name}"
+
+            current_shell.last_exit_status.zero?
+          end
+
+
           def info
             getent
           end
@@ -56,8 +92,21 @@ class Rosh
             result.strip
           end
 
+          def name=(new_name)
+            current_shell.exec "usermod --login #{new_name} #{@user_name}"
+
+            current_shell.last_exit_status.zero?
+          end
+
           def passwd
             getent[:passwd]
+          end
+
+          def passwd=(new_password)
+            cmd = "echo #{@user_name}:#{new_password} | chpasswd"
+            current_shell.exec cmd
+
+            current_shell.last_exit_status.zero?
           end
 
           # @todo Figure out what this should return.
@@ -65,8 +114,24 @@ class Rosh
 
           end
 
+          def real_name
+            self.gecos.split(',').first
+          end
+
+          def real_name=(new_name)
+            current_shell.exec %[chfn --full-name "#{new_name}" #{@user_name}]
+
+            current_shell.last_exit_status.zero?
+          end
+
           def shell
             getent[:shell]
+          end
+
+          def shell=(new_shell)
+            current_shell.exec "usermod --shell #{new_shell} #{@user_name}"
+
+            current_shell.last_exit_status.zero?
           end
 
           def uid
@@ -75,6 +140,11 @@ class Rosh
             result.to_i
           end
 
+          def uid=(new_uid)
+            current_shell.exec "usermod --uid #{new_uid} #{@user_name}"
+
+            current_shell.last_exit_status.zero?
+          end
 
           private
 

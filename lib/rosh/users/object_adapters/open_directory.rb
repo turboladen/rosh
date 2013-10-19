@@ -9,6 +9,13 @@ class Rosh
         include Base
 
         class << self
+          def exists?
+            cmd = "dscl . -read /Users/#{@user_name}"
+            current_shell.exec cmd
+
+            current_shell.last_exit_status.zero?
+          end
+
           def info
             @info ||= get_info
           end

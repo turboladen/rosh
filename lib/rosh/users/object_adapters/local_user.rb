@@ -21,6 +21,11 @@ class Rosh
             passwd.respond_to?(:change) ? Time.new(passwd.change) : nil
           end
 
+          # @todo Implement create for local user
+          def create
+            warn 'Not implemented'
+          end
+
           def comment
             passwd = info_by_name
 
@@ -29,6 +34,16 @@ class Rosh
 
           def dir
             info_by_name.dir
+          end
+
+          def exists?
+            begin
+              info_by_name
+            rescue
+              return false
+            end
+
+            true
           end
 
           def expire

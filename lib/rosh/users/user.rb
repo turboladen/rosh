@@ -14,15 +14,56 @@ class Rosh
         @user_name = user_name
       end
 
+      def create
+        change_if(!exists?) do
+          notify_about(self, :exists?, from: false, to: true) do
+            adapter.create
+          end
+        end
+      end
+
+      def delete
+        change_if(exists?) do
+          notify_about(self, :exists?, from: true, to: false) do
+            adapter.delete
+          end
+        end
+      end
+
+      def exists?
+        adapter.exists?
+      end
+
       def group_id
         adapter.gid
       end
       alias_method :gid, :group_id
 
+      def group_id=(new_gid)
+        current_gid = self.group_id
+
+        change_if(current_gid != new_gid) do
+          notify_about(self, :group_id, from: current_gid, to: new_gid) do
+            adapter.gid = new_gid
+          end
+        end
+      end
+
+      # @todo Should this return a Rosh::FileSystem::Directory?
       def home_directory
         adapter.dir
       end
       alias_method :dir, :home_directory
+
+      def home_directory=(new_home)
+        current_home = self.home_directory
+
+        change_if(current_home != new_home) do
+          notify_about(self, :home_directory, from: current_home, to: new_home) do
+            adapter.home_directory = new_home
+          end
+        end
+      end
 
       def info
         adapter.info
@@ -30,6 +71,15 @@ class Rosh
 
       def password
         adapter.passwd
+      end
+
+      # @todo Fix updating
+      def password=(new_password)
+        change_if(true) do
+          notify_about(self, :password, from: 'xxx', to: 'xxx') do
+            adapter.passwd = new_password
+          end
+        end
       end
 
       def password_age
@@ -49,12 +99,31 @@ class Rosh
       end
 
       def real_name
-        #adapter.real_name
-        adapter.gecos.split(',').first
+        adapter.real_name
+      end
+
+      def real_name=(new_name)
+        current_name = self.real_name
+
+        change_if(current_name != new_name) do
+          notify_about(self, :shell, from: current_name, to: new_name) do
+            adapter.real_name = new_name
+          end
+        end
       end
 
       def shell
         adapter.shell
+      end
+
+      def shell=(new_shell)
+        current_shell = self.shell
+
+        change_if(current_shell != new_shell) do
+          notify_about(self, :shell, from: current_shell, to: new_shell) do
+            adapter.shell = new_shell
+          end
+        end
       end
 
       def user_id
