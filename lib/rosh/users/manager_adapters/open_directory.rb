@@ -1,5 +1,6 @@
 require_relative 'base'
 require_relative '../user'
+require_relative '../group'
 
 
 class Rosh
@@ -9,7 +10,36 @@ class Rosh
         include Base
 
         class << self
-          def list
+          def groups
+            result = current_shell.exec 'dscacheutil -q group'
+            group_texts = result.split("\r\n\r\n")
+
+            group_texts.map do |group_text|
+              group = group_text.each_line.inject({}) do |result, line|
+                line.strip!
+                next if line.empty?
+                %r[(?<key>\S+):\s+(?<value>.+)$] =~ line.strip
+
+                value = value.split if key == 'users'
+                result[key.to_sym] = value
+
+                result
+              end
+
+              group.delete(:password)
+              name = group.delete(:name)
+              Users::Group.new(name, @host_name)
+            end
+          end
+
+          def group?(name)
+            cmd = "dscl . -read /Groups/#{name}"
+            current_shell.exec cmd
+
+            current_shell.last_exit_status.zero?
+          end
+
+          def users
             result = current_shell.exec 'dscacheutil -q user'
             user_texts = result.split("\r\n\r\n")
 
@@ -28,13 +58,13 @@ class Rosh
               #Users::User.new(name, :open_directory, @host_name, user)
               Users::User.new(name, @host_name)
             end
+          end
 
-            def user?
-              cmd = "dscl . -read /Users/#{@user_name}"
-              current_shell.exec cmd
+          def user?(name)
+            cmd = "dscl . -read /Users/#{name}"
+            current_shell.exec cmd
 
-              current_shell.last_exit_status.zero?
-            end
+            current_shell.last_exit_status.zero?
           end
         end
       end

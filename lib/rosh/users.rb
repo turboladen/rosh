@@ -1,6 +1,7 @@
 require_relative 'kernel_refinements'
 require_relative 'observable'
 require_relative 'users/object'
+require_relative 'users/group'
 require_relative 'users/user'
 
 
@@ -25,10 +26,22 @@ class Rosh
     end
 
     def [](name)
-      result = if user?
-        user name
+      result = if name.is_a? Hash
+        if name[:user]
+          user(name[:user])
+        elsif name[:group]
+          group(name[:group])
+        else
+          raise "Not sure what '#{name}' is."
+        end
       else
-        object name
+        if user?(name)
+          user name
+        elsif group?(name)
+          group name
+        else
+          object name
+        end
       end
 
       result.add_observer(self)
@@ -36,8 +49,16 @@ class Rosh
       result
     end
 
-    def list
-      adapter.list
+    def group(name)
+      Rosh::Users::Group.new(name, @host_name)
+    end
+
+    def group?(name)
+      adapter.group?(name)
+    end
+
+    def groups
+      adapter.groups
     end
 
     def object(name)
@@ -48,8 +69,12 @@ class Rosh
       Rosh::Users::User.new(name, @host_name)
     end
 
-    def user?
-      adapter.user?
+    def user?(name)
+      adapter.user?(name)
+    end
+
+    def users
+      adapter.users
     end
 
     def update(obj, attribute, old_value, new_value, as_sudo)

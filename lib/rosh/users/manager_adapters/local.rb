@@ -21,6 +21,16 @@ class Rosh
             groups
           end
 
+          def group?(name)
+            begin
+              ::Etc.getgrnam(name)
+            rescue ArgumentError
+              return false
+            end
+
+            true
+          end
+
           def users
             users = []
 
