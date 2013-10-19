@@ -7,7 +7,7 @@ require_relative 'file_system'
 require_relative 'host/package_manager'
 require_relative 'host/service_manager'
 #require_relative 'host/group_manager'
-require_relative 'users'
+require_relative 'user_manager'
 
 require_relative 'kernel_refinements'
 require_relative 'string_refinements'
@@ -44,7 +44,7 @@ class Rosh
     end
 
     def users
-      @users ||= Rosh::Users.new(@name)
+      @users ||= Rosh::UserManager.new(@name)
     end
 
     # Access to the PackageManager for the Host's OS type.

@@ -3,7 +3,7 @@ require_relative '../observable'
 
 
 class Rosh
-  class Users
+  class UserManager
     class UserNotFound < RuntimeError; end
 
     class User
@@ -189,15 +189,15 @@ class Rosh
 
         @adapter = if current_host.local?
           require_relative 'object_adapters/local_user'
-          Users::ObjectAdapters::LocalUser
+          UserManager::ObjectAdapters::LocalUser
         else
           case current_host.operating_system
           when :linux
             require_relative 'object_adapters/unix_user'
-            Users::ObjectAdapters::UnixUser
+            UserManager::ObjectAdapters::UnixUser
           when :darwin
             require_relative 'object_adapters/open_directory_user'
-            Users::ObjectAdapters::OpenDirectoryUser
+            UserManager::ObjectAdapters::OpenDirectoryUser
           end
         end
 

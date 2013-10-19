@@ -3,7 +3,7 @@ require_relative '../observable'
 
 
 class Rosh
-  class Users
+  class UserManager
     class Object
       include Rosh::Changeable
       include Rosh::Observable

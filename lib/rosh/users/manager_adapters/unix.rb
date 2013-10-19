@@ -4,7 +4,7 @@ require_relative '../group'
 
 
 class Rosh
-  class Users
+  class UserManager
     module ManagerAdapters
       class Unix
         include Base
@@ -14,7 +14,7 @@ class Rosh
             list = current_shell.exec 'getent group | cut -d: -f1'
 
             list.split.map do |name|
-              Rosh::Users::Group.new(name, @host_name)
+              Rosh::UserManager::Group.new(name, @host_name)
             end
           end
 
@@ -28,7 +28,7 @@ class Rosh
             list = current_shell.exec 'getent passwd | cut -d: -f1'
 
             list.split.map do |name|
-              Rosh::Users::User.new(name, @host_name)
+              Rosh::UserManager::User.new(name, @host_name)
             end
           end
 

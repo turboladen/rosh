@@ -4,7 +4,7 @@ require_relative '../user'
 
 
 class Rosh
-  class Users
+  class UserManager
     module ObjectAdapters
       class OpenDirectoryGroup
         include BaseGroup
@@ -15,7 +15,7 @@ class Rosh
             output = current_shell.exec cmd
 
             if output =~ /eDSRecordNotFound/
-              raise Rosh::Users::GroupNotFound, "Group not found: #{@group_name}"
+              raise Rosh::UserManager::GroupNotFound, "Group not found: #{@group_name}"
             else
               Plist.parse_xml(output)['dsAttrTypeStandard:PrimaryGroupID'].first.to_i
             end
@@ -26,10 +26,10 @@ class Rosh
             output = current_shell.exec cmd
 
             if output =~ /eDSRecordNotFound/
-              raise Rosh::Users::GroupNotFound, "Group not found: #{@group_name}"
+              raise Rosh::UserManager::GroupNotFound, "Group not found: #{@group_name}"
             else
               Plist.parse_xml(output)['dsAttrTypeStandard:GroupMembership'].map do |user_name|
-                Rosh::Users::User.new(user_name, @host_name)
+                Rosh::UserManager::User.new(user_name, @host_name)
               end
             end
           end
@@ -39,7 +39,7 @@ class Rosh
             output = current_shell.exec cmd
 
             if output =~ /eDSRecordNotFound/
-              raise Rosh::Users::GroupNotFound, "Group not found: #{@group_name}"
+              raise Rosh::UserManager::GroupNotFound, "Group not found: #{@group_name}"
             else
               Plist.parse_xml(output)['dsAttrTypeStandard:RecordName'].first
             end
@@ -50,7 +50,7 @@ class Rosh
             output = current_shell.exec cmd
 
             if output =~ /eDSRecordNotFound/
-              raise Rosh::Users::GroupNotFound, "Group not found: #{@group_name}"
+              raise Rosh::UserManager::GroupNotFound, "Group not found: #{@group_name}"
             else
               Plist.parse_xml(output)['dsAttrTypeStandard:Password'].first
             end

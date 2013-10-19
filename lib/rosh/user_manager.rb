@@ -6,7 +6,7 @@ require_relative 'users/user'
 
 
 class Rosh
-  class Users
+  class UserManager
     include Rosh::Observable
 
 =begin
@@ -50,7 +50,7 @@ class Rosh
     end
 
     def group(name)
-      Rosh::Users::Group.new(name, @host_name)
+      Rosh::UserManager::Group.new(name, @host_name)
     end
 
     def group?(name)
@@ -62,11 +62,11 @@ class Rosh
     end
 
     def object(name)
-      Rosh::Users::Object.new(name, @host_name)
+      Rosh::UserManager::Object.new(name, @host_name)
     end
 
     def user(name)
-      Rosh::Users::User.new(name, @host_name)
+      Rosh::UserManager::User.new(name, @host_name)
     end
 
     def user?(name)
@@ -100,14 +100,14 @@ class Rosh
 
       @adapter = if current_host.local?
         require_relative 'users/manager_adapters/local'
-        Users::ManagerAdapters::Local
+        UserManager::ManagerAdapters::Local
       else
         if current_host.darwin?
           require_relative 'users/manager_adapters/open_directory'
-          Users::ManagerAdapters::OpenDirectory
+          UserManager::ManagerAdapters::OpenDirectory
         else
           require_relative 'users/manager_adapters/unix'
-          Users::ManagerAdapters::Unix
+          UserManager::ManagerAdapters::Unix
         end
       end
 

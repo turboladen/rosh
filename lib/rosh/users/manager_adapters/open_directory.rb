@@ -4,7 +4,7 @@ require_relative '../group'
 
 
 class Rosh
-  class Users
+  class UserManager
     module ManagerAdapters
       class OpenDirectory
         include Base
@@ -28,7 +28,7 @@ class Rosh
 
               group.delete(:password)
               name = group.delete(:name)
-              Users::Group.new(name, @host_name)
+              UserManager::Group.new(name, @host_name)
             end
           end
 
@@ -56,7 +56,7 @@ class Rosh
 
               name = user.delete(:name)
               #Users::User.new(name, :open_directory, @host_name, user)
-              Users::User.new(name, @host_name)
+              UserManager::User.new(name, @host_name)
             end
           end
 

@@ -4,7 +4,7 @@ require_relative '../user'
 
 
 class Rosh
-  class Users
+  class UserManager
     module ObjectAdapters
       class LocalGroup
         include BaseGroup
@@ -16,7 +16,7 @@ class Rosh
 
           def members
             info_by_name.mem.map do |user_name|
-              Users::User.new(user_name, @host_name)
+              UserManager::User.new(user_name, @host_name)
             end
           end
 

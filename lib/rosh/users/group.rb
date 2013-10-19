@@ -3,7 +3,7 @@ require_relative '../observable'
 
 
 class Rosh
-  class Users
+  class UserManager
     class GroupNotFound < RuntimeError; end
 
     class Group
@@ -37,15 +37,15 @@ class Rosh
 
         @adapter = if current_host.local?
           require_relative 'object_adapters/local_group'
-          Users::ObjectAdapters::LocalGroup
+          UserManager::ObjectAdapters::LocalGroup
         else
           case current_host.operating_system
           when :linux
             require_relative 'object_adapters/unix_group'
-            Users::ObjectAdapters::UnixGroup
+            UserManager::ObjectAdapters::UnixGroup
           when :darwin
             require_relative 'object_adapters/open_directory_group'
-            Users::ObjectAdapters::OpenDirectoryGroup
+            UserManager::ObjectAdapters::OpenDirectoryGroup
           end
         end
 

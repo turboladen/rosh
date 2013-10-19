@@ -1,5 +1,5 @@
 class Rosh
-  class Users
+  class UserManager
     module ObjectAdapters
       module BaseUser
         def self.included(base)

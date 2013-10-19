@@ -3,7 +3,7 @@ require_relative '../user'
 
 
 class Rosh
-  class Users
+  class UserManager
     module ObjectAdapters
       class UnixGroup
         include BaseGroup
@@ -19,7 +19,7 @@ class Rosh
             result = current_shell.exec "getent group #{@group_name} | cut -d: -f4"
 
             result.split(',').map do |user_name|
-              Users::User.new(user_name, @host_name)
+              UserManager::User.new(user_name, @host_name)
             end
           end
 

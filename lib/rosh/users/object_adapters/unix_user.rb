@@ -4,7 +4,7 @@ require_relative 'base_user'
 
 
 class Rosh
-  class Users
+  class UserManager
     module ObjectAdapters
       class UnixUser
         include BaseUser

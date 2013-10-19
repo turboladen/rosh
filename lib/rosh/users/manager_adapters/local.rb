@@ -5,7 +5,7 @@ require_relative '../group'
 
 
 class Rosh
-  class Users
+  class UserManager
     module ManagerAdapters
       class Local
         include Base
@@ -15,7 +15,7 @@ class Rosh
             groups = []
 
             Etc.group do |struct|
-              groups << Rosh::Users::Group.new(struct.name, @host_name)
+              groups << Rosh::UserManager::Group.new(struct.name, @host_name)
             end
 
             groups
@@ -35,7 +35,7 @@ class Rosh
             users = []
 
             Etc.passwd do |struct|
-              users << Rosh::Users::User.new(struct.name, @host_name)
+              users << Rosh::UserManager::User.new(struct.name, @host_name)
             end
 
             users
