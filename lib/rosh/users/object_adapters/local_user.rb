@@ -18,7 +18,10 @@ class Rosh
           def change
             passwd = info_by_name
 
-            passwd.respond_to?(:change) ? Time.new(passwd.change) : nil
+            return nil unless passwd.respond_to?(:change)
+            return passwd.change if passwd.change.zero?
+
+            Time.at(passwd.change)
           end
 
           # @todo Implement create for local user
