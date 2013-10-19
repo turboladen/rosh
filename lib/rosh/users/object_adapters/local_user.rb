@@ -77,12 +77,6 @@ class Rosh
             info_by_name.passwd
           end
 
-          def quota
-            passwd = info_by_name
-
-            passwd.respond_to?(:quota) ? passwd.quota : nil
-          end
-
           def shell
             info_by_name.shell
           end
@@ -95,6 +89,34 @@ class Rosh
 
           def info_by_name
             ::Etc.getpwnam(@user_name)
+          end
+
+          def dir=(new_dir)
+            warn 'Not implemented!'
+          end
+
+          def gid=(new_gid)
+            warn 'Not implemented!'
+          end
+
+          def name=(new_name)
+            warn 'Not implemented!'
+          end
+
+          def passwd=(new_password)
+            warn 'Not implemented!'
+          end
+
+          def real_name=(new_name)
+            warn 'Not implemented!'
+          end
+
+          def shell=(new_shell)
+            warn 'Not implemented!'
+          end
+
+          def uid=(new_uid)
+            warn 'Not implemented!'
           end
         end
       end

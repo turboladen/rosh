@@ -85,11 +85,6 @@ class Rosh
             getent_shadow[:passwd]
           end
 
-          # @todo Figure out what this should return.
-          def quota
-
-          end
-
           def real_name
             self.gecos.split(',').first
           end
@@ -141,13 +136,13 @@ class Rosh
           end
 
           def dir=(new_dir)
-            current_shell.exec "usermod --home #{new_dir} --move-home #{@user_name}"
+            current_shell.exec %[usermod --home "#{new_dir}" --move-home #{@user_name}]
 
             current_shell.last_exit_status.zero?
           end
 
           def gid=(new_gid)
-            current_shell.exec "usermod --gid #{new_gid} #{@user_name}"
+            current_shell.exec %[usermod --gid #{new_gid} #{@user_name}]
 
             current_shell.last_exit_status.zero?
           end
@@ -159,7 +154,7 @@ class Rosh
           end
 
           def passwd=(new_password)
-            cmd = "echo #{@user_name}:#{new_password} | chpasswd"
+            cmd = %[echo "#{@user_name}:#{new_password}" | chpasswd]
             current_shell.exec cmd
 
             current_shell.last_exit_status.zero?
@@ -172,18 +167,16 @@ class Rosh
           end
 
           def shell=(new_shell)
-            current_shell.exec "usermod --shell #{new_shell} #{@user_name}"
+            current_shell.exec %[usermod --shell "#{new_shell}" #{@user_name}]
 
             current_shell.last_exit_status.zero?
           end
 
           def uid=(new_uid)
-            current_shell.exec "usermod --uid #{new_uid} #{@user_name}"
+            current_shell.exec %[usermod --uid #{new_uid} #{@user_name}]
 
             current_shell.last_exit_status.zero?
           end
-
-          private
 
           def password_encryption_type(pass)
             case pass[0..1]
