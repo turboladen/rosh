@@ -1,15 +1,27 @@
 require 'etc'
+require_relative 'base'
 require_relative '../user'
+require_relative '../group'
 
 
 class Rosh
   class Users
     module ManagerAdapters
-      class LocalManager
+      class Local
         include Base
 
         class << self
-          def list
+          def groups
+            groups = []
+
+            Etc.group do |struct|
+              groups << Rosh::Users::Group.new(struct.name, @host_name)
+            end
+
+            groups
+          end
+
+          def users
             users = []
 
             Etc.passwd do |struct|
@@ -19,9 +31,9 @@ class Rosh
             users
           end
 
-          def user?
+          def user?(name)
             begin
-              info_by_name
+              ::Etc.getpwnam(name)
             rescue ArgumentError
               return false
             end

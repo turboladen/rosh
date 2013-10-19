@@ -74,8 +74,8 @@ class Rosh
       return @adapter if @adapter
 
       @adapter = if current_host.local?
-        require_relative 'users/manager_adapters/local_manager'
-        Users::ManagerAdapters::LocalManager
+        require_relative 'users/manager_adapters/local'
+        Users::ManagerAdapters::Local
       else
         if current_host.darwin?
           require_relative 'users/manager_adapters/open_directory'

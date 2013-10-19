@@ -193,11 +193,11 @@ class Rosh
         else
           case current_host.operating_system
           when :linux
-            require_relative 'object_adapters/unix'
-            Users::ObjectAdapters::Unix
+            require_relative 'object_adapters/unix_user'
+            Users::ObjectAdapters::UnixUser
           when :darwin
-            require_relative 'object_adapters/open_directory'
-            Users::ObjectAdapters::OpenDirectory
+            require_relative 'object_adapters/open_directory_user'
+            Users::ObjectAdapters::OpenDirectoryUser
           end
         end
 

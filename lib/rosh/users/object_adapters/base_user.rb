@@ -1,7 +1,7 @@
 class Rosh
   class Users
     module ObjectAdapters
-      module Base
+      module BaseUser
         def self.included(base)
           base.extend ClassMethods
         end

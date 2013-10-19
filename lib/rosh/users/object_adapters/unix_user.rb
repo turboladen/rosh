@@ -1,13 +1,13 @@
 require 'time'
 require 'digest/md5'
-require_relative 'base'
+require_relative 'base_user'
 
 
 class Rosh
   class Users
     module ObjectAdapters
-      class Unix
-        include Base
+      class UnixUser
+        include BaseUser
 
         class << self
           def add_to_group(group)

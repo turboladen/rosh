@@ -1,12 +1,12 @@
 require 'etc'
-require_relative 'base'
+require_relative 'base_user'
 
 
 class Rosh
   class Users
     module ObjectAdapters
       class LocalUser
-        include Base
+        include BaseUser
 
         class << self
           def age
