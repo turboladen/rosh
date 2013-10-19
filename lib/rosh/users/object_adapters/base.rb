@@ -14,6 +14,10 @@ class Rosh
           def host_name=(host_name)
             @host_name = host_name
           end
+
+          def update_attribute(key, value)
+            self.send("#{key}=", value)
+          end
         end
       end
     end

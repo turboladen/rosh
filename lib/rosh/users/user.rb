@@ -44,7 +44,7 @@ class Rosh
 
         change_if(current_gid != new_gid) do
           notify_about(self, :group_id, from: current_gid, to: new_gid) do
-            adapter.gid = new_gid
+            adapter.update_attribute(:gid, new_gid)
           end
         end
       end
@@ -60,7 +60,7 @@ class Rosh
 
         change_if(current_home != new_home) do
           notify_about(self, :home_directory, from: current_home, to: new_home) do
-            adapter.home_directory = new_home
+            adapter.update_attribute(:dir, new_home)
           end
         end
       end
@@ -77,7 +77,7 @@ class Rosh
       def password=(new_password)
         change_if(true) do
           notify_about(self, :password, from: 'xxx', to: 'xxx') do
-            adapter.passwd = new_password
+            adapter.update_attribute(:passwd, new_password)
           end
         end
       end
@@ -107,7 +107,7 @@ class Rosh
 
         change_if(current_name != new_name) do
           notify_about(self, :shell, from: current_name, to: new_name) do
-            adapter.real_name = new_name
+            adapter.update_attribute(:real_name, new_name)
           end
         end
       end
@@ -121,7 +121,7 @@ class Rosh
 
         change_if(current_shell != new_shell) do
           notify_about(self, :shell, from: current_shell, to: new_shell) do
-            adapter.shell = new_shell
+            adapter.update_attribute(:shell, new_shell)
           end
         end
       end
@@ -137,7 +137,7 @@ class Rosh
 
         change_if(current_uid != new_uid) do
           notify_about(self, :user_id, from: current_uid, to: new_uid) do
-            adapter.uid = new_uid
+            adapter.update_attribute(:uid, new_uid)
           end
         end
       end
