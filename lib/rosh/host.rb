@@ -4,9 +4,8 @@ require 'log_switch'
 require_relative 'host/attributes'
 Dir[File.dirname(__FILE__) + '/host/shells/*.rb'].each(&method(:require))
 require_relative 'file_system'
-require_relative 'host/package_manager'
 require_relative 'host/service_manager'
-#require_relative 'host/group_manager'
+require_relative 'package_manager'
 require_relative 'user_manager'
 
 require_relative 'kernel_refinements'
@@ -49,9 +48,11 @@ class Rosh
 
     # Access to the PackageManager for the Host's OS type.
     #
-    # @return [Rosh::Host::PackageManager]
-    # @see Rosh::Host::PackageManager
+    # @return [Rosh::PackageManager]
+    # @see Rosh::PackageManager
     def packages
+      @package ||= Rosh::PackageManager.new(@name)
+=begin
       return @package_manager if @package_manager
 
       @package_manager = case operating_system
@@ -65,6 +66,7 @@ class Rosh
           Rosh::Host::PackageManager.new(@name, :yum)
         end
       end
+=end
     end
 
     def services

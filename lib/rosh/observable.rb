@@ -15,7 +15,7 @@ class Rosh
     # @return [Object]
     def notify_about(watched_object, attribute, from: from, to: to, criteria: nil, &block)
       result = block.call
-      criteria_met = criteria.nil? || criteria.call
+      criteria_met = criteria.nil? || criteria.kind_of?(Proc) ? criteria.call : criteria
 
       if criteria_met && result
         watched_object.changed
