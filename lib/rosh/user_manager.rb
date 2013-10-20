@@ -1,4 +1,5 @@
 require_relative 'kernel_refinements'
+require_relative 'changeable'
 require_relative 'observable'
 require_relative 'user_manager/object'
 require_relative 'user_manager/group'
@@ -7,6 +8,7 @@ require_relative 'user_manager/user'
 
 class Rosh
   class UserManager
+    include Rosh::Changeable
     include Rosh::Observable
 
 =begin
