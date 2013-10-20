@@ -1,8 +1,8 @@
 require_relative 'kernel_refinements'
 require_relative 'observable'
-require_relative 'users/object'
-require_relative 'users/group'
-require_relative 'users/user'
+require_relative 'user_manager/object'
+require_relative 'user_manager/group'
+require_relative 'user_manager/user'
 
 
 class Rosh
