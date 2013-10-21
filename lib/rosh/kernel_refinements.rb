@@ -1,3 +1,4 @@
+require 'colorize'
 require_relative '../rosh'
 
 
@@ -21,5 +22,20 @@ module Kernel
     end
 
     host
+  end
+
+  def good_info(text)
+    h = @host_name || 'localhost'
+    $stdout.puts "[#{h}] => #{text.strip}".light_blue
+  end
+
+  def bad_info(text)
+    h = @host_name || 'localhost'
+    $stderr.puts "[#{h}] !> #{text.strip}".light_red
+  end
+
+  def run_info(text)
+    h = @host_name || 'localhost'
+    $stdout.puts "[#{h}] $$ #{text.strip}".yellow
   end
 end
