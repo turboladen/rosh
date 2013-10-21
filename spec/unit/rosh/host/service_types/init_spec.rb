@@ -3,20 +3,15 @@ require 'rosh/host/service_types/init'
 
 
 describe Rosh::Host::ServiceTypes::Init do
-  let(:name) { 'thing' }
   let(:shell) { double 'Rosh::Host::Shell' }
   before { allow(subject).to receive(:current_shell) { shell } }
-
-  let(:result) do
-    r = double 'Rosh::CommandResult'
-    r.stub(:stdout).and_return 'output'
-    r.stub(:stderr)
-
-    r
-  end
+  subject { Object.new.extend Rosh::Host::ServiceTypes::Init }
 
   context 'linux' do
-    subject { Rosh::Host::ServiceTypes::Init.new(name, :linux, 'example.com') }
+    before do
+      subject.stub_chain(:current_host, :operating_system) { :linux }
+      subject.instance_variable_set(:@name, 'thing')
+    end
 
     describe '#info' do
       let(:info) { double 'service info' }
@@ -126,6 +121,8 @@ describe Rosh::Host::ServiceTypes::Init do
       end
 
       context 'exit status is 0 and a matching pid is found' do
+        let(:result) { ' running' }
+
         before do
           allow(shell).to receive(:last_exit_status) { 0 }
           subject.stub(:fetch_pid).and_return [123]
@@ -135,6 +132,8 @@ describe Rosh::Host::ServiceTypes::Init do
       end
 
       context 'exit status is 0 and a matching pid is not found' do
+        let(:result) { ' not running' }
+
         before do
           allow(shell).to receive(:last_exit_status) { 0 }
           subject.stub(:fetch_pid).and_return []
@@ -144,6 +143,8 @@ describe Rosh::Host::ServiceTypes::Init do
       end
 
       context 'exit status is non-0 and output contains unknown response' do
+        let(:result) { ' aaaaaarrrggghhh' }
+
         before do
           allow(shell).to receive(:last_exit_status) { 1 }
         end
@@ -152,6 +153,8 @@ describe Rosh::Host::ServiceTypes::Init do
       end
 
       context 'exit status is 127' do
+        let(:result) { ' aaaaaarrrggghhh' }
+
         before do
           allow(shell).to receive(:last_exit_status) { 127 }
         end

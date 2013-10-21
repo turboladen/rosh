@@ -1,5 +1,3 @@
-# TODO: Convert FSOs to follow Package/PackageTypes design.
-
 # TODO: CLI shell
 #   * Make adding shell commands more API-like.
 #   * Handle wrong number of args by printing out usage
@@ -58,3 +56,7 @@
 # TODO: Serialization of a full Host object (instead of just FileSystemObjects)
 # TODO: Handle uninstalled package manager (i.e. brew)
 # TODO: Groups
+
+# TODO: Use Shellwords.escape to escape paths that get passed to shell commands.
+
+# TODO: Add IO and Enumerable methods to FileSystem.

@@ -3,22 +3,10 @@ require 'rosh/host/package_managers/yum'
 
 
 describe Rosh::Host::PackageManagers::Yum do
-  let(:shell) { double 'Rosh::Host::Shell', :su? => false }
-
-  let(:observer) do
-    o = double 'Observer'
-    o.define_singleton_method(:update) do |one, two|
-      #
-    end
-
-    o
-  end
-
+  let(:shell) { double 'Rosh::Host::Shell' }
   before { allow(subject).to receive(:current_shell) { shell } }
 
-  subject do
-    Rosh::Host::PackageManagers::Yum.new(shell)
-  end
+  subject { Object.new.extend(Rosh::Host::PackageManagers::Yum) }
 
   describe '#installed_packages' do
     let(:output) do
@@ -66,13 +54,12 @@ ORBit2.x86_64                            2.14.3-5.el5          installed
   end
 
   describe '#update_definitions' do
-    it 'calls `yum check-update`' do
-      expect(shell).to receive(:exec).with 'yum check-update'
-      subject.update_definitions
+    specify do
+      expect(subject.update_definitions_command).to eq 'yum check-update'
     end
   end
 
-  describe '#_extract_update_definitions' do
+  describe '#extract_update_definitions' do
     context 'index does not change during update' do
       let(:output) do
         <<-OUTPUT
@@ -92,7 +79,7 @@ updates/primary_db                                                | 376 kB     0
       end
 
       it 'returns an empty Array' do
-        expect(subject._extract_updated_definitions(output)).to eq []
+        expect(subject.send(:extract_updated_definitions, output)).to eq []
       end
     end
 
@@ -119,7 +106,7 @@ binutils.x86_64                2.17.50.0.6-20.el5_8.3              base
       end
 
       it 'returns an Array of Hashes containing the updated package defs' do
-        expect(subject._extract_updated_definitions(output)).to eq [
+        expect(subject.send(:extract_updated_definitions, output)).to eq [
           {
             package: 'augeas-libs',
             architecture: 'x86_64',
@@ -142,13 +129,12 @@ binutils.x86_64                2.17.50.0.6-20.el5_8.3              base
   end
 
   describe '#upgrade_packages' do
-    it 'runs yum update -y' do
-      shell.should_receive(:exec).with('yum update -y')
-      subject.upgrade_packages
+    specify do
+      expect(subject.upgrade_packages_command).to eq 'yum update -y'
     end
   end
 
-  describe '#_extract_upgraded_packages' do
+  describe '#extract_upgraded_packages' do
     context 'nothing to upgrade' do
       let(:output) do
         <<-EOF
@@ -163,7 +149,7 @@ No Packages marked for Update
       end
 
       it 'returns an empty array' do
-        subject.send(:_extract_upgraded_packages, output).should == []
+        subject.send(:extract_upgraded_packages, output).should == []
       end
     end
 
@@ -281,7 +267,7 @@ Complete!
         subject.should_receive(:create_package).with('kernel-headers',
           version: '0:2.6.18-348.4.1.el5', architecture: 'x86_64').and_return 9
 
-        result = subject.send(:_extract_upgraded_packages, output)
+        result = subject.send(:extract_upgraded_packages, output)
         result.should eq [1, 2, 3, 4, 5, 6, 7, 8, 9]
       end
     end

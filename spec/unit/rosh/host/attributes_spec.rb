@@ -3,7 +3,7 @@ require 'rosh/host/attributes'
 
 
 describe Rosh::Host::Attributes do
-  let(:hostname) { 'test' }
+  let(:host_name) { 'test' }
   let(:shell) { double 'Rosh::Shell' }
 
   before do
@@ -22,7 +22,7 @@ describe Rosh::Host::Attributes do
     let(:result) { double 'Rosh::CommandResult' }
 
     before do
-      result.stub(:stdout).and_return hostname
+      result.stub(:stdout).and_return host_name
     end
 
     it 'runs "echo $SHELL" and returns the output as a Symbol' do

@@ -67,22 +67,20 @@ describe Rosh::Host::Shells::Local do
       end
 
       specify { @r.should eq 'command output' }
-      specify { subject.last_exit_status.should eq $?.exitstatus }
+      specify { pending; subject.last_exit_status.should eq $?.exitstatus }
       specify { subject.last_result.should eq @r }
     end
   end
 
   describe '#pwd' do
+    let(:output) { double 'output', to_s: 'the dir' }
+
     before do
-      Rosh::Host::FileSystemObjects::LocalDir.should_receive(:new).with(subject.
-        instance_variable_get(:@internal_pwd)).and_call_original
+      expect(subject).to receive(:process).with(:pwd) { output }
       @r = subject.pwd
     end
 
-    specify { @r.should be_a Rosh::Host::FileSystemObjects::LocalDir }
-    specify { @r.path.should eq '/' }
-    specify { subject.last_exit_status.should eq 0 }
-    specify { subject.last_result.should eq @r }
+    specify { expect(@r).to eq output  }
   end
 
   describe '#ruby' do

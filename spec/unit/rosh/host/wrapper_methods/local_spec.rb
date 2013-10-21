@@ -17,8 +17,7 @@ describe Rosh::Host::WrapperMethods::Local do
 
       before do
         Dir.should_receive(:entries).with(path).and_return [path]
-        Rosh::Host::FileSystemObjects::LocalBase.should_receive(:create).
-          and_return file_system_object
+        Rosh::FileSystem.should_receive(:create).and_return file_system_object
       end
 
       context 'path is relative' do

@@ -3,37 +3,13 @@ require 'rosh/host/package_managers/apt'
 
 
 describe Rosh::Host::PackageManagers::Apt do
-  let(:shell) do
-    s = double 'Rosh::Host::Shell'
-    s.stub_chain(:history, :last, :[], :zero?)
-    s.stub(:su?).and_return false
+  subject { Object.new.extend(Rosh::Host::PackageManagers::Apt) }
 
-    s
+  describe '#update_definitions_command' do
+    specify { expect(subject.update_definitions_command).to eq 'apt-get update' }
   end
 
-  let(:observer) do
-    o = double 'Observer'
-    o.define_singleton_method(:update) do |one, two|
-      #
-    end
-
-    o
-  end
-
-  subject { Rosh::Host::PackageManagers::Apt.new(shell) }
-
-  before do
-    allow(subject).to receive(:current_shell) { shell }
-  end
-
-  describe '#update_definitions' do
-    it 'calls apt-get update' do
-      expect(shell).to receive(:exec).with('apt-get update')
-      subject.update_definitions
-    end
-  end
-
-  describe '#_extract_update_definitions' do
+  describe '#extract_update_definitions' do
     context 'index does not change during update' do
       let(:output) do
         <<-OUTPUT
@@ -50,7 +26,7 @@ Reading package lists... Done
       end
 
       it 'returns an empty Array' do
-        expect(subject._extract_updated_definitions(output)).to eq []
+        expect(subject.send(:extract_updated_definitions, output)).to eq []
       end
     end
 
@@ -71,7 +47,7 @@ Reading package lists... Done
       end
 
       it 'returns an Array of Hashes containing the updated package defs' do
-        expect(subject._extract_updated_definitions(output)).to eq [
+        expect(subject.send(:extract_updated_definitions, output)).to eq [
           {
             source: 'http://us.archive.ubuntu.com',
             distribution: 'precise-backports',
@@ -88,15 +64,14 @@ Reading package lists... Done
     end
   end
 
-  describe '#upgrade_packages' do
-    it 'runs apt-get upgrade -y' do
-      shell.should_receive(:exec).
-        with('apt-get upgrade -y DEBIAN_FRONTEND=noninteractive')
-      subject.upgrade_packages
+  describe '#upgrade_packages_command' do
+    specify do
+      expect(subject.upgrade_packages_command).
+        to eq 'apt-get upgrade -y DEBIAN_FRONTEND=noninteractive'
     end
   end
 
-  describe '#_extract_upgraded_packages' do
+  describe '#extract_upgraded_packages' do
     let(:output) do
        <<-EOF
 The following packages will be upgraded:
@@ -107,8 +82,8 @@ The following packages will be upgraded:
     end
 
     it 'returns an array of new Deb packages' do
-      result = subject._extract_upgraded_packages(output)
-      result.all? { |r| expect(r).to be_a Rosh::Host::PackageTypes::Deb }
+      result = subject.send(:extract_upgraded_packages, output)
+      result.all? { |r| expect(r).to be_a Rosh::Host::Package }
     end
   end
 end

@@ -4,8 +4,13 @@ require 'rosh/host/package_types/brew'
 
 describe Rosh::Host::PackageTypes::Brew do
   let(:shell) { double 'Rosh::Host::Shell', :su? => false }
-  before { allow(subject).to receive(:current_shell) { shell } }
-  subject { Rosh::Host::PackageTypes::Brew.new('thing', 'example.com') }
+  subject { Object.new.extend Rosh::Host::PackageTypes::Brew }
+
+  before do
+    allow(subject).to receive(:current_shell) { shell }
+    subject.instance_variable_set(:@name, 'thing')
+    subject.instance_variable_set(:@bin_path, subject.send(:default_bin_path))
+  end
 
   describe '#info' do
     before do
@@ -65,74 +70,6 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
           status: :not_installed,
           homepage: 'http://www.monkey.org/~provos/libevent/'
         })
-      end
-    end
-  end
-
-  describe '#installed_versions' do
-    before do
-      subject.instance_variable_set(:@name, 'git')
-      expect(shell).to receive(:exec).with('/usr/local/bin/brew info git') { output }
-    end
-
-    context 'package not installed' do
-      let(:output) do
-        <<-OUTPUT
-isl: stable 0.11.2, HEAD
-http://www.kotnet.org/~skimo/isl/
-Not installed
-From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/isl.rb
-==> Dependencies
-Required: gmp
-        OUTPUT
-      end
-
-      specify { expect(subject.installed_versions).to eq [] }
-    end
-
-    context 'package installed' do
-      let(:output) do
-        <<-OUTPUT
-git: stable 1.8.3.4, HEAD
-http://git-scm.com
-/usr/local/Cellar/git/1.8.3.1 (1324 files, 28M)
-  Built from source
-/usr/local/Cellar/git/1.8.3.3 (1326 files, 29M)
-  Built from source
-From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
-        OUTPUT
-      end
-
-      specify { expect(subject.installed_versions).to eq %w[1.8.3.1 1.8.3.3] }
-    end
-  end
-
-  describe '#install' do
-    context 'with version' do
-      it 'calls #install_and_switch_version' do
-        expect(subject).to receive(:install_and_switch_version).with('0.1.2')
-
-        subject.install('0.1.2')
-      end
-    end
-
-    context 'no version' do
-      context 'failed install' do
-        before do
-          allow(shell).to receive(:last_exit_status) { 1 }
-          expect(shell).to receive(:exec).with('/usr/local/bin/brew install thing')
-        end
-
-        specify { expect(subject.install).to eq false }
-      end
-
-      context 'successful install' do
-        before do
-          allow(shell).to receive(:last_exit_status) { 0 }
-          expect(shell).to receive(:exec).with('/usr/local/bin/brew install thing')
-        end
-
-        specify { expect(subject.install).to eq true }
       end
     end
   end
@@ -200,35 +137,153 @@ The 'contrib' directory has been installed to:
     end
   end
 
-  describe '#remove' do
-    before do
-      expect(shell).to receive(:exec).with('/usr/local/bin/brew remove thing')
+  describe '#at_latest_version?' do
+    context 'true' do
+      before do
+        allow(subject).to receive(:info) { { version: '1' } }
+        allow(subject).to receive(:current_version) { '1' }
+      end
+
+      it 'returns true' do
+        subject.should be_at_latest_version
+      end
     end
 
-    context 'failed removal' do
-      before { allow(shell).to receive(:last_exit_status) { 1 } }
-      specify { expect(subject.remove).to eq false }
-    end
+    context 'false' do
+      before do
+        allow(subject).to receive(:info) { { version: '1' } }
+        allow(subject).to receive(:current_version) { '2' }
+      end
 
-    context 'successful removal' do
-      before { allow(shell).to receive(:last_exit_status) { 0 } }
-      specify { expect(subject.remove).to eq true }
+      it 'returns true' do
+        subject.should_not be_at_latest_version
+      end
     end
   end
 
-  describe '#upgrade' do
+  describe '#current_version' do
+    context 'not installed' do
+      before do
+        allow(subject).to receive(:installed_versions) { [] }
+      end
+
+      it 'returns nil' do
+        expect(subject.current_version).to be_nil
+      end
+    end
+
+    context 'installed' do
+      before do
+        allow(subject).to receive(:installed_versions) { %w[1] }
+      end
+
+      it 'returns the currently installed version' do
+        expect(subject.current_version).to eq '1'
+      end
+    end
+  end
+
+  describe '#installed_versions' do
+    before do
+      subject.instance_variable_set(:@name, 'git')
+      expect(shell).to receive(:exec).with('/usr/local/bin/brew info git') { output }
+    end
+
+    context 'package not installed' do
+      let(:output) do
+        <<-OUTPUT
+isl: stable 0.11.2, HEAD
+http://www.kotnet.org/~skimo/isl/
+Not installed
+From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/isl.rb
+==> Dependencies
+Required: gmp
+        OUTPUT
+      end
+
+      specify { expect(subject.installed_versions).to eq [] }
+    end
+
+    context 'package installed' do
+      let(:output) do
+        <<-OUTPUT
+git: stable 1.8.3.4, HEAD
+http://git-scm.com
+/usr/local/Cellar/git/1.8.3.1 (1324 files, 28M)
+  Built from source
+/usr/local/Cellar/git/1.8.3.3 (1326 files, 29M)
+  Built from source
+From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
+        OUTPUT
+      end
+
+      specify { expect(subject.installed_versions).to eq %w[1.8.3.1 1.8.3.3] }
+    end
+  end
+
+  describe '#default_bin_path' do
+    specify { expect(subject.send(:default_bin_path)).to eq '/usr/local/bin' }
+  end
+
+  describe '#install_package' do
+    context 'with version' do
+      it 'calls #install_and_switch_version' do
+        expect(subject).to receive(:install_and_switch_version).with('0.1.2')
+
+        subject.send(:install_package, '0.1.2')
+      end
+    end
+
+    context 'no version' do
+      context 'failed install' do
+        before do
+          allow(shell).to receive(:last_exit_status) { 1 }
+          expect(shell).to receive(:exec).with('/usr/local/bin/brew install thing')
+        end
+
+        specify { expect(subject.send(:install_package)).to eq false }
+      end
+
+      context 'successful install' do
+        before do
+          allow(shell).to receive(:last_exit_status) { 0 }
+          expect(shell).to receive(:exec).with('/usr/local/bin/brew install thing')
+        end
+
+        specify { expect(subject.send(:install_package)).to eq true }
+      end
+    end
+  end
+
+  describe '#upgrade_package' do
     before do
       expect(shell).to receive(:exec).with('/usr/local/bin/brew upgrade thing')
     end
 
     context 'failed upgrade' do
       before { allow(shell).to receive(:last_exit_status) { 1 } }
-      specify { expect(subject.upgrade).to eq false }
+      specify { expect(subject.send(:upgrade_package)).to eq false }
     end
 
     context 'successful upgrade' do
       before { allow(shell).to receive(:last_exit_status) { 0 } }
-      specify { expect(subject.upgrade).to eq true }
+      specify { expect(subject.send(:upgrade_package)).to eq true }
+    end
+  end
+
+  describe '#remove_package' do
+    before do
+      expect(shell).to receive(:exec).with('/usr/local/bin/brew remove thing')
+    end
+
+    context 'failed removal' do
+      before { allow(shell).to receive(:last_exit_status) { 1 } }
+      specify { expect(subject.send(:remove_package)).to eq false }
+    end
+
+    context 'successful removal' do
+      before { allow(shell).to receive(:last_exit_status) { 0 } }
+      specify { expect(subject.send(:remove_package)).to eq true }
     end
   end
 

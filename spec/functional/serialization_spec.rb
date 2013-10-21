@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'rosh/host/shells/remote'
-require 'rosh/host/file_system_objects/remote_base'
+require 'rosh/file_system/adapters/remote_base'
 
 
 describe 'Serialization' do
@@ -14,7 +14,7 @@ describe 'Serialization' do
       let(:yaml) do
         <<-SHELL
 --- !ruby/object:Rosh::Host::Shells::Remote
-hostname: example.com
+host_name: example.com
 user: bobo
 options:
   :keys:
@@ -29,7 +29,7 @@ options:
       it 'imports to a Rosh::Host::Shells::Remote' do
         new_shell = YAML.load(yaml)
         new_shell.should be_a Rosh::Host::Shells::Remote
-        new_shell.hostname.should eq 'example.com'
+        new_shell.host_name.should eq 'example.com'
         new_shell.options[:keys].should == %w[some_key]
         new_shell.instance_variable_get(:@user).should eq 'bobo'
         new_shell.instance_variable_get(:@sudo).should eq false
@@ -37,9 +37,11 @@ options:
     end
   end
 
-  describe Rosh::Host::FileSystemObjects::RemoteBase do
+  describe Rosh::FileSystem::Adapters::RemoteBase do
+    pending
+
     subject do
-      Rosh::Host::FileSystemObjects::RemoteBase.new(__FILE__, 'example.com')
+      Rosh::FileSystem::Adapters::RemoteBase.new(__FILE__, 'example.com')
     end
 
     before do
@@ -53,7 +55,7 @@ options:
         <<-FSO
 --- !ruby/object:Rosh::Host::FileSystemObjects::RemoteBase
 path: #{__FILE__}
-host_label: example.com
+host_name: example.com
         FSO
       end
 
@@ -61,7 +63,7 @@ host_label: example.com
         subject.to_yaml.should == <<-FSO
 --- !ruby/object:Rosh::Host::FileSystemObjects::RemoteBase
 path: #{__FILE__}
-host_label: example.com
+host_name: example.com
         FSO
       end
 
@@ -69,7 +71,7 @@ host_label: example.com
         new_fso = YAML.load(yaml)
         new_fso.should be_a Rosh::Host::FileSystemObjects::RemoteBase
         new_fso.to_path.should eq __FILE__
-        new_fso.instance_variable_get(:@host_label).should eq 'example.com'
+        new_fso.instance_variable_get(:@host_name).should eq 'example.com'
       end
     end
   end

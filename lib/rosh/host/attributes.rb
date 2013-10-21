@@ -62,7 +62,7 @@ class Rosh
         @architecture
       end
 
-      # The name of the remote shell for the user on hostname that initiated the
+      # The name of the remote shell for the user on host_name that initiated the
       # Rosh::SSH connection for the host.
       #
       # @return [String] The shell type.
@@ -74,6 +74,14 @@ class Rosh
         %r[(?<shell>[a-z]+)$] =~ stdout
 
         shell.to_sym
+      end
+
+      def darwin?
+        operating_system == :darwin
+      end
+
+      def linux?
+        operating_system == :linux
       end
 
       #---------------------------------------------------------------------------

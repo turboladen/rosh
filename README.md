@@ -104,7 +104,7 @@ you access to some attributes of that object:
 ```ruby
 Rosh.add_host('my_server.example.com', host_label: :box1, user: 'admin')
 Rosh[:box1].class                   # => Rosh::Host
-Rosh[:box1].hostname
+Rosh[:box1].host_name
 # (prompts for password)
 # => 'my_server.example.com'
 Rosh[:box1].user                    # => 'admin'
@@ -139,25 +139,25 @@ behaves a bit like an ORM.
 
 ```ruby
 # Directories
-Rosh[:box1].fs.directory('/tmp/neat_dir').exists?      # => false
-Rosh[:box1].fs.directory('/tmp/neat_dir').save         # => true
-Rosh[:box1].fs.directory('/tmp/neat_dir').exists?      # => true
-Rosh[:box1].fs.directory('/tmp/neat_dir').owner        # => 'admin'
+Rosh[:box1].fs[directory: '/tmp/neat_dir'].exists?      # => false
+Rosh[:box1].fs[directory: '/tmp/neat_dir'].save         # => true
+Rosh[:box1].fs[directory: '/tmp/neat_dir'].exists?      # => true
+Rosh[:box1].fs[directory: '/tmp/neat_dir'].owner        # => 'admin'
 
 # Files
-Rosh[:box1].fs.file('/tmp/neat_file').exists?      # => false
-Rosh[:box1].fs.file('/tmp/neat_file').contents     # => nil
-Rosh[:box1].fs.file('/tmp/neat_file').contents = "Hi!"
-Rosh[:box1].fs.file('/tmp/neat_file').save         # => true
-Rosh[:box1].fs.file('/tmp/neat_file').contents     # => "Hi!"
-Rosh[:box1].fs.file('/tmp/neat_file').exists?      # => true
+Rosh[:box1].fs[file: '/tmp/neat_file'].exists?      # => false
+Rosh[:box1].fs[file: '/tmp/neat_file'].contents     # => nil
+Rosh[:box1].fs[file: '/tmp/neat_file'].contents = "Hi!"
+Rosh[:box1].fs[file: '/tmp/neat_file'].save         # => true
+Rosh[:box1].fs[file: '/tmp/neat_file'].contents     # => "Hi!"
+Rosh[:box1].fs[file: '/tmp/neat_file'].exists?      # => true
 ```
 
 You're not limited to the above syntax; you could rewrite the above like:
 
 ```ruby
 # Directories
-dir = Rosh[:box1].fs.directory('/tmp/neat_dir')
+dir = Rosh[:box1].fs[directory: '/tmp/neat_dir']
 dir.class        # => Rosh::Host::FileSystemObjects::RemoteDir
 dir.exists?      # => false
 dir.save         # => true
@@ -165,7 +165,7 @@ dir.exists?      # => true
 dir.owner        # => 'admin'
 
 # Files
-file = Rosh[:box1].fs.file('/tmp/neat_file')
+file = Rosh[:box1].fs[file: '/tmp/neat_file']
 file.class        # => Rosh::Host::FileSystemObjects::RemoteFile
 file.exists?      # => false
 file.contents     # => nil

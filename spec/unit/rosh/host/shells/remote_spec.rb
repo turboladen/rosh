@@ -7,7 +7,7 @@ describe Rosh::Host::Shells::Remote do
     double 'Net::SSH::Connection', close: true, :closed? => true
   end
 
-  let(:hostname) { 'testhost' }
+  let(:host_name) { 'testhost' }
   let(:outcome) { double 'Rosh::CommandResult' }
 
   let(:ssh_output) do
@@ -20,7 +20,7 @@ describe Rosh::Host::Shells::Remote do
   end
 
   let(:internal_pwd) { '/home' }
-  subject { Rosh::Host::Shells::Remote.new(hostname) }
+  subject { Rosh::Host::Shells::Remote.new(host_name) }
 
   before do
     Net::SSH.stub(:start).and_return(ssh)
@@ -34,27 +34,27 @@ describe Rosh::Host::Shells::Remote do
 
   describe '#initialize' do
     context 'no options passed in' do
-      its(:hostname) { should eq 'testhost' }
+      its(:host_name) { should eq 'testhost' }
       its(:user) { should eq Etc.getlogin }
     end
 
     context ':user option passed in' do
       subject { Rosh::Host::Shells::Remote.new('test', user: 'bobo') }
-      its(:hostname) { should eq 'test' }
+      its(:host_name) { should eq 'test' }
       its(:user) { should eq 'bobo' }
       its(:options) { should eq({}) }
     end
 
     context ':timeout option passed in' do
       subject { Rosh::Host::Shells::Remote.new('test', timeout: 1) }
-      its(:hostname) { should eq 'test' }
+      its(:host_name) { should eq 'test' }
       its(:user) { should eq Etc.getlogin }
       its(:options) { should eq(timeout: 1) }
     end
 
     context ':meow option passed in' do
       subject { Rosh::Host::Shells::Remote.new('test', meow: 'cat') }
-      its(:hostname) { should eq 'test' }
+      its(:host_name) { should eq 'test' }
       its(:user) { should eq Etc.getlogin }
       its(:options) { should eq(meow: 'cat') }
     end

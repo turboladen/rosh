@@ -6,24 +6,24 @@ require 'rosh/host/package_types/rpm'
 
 describe 'Package type API' do
   shared_examples_for 'a package' do
-    ATTRIBUTES =
-      %i[name version status]
+    PUBLIC_INSTANCE_METHODS =
+      %i[bin_path info installed? at_latest_version? current_version]
 
-    INSTANCE_METHODS =
-      %i[info installed? install at_latest_version? current_version remove upgrade]
+    PRIVATE_INSTANCE_METHODS =
+      %i[default_bin_path install_package upgrade_package remove_package]
 
     OBSERVABLE_METHODS =
       %i[add_observer changed notify_observers]
 
-    ATTRIBUTES.each do |meth|
-      it "responds to accessor ##{meth.to_s}" do
+    PUBLIC_INSTANCE_METHODS.each do |meth|
+      it "responds to public instance method ##{meth.to_s}" do
         subject.should respond_to meth
       end
     end
 
-    INSTANCE_METHODS.each do |meth|
-      it "responds to instance method ##{meth.to_s}" do
-        subject.should respond_to meth
+    PRIVATE_INSTANCE_METHODS.each do |meth|
+      it "responds to private instance method ##{meth.to_s}" do
+        subject.respond_to?(meth, true).should be_true
       end
     end
 
@@ -34,12 +34,12 @@ describe 'Package type API' do
     end
   end
 
-  %i[Brew Deb Rpm].each do |package_type|
-    package_type_class = Rosh::Host::PackageTypes.const_get package_type
+  %i[brew deb rpm].each do |package_type|
+    describe package_type do
+      subject do
+        Rosh::Host::Package.new(package_type, 'api_test', 'example.com')
+      end
 
-    describe package_type_class do
-      let(:shell) { double 'Rosh::Host::Shells::AShell' }
-      subject { package_type_class.new('api_test', shell) }
       it_behaves_like 'a package'
     end
   end

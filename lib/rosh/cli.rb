@@ -163,14 +163,14 @@ class Rosh
     #---------------------------------------------------------------------------
     private
 
-    def ch(hostname)
-      new_host = Rosh.hosts[hostname]
+    def ch(host_name)
+      new_host = Rosh.hosts[host_name]
 
       if new_host.nil?
-        log "No host defined for '#{hostname}'"
+        log "No host defined for '#{host_name}'"
         Rosh::CommandResult.new(new_host, 1)
       else
-        log "Changed to host '#{hostname}'"
+        log "Changed to host '#{host_name}'"
         @current_host = new_host
         Rosh::CommandResult.new(new_host, 0)
       end

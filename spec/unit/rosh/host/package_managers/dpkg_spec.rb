@@ -5,10 +5,7 @@ require 'rosh/host/package_managers/dpkg'
 describe Rosh::Host::PackageManagers::Dpkg do
   let(:shell) { double 'Rosh::Host::Shell' }
   before { allow(subject).to receive(:current_shell) { shell } }
-
-  subject do
-    Rosh::Host::PackageManagers::Dpkg.new(shell)
-  end
+  subject { Object.new.extend(Rosh::Host::PackageManagers::Dpkg) }
 
   describe '#installed_packages' do
     let(:output) do

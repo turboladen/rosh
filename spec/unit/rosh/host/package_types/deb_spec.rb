@@ -4,25 +4,29 @@ require 'rosh/host/package_types/deb'
 
 describe Rosh::Host::PackageTypes::Deb do
   let(:shell) { double 'Rosh::Host::Shell', :su? => false }
-  before { allow(subject).to receive(:current_shell) { shell } }
-  subject { Rosh::Host::PackageTypes::Deb.new('thing', 'example.com') }
+  subject { Object.new.extend Rosh::Host::PackageTypes::Deb }
+
+  before do
+    allow(subject).to receive(:current_shell) { shell }
+    subject.instance_variable_set(:@name, 'thing')
+  end
 
   describe '#info' do
     let(:output) do
       <<-OUTPUT
-Package: zlib1g-dev
-Status: install ok installed
-Multi-Arch: same
-Installed-Size: 388
-Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
-Architecture: amd64
-Version: 1:1.2.3.4.dfsg-3ubuntu4
-Depends: zlib1g (= 1:1.2.3.4.dfsg-3ubuntu4), libc6-dev | libc-dev
-Description: compression library - development
- zlib is a library implementing the deflate compression method found
- in gzip and PKZIP.  This package includes the development support
- files.
-Homepage: http://zlib.net/
+Package: zlib1g-dev\r
+Status: install ok installed\r
+Multi-Arch: same\r
+Installed-Size: 388\r
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>\r
+Architecture: amd64\r
+Version: 1:1.2.3.4.dfsg-3ubuntu4\r
+Depends: zlib1g (= 1:1.2.3.4.dfsg-3ubuntu4), libc6-dev | libc-dev\r
+Description: compression library - development\r
+ zlib is a library implementing the deflate compression method found\r
+ in gzip and PKZIP.  This package includes the development support\r
+ files.\r
+Homepage: http://zlib.net/\r
       OUTPUT
     end
 
@@ -46,55 +50,6 @@ in gzip and PKZIP.  This package includes the development support
 files.",
         homepage: 'http://zlib.net/'
       }
-    end
-  end
-
-  describe 'installed?' do
-    context 'is not installed' do
-      before do
-        shell.should_receive(:exec).with('dpkg --status thing')
-        shell.stub(:last_exit_status).and_return 1
-      end
-
-      specify { subject.should_not be_installed }
-    end
-
-    context 'is installed' do
-      before do
-        shell.should_receive(:exec).with('dpkg --status thing')
-        shell.stub(:last_exit_status).and_return 0
-      end
-
-      specify { subject.should be_installed }
-    end
-  end
-
-  describe '#install' do
-    context 'with version' do
-      it 'adds -version to the install command' do
-        allow(shell).to receive(:last_exit_status) { 0 }
-        expect(shell).to receive(:exec).
-          with('DEBIAN_FRONTEND=noninteractive apt-get install thing=0.1.2 -y')
-
-        subject.install('0.1.2')
-      end
-    end
-
-    context 'no version' do
-      before do
-        expect(shell).to receive(:exec).
-          with('DEBIAN_FRONTEND=noninteractive apt-get install thing -y')
-      end
-
-      context 'failed install' do
-        before { allow(shell).to receive(:last_exit_status) { 1 } }
-        specify { expect(subject.install).to eq false }
-      end
-
-      context 'successful install' do
-        before { allow(shell).to receive(:last_exit_status) { 0 } }
-        specify { expect(subject.install).to eq true }
-      end
     end
   end
 
@@ -128,13 +83,13 @@ N: Unable to locate package meow
     context 'not installed' do
       let(:result) do
         <<-RESULT
-git:
-  Installed: (none)
-  Candidate: 1:1.7.9.5-1
-  Version table:
-     1:1.7.9.5-1 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
-        100 /var/lib/dpkg/status
+git:\r
+  Installed: (none)\r
+  Candidate: 1:1.7.9.5-1\r
+  Version table:\r
+     1:1.7.9.5-1 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages\r
+        100 /var/lib/dpkg/status\r
         RESULT
       end
 
@@ -145,17 +100,17 @@ git:
       context 'not at latest' do
         let(:result) do
           <<-RESULT
-apt:
-  Installed: 0.8.16~exp12ubuntu10
-  Candidate: 0.8.16~exp12ubuntu10.12
-  Version table:
-     0.8.16~exp12ubuntu10.12 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages
-     0.8.16~exp12ubuntu10.10 0
-        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages
- *** 0.8.16~exp12ubuntu10 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
-        100 /var/lib/dpkg/status
+apt:\r
+  Installed: 0.8.16~exp12ubuntu10\r
+  Candidate: 0.8.16~exp12ubuntu10.12\r
+  Version table:\r
+     0.8.16~exp12ubuntu10.12 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages\r
+     0.8.16~exp12ubuntu10.10 0\r
+        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages\r
+ *** 0.8.16~exp12ubuntu10 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages\r
+        100 /var/lib/dpkg/status\r
           RESULT
         end
 
@@ -165,20 +120,20 @@ apt:
       context 'at latest' do
         let(:result) do
           <<-RESULT
-curl:
-  Installed: 7.22.0-3ubuntu4.2
-  Candidate: 7.22.0-3ubuntu4.2
-  Version table:
- *** 7.22.0-3ubuntu4.2 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages
-        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages
-        100 /var/lib/dpkg/status
-     7.22.0-3ubuntu4 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
+curl:\r
+  Installed: 7.22.0-3ubuntu4.2\r
+  Candidate: 7.22.0-3ubuntu4.2\r
+  Version table:\r
+ *** 7.22.0-3ubuntu4.2 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages\r
+        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages\r
+        100 /var/lib/dpkg/status\r
+     7.22.0-3ubuntu4 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages\r
           RESULT
         end
 
-        specify { subject.at_latest_version?.should be_true }
+        specify { subject.send(:at_latest_version?).should be_true }
       end
     end
   end
@@ -189,13 +144,13 @@ curl:
     context 'when not installed' do
       let(:result) do
         <<-RESULT
-git:
-  Installed: (none)
-  Candidate: 1:1.7.9.5-1
-  Version table:
-     1:1.7.9.5-1 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
-        100 /var/lib/dpkg/status
+git:\r
+  Installed: (none)\r
+  Candidate: 1:1.7.9.5-1\r
+  Version table:\r
+     1:1.7.9.5-1 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages\r
+        100 /var/lib/dpkg/status\r
         RESULT
       end
 
@@ -206,17 +161,17 @@ git:
       context 'and not current' do
         let(:result) do
           <<-RESULT
-apt:
-  Installed: 0.8.16~exp12ubuntu10
-  Candidate: 0.8.16~exp12ubuntu10.12
-  Version table:
-     0.8.16~exp12ubuntu10.12 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages
-     0.8.16~exp12ubuntu10.10 0
-        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages
- *** 0.8.16~exp12ubuntu10 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
-        100 /var/lib/dpkg/status
+apt:\r
+  Installed: 0.8.16~exp12ubuntu10\r
+  Candidate: 0.8.16~exp12ubuntu10.12\r
+  Version table:\r
+     0.8.16~exp12ubuntu10.12 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages\r
+     0.8.16~exp12ubuntu10.10 0\r
+        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages\r
+ *** 0.8.16~exp12ubuntu10 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages\r
+        100 /var/lib/dpkg/status\r
           RESULT
         end
 
@@ -226,24 +181,63 @@ apt:
       context 'and current' do
         let(:result) do
           <<-RESULT
-curl:
-  Installed: 7.22.0-3ubuntu4.2
-  Candidate: 7.22.0-3ubuntu4.2
-  Version table:
- *** 7.22.0-3ubuntu4.2 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages
-        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages
-        100 /var/lib/dpkg/status
-     7.22.0-3ubuntu4 0
-        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages
+curl:\r
+  Installed: 7.22.0-3ubuntu4.2\r
+  Candidate: 7.22.0-3ubuntu4.2\r
+  Version table:\r
+ *** 7.22.0-3ubuntu4.2 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise-updates/main amd64 Packages\r
+        500 http://security.ubuntu.com/ubuntu/ precise-security/main amd64 Packages\r
+        100 /var/lib/dpkg/status\r
+     7.22.0-3ubuntu4 0\r
+        500 http://us.archive.ubuntu.com/ubuntu/ precise/main amd64 Packages\r
           RESULT
         end
-
       end
     end
   end
 
-  describe '#remove' do
+  describe 'default_bin_path' do
+    specify { expect(subject.send(:default_bin_path)).to eq '/usr/local' }
+  end
+
+  describe '#install_package' do
+    context 'with version' do
+      it 'adds -version to the install command' do
+        allow(shell).to receive(:last_exit_status) { 0 }
+        expect(shell).to receive(:exec).
+          with('DEBIAN_FRONTEND=noninteractive apt-get install thing=0.1.2 -y')
+
+        subject.send(:install_package, '0.1.2')
+      end
+    end
+
+    context 'no version' do
+      before do
+        expect(shell).to receive(:exec).
+          with('DEBIAN_FRONTEND=noninteractive apt-get install thing -y')
+      end
+
+      context 'failed install' do
+        before { allow(shell).to receive(:last_exit_status) { 1 } }
+        specify { expect(subject.send(:install_package)).to eq false }
+      end
+
+      context 'successful install' do
+        before { allow(shell).to receive(:last_exit_status) { 0 } }
+        specify { expect(subject.send(:install_package)).to eq true }
+      end
+    end
+  end
+
+  describe '#upgrade_package' do
+    it 'calls #install_package' do
+      subject.should_receive(:install_package)
+      subject.send(:upgrade_package)
+    end
+  end
+
+  describe '#remove_package' do
     before do
       expect(shell).to receive(:exec).
         with('DEBIAN_FRONTEND=noninteractive apt-get remove thing')
@@ -251,19 +245,12 @@ curl:
 
     context 'failed removal' do
       before { allow(shell).to receive(:last_exit_status) { 1 } }
-      specify { expect(subject.remove).to eq false }
+      specify { expect(subject.send(:remove_package)).to eq false }
     end
 
     context 'successful removal' do
       before { allow(shell).to receive(:last_exit_status) { 0 } }
-      specify { expect(subject.remove).to eq true }
-    end
-  end
-
-  describe '#upgrade' do
-    it 'calls #install' do
-      subject.should_receive(:install)
-      subject.upgrade
+      specify { expect(subject.send(:remove_package)).to eq true }
     end
   end
 end
