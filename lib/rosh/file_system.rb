@@ -5,11 +5,15 @@ require_relative 'file_system/directory'
 require_relative 'file_system/file'
 require_relative 'file_system/object'
 require_relative 'file_system/symbolic_link'
+require_relative 'changeable'
+require_relative 'observer'
 require_relative 'observable'
 
 
 class Rosh
   class FileSystem
+    include Rosh::Changeable
+    include Rosh::Observer
     include Rosh::Observable
 
     def self.create(path, host_name)
@@ -149,22 +153,6 @@ class Rosh
       adapter.getwd
     end
     alias_method :getwd, :working_directory
-
-    def update(obj, attribute, old_value, new_value, as_sudo)
-      puts "I got updated!"
-      puts  attribute
-      puts  old_value
-      puts  new_value
-      puts  as_sudo
-
-      self.changed
-      self.notify_observers(obj,
-        attribute,
-        old_value,
-        new_value,
-        as_sudo
-      )
-    end
 
     private
 

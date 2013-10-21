@@ -1,5 +1,6 @@
 require_relative 'kernel_refinements'
 require_relative 'changeable'
+require_relative 'observer'
 require_relative 'observable'
 require_relative 'user_manager/object'
 require_relative 'user_manager/group'
@@ -9,6 +10,7 @@ require_relative 'user_manager/user'
 class Rosh
   class UserManager
     include Rosh::Changeable
+    include Rosh::Observer
     include Rosh::Observable
 
 =begin
@@ -77,22 +79,6 @@ class Rosh
 
     def users
       adapter.users
-    end
-
-    def update(obj, attribute, old_value, new_value, as_sudo)
-      puts "I got updated!"
-      puts  attribute
-      puts  old_value
-      puts  new_value
-      puts  as_sudo
-
-      self.changed
-      self.notify_observers(obj,
-        attribute,
-        old_value,
-        new_value,
-        as_sudo
-      )
     end
 
     private

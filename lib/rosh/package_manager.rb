@@ -1,5 +1,6 @@
 require_relative 'kernel_refinements'
 require_relative 'observable'
+require_relative 'observer'
 require_relative 'changeable'
 require_relative 'package_manager/package'
 
@@ -21,6 +22,7 @@ class Rosh
   #
   class PackageManager
     include Rosh::Changeable
+    include Rosh::Observer
     include Rosh::Observable
 
     def initialize(host_name)
@@ -40,22 +42,6 @@ class Rosh
 
     def package(name)
       Rosh::PackageManager::Package.new(name, @host_name)
-    end
-
-    def update(obj, attribute, old_value, new_value, as_sudo)
-      puts "I got updated!"
-      puts  attribute
-      puts  old_value
-      puts  new_value
-      puts  as_sudo
-
-      self.changed
-      self.notify_observers(obj,
-        attribute,
-        old_value,
-        new_value,
-        as_sudo
-      )
     end
 
     def update_definitions
