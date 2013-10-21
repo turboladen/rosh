@@ -9,7 +9,7 @@ class Rosh
         include LocalBase
 
         class << self
-          def read(length, offset)
+          def read(length=nil, offset=nil)
             ::File.read(@path, length, offset)
           end
 

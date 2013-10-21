@@ -201,6 +201,10 @@ class Rosh
         path.to_s
       end
 
+      def to_path
+        adapter.to_path
+      end
+
       def truncate(new_size)
         current_size = self.size
 

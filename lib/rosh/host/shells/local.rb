@@ -97,7 +97,7 @@ class Rosh
               output = ''
 
               #PTY.spawn(cmd, *args) do |reader, writer, pid|
-              PTY.spawn(command) do |reader, writer, pid|
+              ::PTY.spawn(command) do |reader, writer, pid|
                 log "Spawned pid: #{pid}"
 
                 trap(:INT) do

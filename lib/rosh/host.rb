@@ -1,12 +1,12 @@
 require 'etc'
 require 'socket'
 require 'log_switch'
+
 require_relative 'host/attributes'
-Dir[File.dirname(__FILE__) + '/host/shells/*.rb'].each(&method(:require))
 require_relative 'file_system'
 require_relative 'service_manager'
 require_relative 'package_manager'
-require_relative 'user_manager'
+require_relative 'shell'
 
 require_relative 'kernel_refinements'
 require_relative 'string_refinements'
@@ -25,12 +25,7 @@ class Rosh
     def initialize(host_name, **ssh_options)
       @name = host_name
       @user = ssh_options[:user] || Etc.getlogin
-
-      @shell = if local?
-        Rosh::Host::Shells::Local.new
-      else
-        Rosh::Host::Shells::Remote.new(@name, ssh_options)
-      end
+      @shell = Rosh::Shell.new(@name, ssh_options)
     end
 
     def set(**ssh_options)
@@ -59,17 +54,6 @@ class Rosh
     # @see Rosh::ServiceManager
     def services
       @service_manager ||= Rosh::ServiceManager.new(@name)
-
-=begin
-      @service_manager = case operating_system
-      when :darwin
-        Rosh::Host::ServiceManager.new(@name, :launch_ctl)
-      when :linux
-        Rosh::Host::ServiceManager.new(@name, :init)
-      when :freebsd
-        Rosh::Host::ServiceManager.new(@name, :init)
-      end
-=end
     end
 
     def local?
