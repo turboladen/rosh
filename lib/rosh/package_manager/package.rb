@@ -66,6 +66,15 @@ class Rosh
         change_if(self.installed?) do
           notify_about(self, :installed, from: true, to: false) do
             adapter.remove
+      def upgrade
+        current_version = self.version
+
+        change_if(current_version < self.latest_version) do
+          adapter.upgrade
+          new_version = adapter.current_version
+
+          notify_about(self, :version, from: current_version, to: new_version) do
+            current_version != new_version
           end
         end
       end
