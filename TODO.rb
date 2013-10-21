@@ -2,17 +2,6 @@
 #   * Make adding shell commands more API-like.
 #   * Handle wrong number of args by printing out usage
 
-# TODO: check_state_first stuff for shells
-#   * local base
-#   * local dir
-#   * local file
-#   * local link
-#   * rpm
-#   * init
-#   * launch_ctl
-#   * group
-#   * user
-
 
 # TODO: Specs & Docs
 #   * remote dir
@@ -55,7 +44,6 @@
 # TODO: Remove +architecture+ from PackageTypes::Base (check with screenplay first).
 # TODO: Serialization of a full Host object (instead of just FileSystemObjects)
 # TODO: Handle uninstalled package manager (i.e. brew)
-# TODO: Groups
 
 # TODO: Use Shellwords.escape to escape paths that get passed to shell commands.
 
