@@ -67,7 +67,8 @@ class Rosh
           # @param [String] version
           # @return [Boolean] +true+ if successful, +false+ if not.
           def install(version=nil)
-            cmd = "DEBIAN_FRONTEND=noninteractive apt-get install #{@package_name}"
+            #cmd = "DEBIAN_FRONTEND=noninteractive apt-get install #{@package_name}"
+            cmd = "apt-get install #{@package_name}"
             cmd << "=#{version}" if version
             cmd << ' -y'
             current_shell.exec(cmd)

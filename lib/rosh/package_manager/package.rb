@@ -57,7 +57,7 @@ class Rosh
       def install(version: nil)
         already_installed = self.installed?
         at_latest = self.at_latest_version?
-        old_version = self.current_version
+        old_version = self.version
 
         criteria = [
           -> { !already_installed },

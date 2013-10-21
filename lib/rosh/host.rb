@@ -6,6 +6,7 @@ require_relative 'host/attributes'
 require_relative 'file_system'
 require_relative 'service_manager'
 require_relative 'package_manager'
+require_relative 'user_manager'
 require_relative 'shell'
 
 require_relative 'kernel_refinements'
