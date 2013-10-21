@@ -4,7 +4,7 @@ require 'log_switch'
 require_relative 'host/attributes'
 Dir[File.dirname(__FILE__) + '/host/shells/*.rb'].each(&method(:require))
 require_relative 'file_system'
-require_relative 'host/service_manager'
+require_relative 'service_manager'
 require_relative 'package_manager'
 require_relative 'user_manager'
 
@@ -21,7 +21,6 @@ class Rosh
     attr_reader :name
     attr_reader :shell
     attr_reader :user
-    attr_reader :package_manager
 
     def initialize(host_name, **ssh_options)
       @name = host_name
@@ -52,26 +51,16 @@ class Rosh
     # @see Rosh::PackageManager
     def packages
       @package ||= Rosh::PackageManager.new(@name)
-=begin
-      return @package_manager if @package_manager
-
-      @package_manager = case operating_system
-      when :darwin
-        Rosh::Host::PackageManager.new(@name, :brew)
-      when :linux
-        case distribution
-        when :ubuntu
-          Rosh::Host::PackageManager.new(@name, :apt, :dpkg)
-        when :centos
-          Rosh::Host::PackageManager.new(@name, :yum)
-        end
-      end
-=end
     end
 
+    # Access to the ServiceManager for the Host's OS type.
+    #
+    # @return [Rosh::ServiceManager]
+    # @see Rosh::ServiceManager
     def services
-      return @service_manager if @service_manager
+      @service_manager ||= Rosh::ServiceManager.new(@name)
 
+=begin
       @service_manager = case operating_system
       when :darwin
         Rosh::Host::ServiceManager.new(@name, :launch_ctl)
@@ -80,18 +69,8 @@ class Rosh
       when :freebsd
         Rosh::Host::ServiceManager.new(@name, :init)
       end
-    end
-
-=begin
-    def groups
-      return @group_manager if @group_manager
-
-      @group_manager = case operating_system
-      when :darwin
-        Rosh::Host::GroupManager.new(:open_directory, @name)
-      end
-    end
 =end
+    end
 
     def local?
       @name == 'localhost'

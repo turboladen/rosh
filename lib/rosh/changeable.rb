@@ -6,6 +6,8 @@ class Rosh
       end
 
       puts 'Check state first and criteria met.  Returning.'
+
+      false
     end
 
     private
