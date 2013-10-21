@@ -48,11 +48,13 @@ class Rosh
             info_hash
           end
 
-          # Install the package.  If no +version+ is given, uses the latest in
-          # Brew's repo.
+          # Installs the package using brew and notifies observers with the new
+          # version.  If a version is given and that version is already installed,
+          # brew switches back to use the given version.
           #
-          # @param [String] version
-          # @return [Boolean] +true+ if successful, +false+ if not.
+          # @param [String] version Version of the package to install.
+          # @return [Boolean] +true+ if install was successful, +false+ if not,
+          #   +nil+ if no action was required.
           def install(version=nil)
             if version
               install_and_switch_version(version)
@@ -102,9 +104,10 @@ class Rosh
             current_shell.last_exit_status.zero?
           end
 
-          # Uses <tt>brew upgrade [pkg]</tt> to upgrade the package.
+          # Upgrades the package, using `brew upgrade ` and updates observers with
+          # the new version.
           #
-          # @return [Boolean] +true+ if successful, +false+ if not.
+          # @return [Boolean] +true+ if upgrade was successful, +false+ if not.ot.
           def upgrade
             current_shell.exec "#{bin_path}/brew upgrade #{@package_name}"
 

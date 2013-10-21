@@ -10,6 +10,24 @@ class Rosh
       include Rosh::Changeable
       include Rosh::Observable
 
+      attr_reader :name
+      # @!attribute [r] name
+      #   Name of the OS package this represents.
+      #   @return [String]
+
+      attr_reader :status
+      # @!attribute [r] status
+      #   Status that the OS package should be in, if any.  Defaults to
+      #   +nil+.
+      #   @return [Symbol]
+
+      attr_reader :architecture
+      # @!attribute [r] architecture
+      #   Architecture of the OS package, if any.  Defaults to +nil+.
+      #   @return [Symbol]
+
+      attr_writer :bin_path
+
       def initialize(package_name, host_name)
         @name = package_name
         @host_name = host_name
@@ -19,15 +37,24 @@ class Rosh
         adapter.at_latest_version?
       end
 
-      def current_version
-        adapter.current_version
+      #   Version of the OS package this represents, if any.  Defaults to
+      #   +nil+.
+      #   @return [String]
+      def version
+        @version ||= adapter.current_version
       end
 
       def info
         adapter.info
       end
 
-      def install
+      # Installs the package and notifies observers with the new
+      # version.
+      #
+      # @param [String] version Version of the package to install.
+      # @return [Boolean] +true+ if install was successful, +false+ if not,
+      #   +nil+ if no action was required.
+      def install(version: nil)
         already_installed = self.installed?
         at_latest = self.at_latest_version?
         old_version = self.current_version
@@ -64,8 +91,14 @@ class Rosh
 
       def remove
         change_if(self.installed?) do
+          adapter.remove
+
           notify_about(self, :installed, from: true, to: false) do
-            adapter.remove
+            adapter.installed?
+          end
+        end
+      end
+
       def upgrade
         current_version = self.version
 
