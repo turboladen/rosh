@@ -1,6 +1,7 @@
 require 'time'
 require 'digest/md5'
 require_relative 'base_user'
+require_relative '../../errors'
 
 
 class Rosh
@@ -102,7 +103,13 @@ class Rosh
           private
 
           def getent_passwd
-            result = current_shell.exec "getent passwd #{@user_name}"
+            cmd = "getent passwd #{@user_name}"
+            result = current_shell.exec cmd
+
+            if result.match /Permission denied/
+              raise Rosh::PermissionDenied, "Command: #{cmd}"
+            end
+
             result_split = result.split(':')
 
             {
