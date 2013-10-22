@@ -45,7 +45,7 @@ class Rosh
           # @return [String] On success, returns the output of the command.  On
           #   fail, #last_exit_status is whatever was set by the command and returns
           #   the exception that was raised.
-          def exec(command, _)
+          def exec(command, _=nil)
             run_info(command)# if @output_commands
 
             begin

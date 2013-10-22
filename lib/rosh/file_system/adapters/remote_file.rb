@@ -35,6 +35,44 @@ class Rosh
           def copy(destination)
             current_shell.cp(@path, destination)
           end
+
+          # Stores +new_contents+ in memory until #save is called.
+          #
+          # @param [String] new_contents Contents to write to the file on #save.
+          def write(new_contents)
+            @unwritten_contents = new_contents
+
+            true
+          end
+
+          # If in-memory contents exist, writes them to the file.
+          #
+          # @return [Boolean] +true+ if successful or no change; +false+ if not
+          #   successful.
+          def save
+            create_ok = exists? ? true : create
+            upload_ok = @unwritten_contents ? upload_new_content : true
+
+            create_ok && upload_ok
+          end
+
+          private
+
+          # Writes all in-memory contents to a local Tempfile, then uploads the
+          # Tempfile to the remote path.  Notifies observers about the new contents.
+          #
+          # @return [Boolean] +true+ if creating was successful; +false+ if not.
+          def upload_new_content
+            tempfile = Tempfile.new('rosh_remote_file')
+            tempfile.write(@unwritten_contents)
+            tempfile.rewind
+            current_shell.upload(tempfile, @path)
+
+            tempfile.unlink
+            @unwritten_contents = nil
+
+            current_shell.last_exit_status.zero?
+          end
         end
 
 

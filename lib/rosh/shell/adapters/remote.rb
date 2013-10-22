@@ -99,8 +99,14 @@ class Rosh
 
             if @sudo && doing_sudo_upload
               log 'sudo is set during SCP and doing upload'
-              exec("cp #{destination} #{original_dest} && rm #{destination}")
-              return last_exit_status.zero?
+              unless su_user_name == 'root'
+                @sudo = false
+                exec("chown #{su_user_name} #{destination}")
+                @sudo = true
+              end
+
+              exec("cat #{destination} > #{original_dest} && rm #{destination}")
+              return current_shell.last_exit_status.zero?
             end
 
             log "SCP upload result: #{result.inspect}"
@@ -182,7 +188,7 @@ class Rosh
           #   returns the output of the failed command as a String.  If STDOUT and
           #   STDERR were both written to during a non-0 resulting command, those
           #   strings will be concatenated and separated by 2 \n's.
-          def exec(command, internal_pwd)
+          def exec(command, internal_pwd='')
             command = sudoize("cd #{internal_pwd} && #{command}")
 
             log %[EXEC: #{command}]

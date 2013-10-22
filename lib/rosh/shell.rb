@@ -83,7 +83,7 @@ class Rosh
       su_user = if user
         u = current_host.users[user]
         adapter.su_user_name = u.name
-        @internal_pwd = adapter.exec('pwd', '')[2].strip
+        @internal_pwd = adapter.exec('pwd')[2].strip
         u
       end
 
@@ -103,6 +103,10 @@ class Rosh
     # @return [Boolean]
     def su?
       @sudo
+    end
+
+    def upload(source_path, destination_path)
+      adapter.upload(source_path, destination_path)
     end
 
     # Called by serializer when dumping.
@@ -145,7 +149,7 @@ class Rosh
       @internal_pwd = if current_host.local?
         Rosh::FileSystem::Directory.new(Dir.pwd, @host_name)
       else
-        result = @adapter.exec('pwd', '')[2].strip
+        result = @adapter.exec('pwd')[2].strip
         Rosh::FileSystem::Directory.new(result, @host_name)
       end
 

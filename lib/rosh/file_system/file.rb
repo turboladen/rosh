@@ -76,6 +76,16 @@ class Rosh
         adapter.read
       end
 
+      def contents=(new_contents)
+        current_contents = self.contents
+
+        change_if(new_contents != current_contents) do
+          notify_about(self, :contents, from: current_contents, to: new_contents) do
+            adapter.write(new_contents)
+          end
+        end
+      end
+
       def copy_to(destination)
         the_copy = current_host.fs[file: destination]
 
@@ -125,6 +135,10 @@ class Rosh
 
       def each_line(separator=$/, &block)
         contents.each_line(separator, &block)
+      end
+
+      def save
+        adapter.save
       end
 
       # Called by serializer when dumping.
