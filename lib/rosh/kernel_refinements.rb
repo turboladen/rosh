@@ -29,17 +29,14 @@ module Kernel
   end
 
   def good_info(text)
-    h = @host_name || 'localhost'
-    $stdout.puts "[#{h}] => #{text.strip}".light_blue
+    $stdout.puts "[#{current_host.name}]>> #{text.strip}".light_blue
   end
 
   def bad_info(text)
-    h = @host_name || 'localhost'
-    $stderr.puts "[#{h}] !> #{text.strip}".light_red
+    $stderr.puts "[#{current_host.name}]!> #{text.strip}".light_red
   end
 
   def run_info(text)
-    h = @host_name || 'localhost'
-    $stdout.puts "[#{h}] $$ #{text.strip}".yellow
+    $stdout.puts "[#{current_host.name}]>> #{text.strip}".yellow
   end
 end
