@@ -24,6 +24,10 @@ module Kernel
     host
   end
 
+  def current_user
+    current_host.user
+  end
+
   def good_info(text)
     h = @host_name || 'localhost'
     $stdout.puts "[#{h}] => #{text.strip}".light_blue
