@@ -10,12 +10,12 @@ class Rosh
       include Rosh::Changeable
       include Rosh::Observable
 
-      attr_reader :user_name
+      attr_reader :name
 
       # @todo Also accept UIDs.
       def initialize(user_name, host_name)
         @host_name = host_name
-        @user_name = user_name
+        @name = user_name
       end
 
       def create
@@ -201,7 +201,7 @@ class Rosh
           end
         end
 
-        @adapter.user_name = @user_name
+        @adapter.user_name = @name
         @adapter.host_name = @host_name
 
         @adapter

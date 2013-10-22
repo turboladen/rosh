@@ -10,10 +10,10 @@ class Rosh
       include Rosh::Changeable
       include Rosh::Observable
 
-      attr_reader :group_name
+      attr_reader :name
 
       def initialize(group_name, host_name)
-        @group_name = group_name
+        @name = group_name
         @host_name = host_name
       end
 
@@ -49,7 +49,7 @@ class Rosh
           end
         end
 
-        @adapter.group_name = @group_name
+        @adapter.group_name = @name
         @adapter.host_name = @host_name
 
         @adapter

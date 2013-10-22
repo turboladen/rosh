@@ -10,6 +10,8 @@ class Rosh
       include Rosh::Changeable
       include Rosh::Observable
 
+      attr_reader :name
+
       def initialize(service_name, host_name)
         @name = service_name
         @host_name = host_name
