@@ -74,13 +74,23 @@ class Rosh
     #
     # @return Returns whatever the +block+ returns.
     # @yields [Rosh::Host::Shells::*] the current Rosh shell.
-    def su(&block)
+    def su(user=nil, &block)
       @sudo = true
       adapter.sudo = true
       log 'sudo enabled'
+      current_pwd = @internal_pwd
 
-      result = block.call(self)
+      su_user = if user
+        u = current_host.users[user]
+        adapter.su_user_name = u.name
+        @internal_pwd = adapter.exec('pwd', '')[2].strip
+        u
+      end
 
+      result = block.call(su_user)
+
+      @internal_pwd = current_pwd
+      adapter.su_user_name = nil
       adapter.sudo = false
       @sudo = false
       log 'sudo disabled'
@@ -127,14 +137,16 @@ class Rosh
         require_relative 'shell/adapters/remote'
         @adapter = Shell::Adapters::Remote
         @adapter.ssh_options = @ssh_options
+        @adapter.user = @user
       end
 
       @adapter.host_name = @host_name
 
       @internal_pwd = if current_host.local?
-        Dir.pwd
+        Rosh::FileSystem::Directory.new(Dir.pwd, @host_name)
       else
-        @adapter.exec 'pwd'
+        result = @adapter.exec('pwd', '')[2].strip
+        Rosh::FileSystem::Directory.new(result, @host_name)
       end
 
       @adapter

@@ -2,15 +2,12 @@ class Rosh
   class Shell
     module Commands
       def cat(file)
-        log %[cat called with arg '#{file}']
-
         process(:cat, file: file) do
           adapter.cat(file)
         end
       end
 
       def cd(path)
-        log %[cd called with arg '#{path}']
         full_path = adapter.preprocess_path(path, @internal_pwd)
         log %[cd full path '#{full_path}']
 
@@ -26,8 +23,6 @@ class Rosh
       end
 
       def cp(source, destination)
-        log %[cp called with arg '#{source}', '#{destination}']
-
         process(:cp, source: source, destination: destination) do
           adapter.cp(source, destination)
         end
@@ -39,7 +34,6 @@ class Rosh
       #
       # @return [Hash] A Hash containing the environment info.
       def env
-        log 'env called'
         adapter
 
         @path ||= ENV['PATH'].split ':'
@@ -58,11 +52,8 @@ class Rosh
       end
 
       def exec(command)
-        command = %[sudo -s -- #{command}] if @sudo
-        log %[exec called with command '#{command}']
-
         process(:exec, command: command) do
-          adapter.exec(command)
+          adapter.exec(command, @internal_pwd)
         end
       end
 
@@ -73,25 +64,20 @@ class Rosh
       end
 
       def ls(path=nil)
-        log "ls called with arg '#{path}'"
-
         process(:ls, path: path) do
           path ||= '.'
-          full_path = adapter.preprocess_path(path, @internal_pwd)
+          full_path = adapter.preprocess_path(path, @internal_pwd.to_path)
           adapter.ls(full_path)
         end
       end
 
       def ps(name: nil, pid: nil)
-        log "ps called with args 'name: #{name}', 'pid: #{pid}'"
-
         process(:ps, name: name, pid: pid) do
           adapter.ps(name: name, pid: pid)
         end
       end
 
       def pwd
-        log 'pwd called'
         adapter
 
         _pwd = Rosh::FileSystem::Directory.new(@internal_pwd, @host_name)
@@ -106,16 +92,12 @@ class Rosh
       end
 
       def ruby(code)
-        log 'ruby called'
-
         process(:ruby, code: code) do
           adapter.ruby(code)
         end
       end
 
       def system_commands
-        log 'system_commands called'
-
         process(:system_commands) do
           adapter.system_commands
         end

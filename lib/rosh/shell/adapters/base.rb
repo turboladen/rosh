@@ -18,6 +18,14 @@ class Rosh
           def sudo=(new_value)
             @sudo = new_value
           end
+
+          def su_user_name
+            @su_user_name ||= current_user
+          end
+
+          def su_user_name=(new_user_name)
+            @su_user_name = new_user_name
+          end
         end
       end
     end

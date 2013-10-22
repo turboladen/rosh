@@ -32,17 +32,17 @@ class Rosh
       #   ssh.run 'touch /var/www/pretty_things/current/tmp/restart.txt'
       #
       class Remote
-        extend LogSwitch
-        include LogSwitch::Mixin
         include Net::SSH::PromptMethods::Highline
         include Base
 
         DEFAULT_USER = Etc.getlogin
 
         class << self
+          extend LogSwitch
+          include LogSwitch::Mixin
 
-          def history
-            @history ||= []
+          def user=(new_user)
+            @user = new_user
           end
 
           def ssh_options
@@ -115,8 +115,7 @@ class Rosh
           #   status from the remote command, and a Rosh::ErrorNOENT error is
           #   returned.
           def cat(file)
-            cmd = "cat #{file}"
-            cmd.insert(0, 'sudo ') if @sudo
+            cmd = sudoize("cat #{file}")
             result = run(cmd)
 
             if result.stderr.match %r[No such file or directory]
@@ -137,15 +136,11 @@ class Rosh
           #   fail, #last_exit_status is set to the exit status from the remote
           #   command, Rosh::ErrorNOENT error.
           def cd(path)
-            ensure_pwd
-
-            cmd = "cd #{path} && pwd"
-            cmd.insert(0, 'sudo ') if @sudo
+            cmd = sudoize("cd #{path} && pwd")
+            log %[CD: #{cmd}]
             result = run(cmd)
 
             if result.exit_status.zero?
-              @internal_pwd = result.ruby_object.strip
-
               [true, 0, result.stdout, result.stderr]
             elsif result.stderr.match %r[No such file or directory]
               error = Rosh::ErrorENOENT.new(result.stderr)
@@ -163,8 +158,8 @@ class Rosh
           #   returns +true+.  On fail, #last_exit_status is set to the exit status
           #   from the remote command, returns the exception that was raised.
           def cp(source, destination)
-            cmd = "cp #{source} #{destination}"
-            cmd.insert(0, 'sudo ') if @sudo
+            cmd = sudoize("cp #{source} #{destination}")
+            log %[CP: #{cmd}]
             result = run(cmd)
 
             if result.stderr.match %r[No such file or directory]
@@ -187,9 +182,11 @@ class Rosh
           #   returns the output of the failed command as a String.  If STDOUT and
           #   STDERR were both written to during a non-0 resulting command, those
           #   strings will be concatenated and separated by 2 \n's.
-          def exec(command)
-            ensure_pwd
-            command = "cd #{@internal_pwd} && #{command}"
+          def exec(command, internal_pwd)
+            command = sudoize("cd #{internal_pwd} && #{command}")
+
+            log %[EXEC: #{command}]
+            run_info(command)
             result = run(command)
 
             if result.exit_status.zero?
@@ -228,8 +225,8 @@ class Rosh
           #   #last_exit_status is set to the status given by the remote host's
           #   failed 'ls' command, returns a Rosh::ErrorENOENT.
           def ls(path)
-            cmd = "ls #{path}"
-            cmd.insert(0, 'sudo ') if @sudo
+            cmd = sudoize("ls #{path}")
+            log %[LS: #{cmd}]
             result = run(cmd)
 
             if result.stderr.match %r[No such file or directory]
@@ -260,8 +257,8 @@ class Rosh
           #   or no options are given, returns an Array of Rosh::RemoteProcTable
           #   objects; when :pid is given, a single Rosh::RemoteProcTable is returned.
           def ps(name: nil, pid: nil)
-            cmd = 'ps auxe'
-            cmd.insert(0, 'sudo ') if @sudo
+            cmd = sudoize('ps auxe')
+            log %[PS: #{cmd}]
             result = run(cmd)
             list = []
 
@@ -436,16 +433,20 @@ class Rosh
             end
           end
 
-          # @todo Do I really need this???
-          def ensure_pwd
-            unless @internal_pwd
-              @internal_pwd = run('pwd').ruby_object.strip
+          def sudoize(cmd)
+            if sudo && su_user_name != 'root'
+              %[sudo su #{su_user_name} -c "#{cmd}"]
+            elsif sudo
+              "sudo -s -- #{cmd}"
+            else
+              cmd
             end
           end
+
+          self.log_class_name = true
         end
       end
     end
   end
 end
 
-Rosh::Shell::Adapters::Remote.log_class_name = true
