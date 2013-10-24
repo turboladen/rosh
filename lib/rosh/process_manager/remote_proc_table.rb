@@ -1,5 +1,5 @@
 class Rosh
-  class Host
+  class ProcessManager
     class RemoteProcTable < Struct.new(:user, :pid, :cpu, :mem, :vsz, :rss, :tty,
       :stat, :start, :time, :command)
 

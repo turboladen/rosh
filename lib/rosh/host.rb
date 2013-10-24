@@ -2,12 +2,13 @@ require 'etc'
 require 'socket'
 require 'log_switch'
 
+require_relative 'shell'
 require_relative 'host/attributes'
 require_relative 'file_system'
 require_relative 'service_manager'
 require_relative 'package_manager'
+require_relative 'process_manager'
 require_relative 'user_manager'
-require_relative 'shell'
 
 require_relative 'kernel_refinements'
 require_relative 'string_refinements'
@@ -34,11 +35,11 @@ class Rosh
     end
 
     def fs
-      @fs ||= Rosh::FileSystem.new(@name)
+      @file_system ||= Rosh::FileSystem.new(@name)
     end
 
     def users
-      @users ||= Rosh::UserManager.new(@name)
+      @user_manager ||= Rosh::UserManager.new(@name)
     end
 
     # Access to the PackageManager for the Host's OS type.
@@ -46,7 +47,11 @@ class Rosh
     # @return [Rosh::PackageManager]
     # @see Rosh::PackageManager
     def packages
-      @package ||= Rosh::PackageManager.new(@name)
+      @package_manager ||= Rosh::PackageManager.new(@name)
+    end
+
+    def processes
+      @process_manager ||= Rosh::ProcessManager.new(@name)
     end
 
     # Access to the ServiceManager for the Host's OS type.
