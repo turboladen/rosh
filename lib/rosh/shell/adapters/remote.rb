@@ -8,7 +8,6 @@ require 'awesome_print'
 
 require_relative 'base'
 require_relative '../command_result'
-require_relative '../../host/remote_proc_table'
 
 
 class Rosh
@@ -253,57 +252,6 @@ class Rosh
             [listing, 0, result.stdout, result.stderr]
           end
 
-          # Runs `ps auxe` on the remote host and converts each line of process info
-          # to a Rosh::RemoteProcTable.
-          #
-          # @param [String] name The name of a command to filter on.
-          # @param [Integer] pid The pid of a command to find.
-          #
-          # @return [Array<Rosh::Host::RemoteProcTable>, Rosh::Host::RemoteProcTable] When :name
-          #   or no options are given, returns an Array of Rosh::RemoteProcTable
-          #   objects; when :pid is given, a single Rosh::RemoteProcTable is returned.
-          def ps(name: nil, pid: nil)
-            cmd = sudoize('ps auxe')
-            log %[PS: #{cmd}]
-            result = run(cmd)
-            list = []
-
-            result.stdout.each_line do |line|
-              match_data = %r[(?<user>\S+)\s+(?<pid>\S+)\s+(?<cpu>\S+)\s+(?<mem>\S+)\s+(?<vsz>\S+)\s+(?<rss>\S+)\s+(?<tty>\S+)\s+(?<stat>\S+)\s+(?<start>\S+)\s+(?<time>\S+)\s+(?<cmd>[^\n]+)].match(line)
-
-              next if match_data[:user] == 'USER'
-              list << Rosh::Host::RemoteProcTable.new(
-                match_data[:user],
-                match_data[:pid].to_i,
-                match_data[:cpu].to_f,
-                match_data[:mem].to_f,
-                match_data[:vsz].to_i,
-                match_data[:rss].to_i,
-                match_data[:tty],
-                match_data[:stat],
-                Time.parse(match_data[:start]),
-                match_data[:time],
-                match_data[:cmd].strip
-              )
-            end
-
-            if name
-              processes = list.find_all { |i| i.command =~ /\b#{name}\b/ }
-              processes.each(&method(:ap))
-
-              [processes, 0, result.stdout, result.stderr]
-            elsif pid
-              processes = list.find_all { |i| i.pid == pid }
-              processes.each(&method(:ap))
-
-              [processes, 0, result.stdout, result.stderr]
-            else
-              ap list
-
-              [list, 0, result.stdout, result.stderr]
-            end
-          end
-
           def ruby(code)
             ['Not implemented!', 1, nil]
           end
@@ -403,7 +351,7 @@ class Rosh
                   stdout_data << data
                 end
 
-                run_info(command) if @output_commands
+                run_info(command)
                 r = ch.exec(command)
                 channel.close if r
               end

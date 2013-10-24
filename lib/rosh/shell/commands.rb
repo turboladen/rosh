@@ -1,5 +1,10 @@
 class Rosh
   class Shell
+
+    # Commands are all processed within a #process block.  Each command is
+    # expected to return an Array of three values: [return_value, exit_status,
+    # ssh_output].
+    #
     module Commands
       def cat(file)
         process(:cat, file: file) do
@@ -73,7 +78,9 @@ class Rosh
 
       def ps(name: nil, pid: nil)
         process(:ps, name: name, pid: pid) do
-          adapter.ps(name: name, pid: pid)
+          list = current_host.processes.list(name: name, pid: pid)
+
+          [list, 0, nil]
         end
       end
 

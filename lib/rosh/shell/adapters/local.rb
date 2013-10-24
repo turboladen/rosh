@@ -111,34 +111,6 @@ class Rosh
             end
           end
 
-          # @param [String] name The name of a command to filter on.
-          # @param [Integer] pid The pid of a command to find.
-          #
-          # @return [Array<Struct::ProcTableStruct>, Struct::ProcTableStruct] When
-          #   no options are given, all processes returned.  When +:name+ is given,
-          #   an Array of processes that match COMMAND are given.  When +:pid+ is
-          #   given, a single process is returned.  See https://github.com/djberg96/sys-proctable
-          #   for more info.
-          def ps(name: nil, pid: nil)
-            ps = Sys::ProcTable.ps
-
-            if name
-              processes = ps.find_all { |i| i.cmdline =~ /\b#{name}\b/ }
-              processes.each(&method(:ap))
-
-              [processes, 0]
-            elsif pid
-              processes = ps.find { |i| i.pid == pid }
-              processes.each(&method(:ap))
-
-              [processes, 0]
-            else
-              ap ps
-
-              [ps, 0]
-            end
-          end
-
           # Executes Ruby code in the context of an IRB::WorkSpace.  Thus, variables
           # are maintained across calls to this.
           #
