@@ -26,6 +26,10 @@ class Rosh
       adapter.list_running(name, pid)
     end
 
+    def supported_signals
+      adapter.supported_signals
+    end
+
     private
 
     def adapter
