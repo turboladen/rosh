@@ -18,15 +18,22 @@ class Rosh
           #   an Array of processes that match COMMAND are given.  When +:pid+ is
           #   given, a single process is returned.  See https://github.com/djberg96/sys-proctable
           #   for more info.
-          def list_running(name: nil, pid: nil)
+          def list_running(name=nil, pid=nil)
             ps = Sys::ProcTable.ps
 
-            if name
+            filtered_list = if name
               ps.find_all { |i| i.cmdline =~ /\b#{name}\b/ }
             elsif pid
               ps.find { |i| i.pid == pid }
             else
               ps
+            end
+
+            filtered_list.map do |process_struct|
+              process = Rosh::ProcessManager::Process.new(process_struct.pid, @host_name)
+              process.struct = process_struct
+
+              process
             end
           end
         end

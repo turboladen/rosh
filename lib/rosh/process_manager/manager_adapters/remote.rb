@@ -47,12 +47,19 @@ class Rosh
               )
             end
 
-            if name
+            filtered_list = if name
               list.find_all { |i| i.command =~ /\b#{name}\b/ }
             elsif pid
               list.find_all { |i| i.pid == pid }
             else
               list
+            end
+
+            filtered_list.map do |process_struct|
+              process = Rosh::ProcessManager::Process.new(process_struct.pid, @host_name)
+              process.struct = process_struct
+
+              process
             end
           end
         end

@@ -2,7 +2,7 @@ require_relative 'kernel_refinements'
 require_relative 'observable'
 require_relative 'observer'
 require_relative 'changeable'
-#require_relative 'process_manager/process'
+require_relative 'process_manager/process'
 
 
 class Rosh
@@ -15,15 +15,15 @@ class Rosh
       @host_name = host_name
     end
 
-    def [](name)
-      result = Rosh::ProcessManager::Process.new(name, @host_name)
+    def [](pid)
+      result = Rosh::ProcessManager::Process.new(pid, @host_name)
       result.add_observer(self)
 
       result
     end
 
     def list(name: nil, pid: nil)
-      adapter.list_running(name, pid)
+      process_adapter.list_running(name, pid)
     end
 
     def supported_signals
