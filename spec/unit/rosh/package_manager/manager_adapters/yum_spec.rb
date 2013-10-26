@@ -1,12 +1,12 @@
 require 'spec_helper'
-require 'rosh/host/package_managers/yum'
+require 'rosh/package_manager/manager_adapters/yum'
 
 
-describe Rosh::Host::PackageManagers::Yum do
+describe Rosh::PackageManager::ManagerAdapters::Yum do
   let(:shell) { double 'Rosh::Host::Shell' }
   before { allow(subject).to receive(:current_shell) { shell } }
 
-  subject { Object.new.extend(Rosh::Host::PackageManagers::Yum) }
+  subject { Object.new.extend(described_class) }
 
   describe '#installed_packages' do
     let(:output) do

@@ -1,12 +1,12 @@
 require 'spec_helper'
-require 'rosh/host/package_managers/brew'
+require 'rosh/package_manager/manager_adapters/brew'
 
 
-describe Rosh::Host::PackageManagers::Brew do
+describe Rosh::PackageManager::ManagerAdapters::Brew do
   let(:shell) { double 'Rosh::Host::Shell' }
   before { allow(subject).to receive(:current_shell) { shell } }
 
-  subject { Object.new.extend(Rosh::Host::PackageManagers::Brew) }
+  subject { Object.new.extend(described_class) }
 
   describe '#bin_path' do
     context 'default' do

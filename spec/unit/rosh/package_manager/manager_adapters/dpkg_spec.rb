@@ -1,3 +1,4 @@
+=begin
 require 'spec_helper'
 require 'rosh/host/package_managers/dpkg'
 
@@ -42,3 +43,4 @@ ii  apparmor                                     2.7.102-0ubuntu3.7             
     end
   end
 end
+=end

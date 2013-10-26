@@ -1,10 +1,10 @@
 require 'spec_helper'
-require 'rosh/host/package_types/deb'
+require 'rosh/package_manager/object_adapters/deb'
 
 
-describe Rosh::Host::PackageTypes::Deb do
+describe Rosh::PackageManager::ObjectAdapters::Deb do
   let(:shell) { double 'Rosh::Host::Shell', :su? => false }
-  subject { Object.new.extend Rosh::Host::PackageTypes::Deb }
+  subject { Object.new.extend described_class }
 
   before do
     allow(subject).to receive(:current_shell) { shell }
