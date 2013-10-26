@@ -7,7 +7,7 @@ require 'log_switch'
 require 'colorize'
 
 require_relative '../rosh'
-require_relative 'command_result'
+require_relative 'shell/command_result'
 require_relative 'completion'
 
 
@@ -80,7 +80,7 @@ class Rosh
     end
 
     # @param [String] argv The command given at the prompt.
-    # @return [Rosh::CommandResult]
+    # @return [Rosh::Shell::CommandResult]
     def execute(argv)
       new_argv = argv.dup.shellsplit
       command = new_argv.shift.to_sym
@@ -168,11 +168,11 @@ class Rosh
 
       if new_host.nil?
         log "No host defined for '#{host_name}'"
-        Rosh::CommandResult.new(new_host, 1)
+        Rosh::Shell::CommandResult.new(new_host, 1)
       else
         log "Changed to host '#{host_name}'"
         @current_host = new_host
-        Rosh::CommandResult.new(new_host, 0)
+        Rosh::Shell::CommandResult.new(new_host, 0)
       end
     end
   end

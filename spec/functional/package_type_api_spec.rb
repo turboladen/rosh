@@ -1,7 +1,7 @@
 require 'spec_helper'
-require 'rosh/host/package_types/brew'
-require 'rosh/host/package_types/deb'
-require 'rosh/host/package_types/rpm'
+require 'rosh/package_manager/object_adapters/brew'
+require 'rosh/package_manager/object_adapters/deb'
+require 'rosh/package_manager/object_adapters/rpm'
 
 
 describe 'Package type API' do

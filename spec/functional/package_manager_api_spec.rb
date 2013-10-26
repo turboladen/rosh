@@ -1,8 +1,7 @@
 require 'spec_helper'
-require 'rosh/host/package_managers/apt'
-require 'rosh/host/package_managers/brew'
-require 'rosh/host/package_managers/dpkg'
-require 'rosh/host/package_managers/yum'
+require 'rosh/package_manager/manager_adapters/apt'
+require 'rosh/package_manager/manager_adapters/brew'
+require 'rosh/package_manager/manager_adapters/yum'
 
 
 describe 'Package manager API' do
@@ -40,7 +39,7 @@ describe 'Package manager API' do
 
   %i[apt dpkg brew yum].each do |package_manager|
     describe package_manager do
-      subject { Rosh::Host::PackageManager.new('example.com', package_manager) }
+      subject { Rosh::PackageManager.new('example.com', package_manager) }
       it_behaves_like 'a package manager'
     end
   end
