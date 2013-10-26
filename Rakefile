@@ -10,8 +10,23 @@ YARD::Rake::YardocTask.new do |t|
   t.options += %w(--main README.md)
 end
 
+desc 'Run RSpec unit code examples'
 RSpec::Core::RakeTask.new do |t|
   t.ruby_opts = %w(-w)
+  t.pattern = 'spec/unit/**/*_spec.rb'
+end
+
+namespace :spec do
+  desc 'Run RSpec functional code examples'
+  RSpec::Core::RakeTask.new(:functional) do |t|
+    t.ruby_opts = %w(-w)
+    t.pattern = 'spec/functional/**/*_spec.rb'
+  end
+
+  desc 'Run all RSpec code examples'
+  RSpec::Core::RakeTask.new(:all) do |t|
+    t.ruby_opts = %w(-w)
+  end
 end
 
 # Alias for rubygems-test
