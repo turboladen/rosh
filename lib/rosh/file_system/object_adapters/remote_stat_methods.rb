@@ -1,6 +1,6 @@
 class Rosh
   class FileSystem
-    module Adapters
+    module ObjectAdapters
       module RemoteStatMethods
         def <=>(other_file)
           other_object = FileSystem.create(other_file)

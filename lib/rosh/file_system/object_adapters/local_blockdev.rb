@@ -3,7 +3,7 @@ require_relative 'local_base'
 
 class Rosh
   class FileSystem
-    module Adapters
+    module ObjectAdapters
       class LocalBlockdev
         include LocalBase
       end

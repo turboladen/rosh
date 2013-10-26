@@ -4,7 +4,7 @@ require_relative 'local_stat_methods'
 
 class Rosh
   class FileSystem
-    module Adapters
+    module ObjectAdapters
 
       # Base class for local file system objects.  Simply, it provides for
       # delegating to built-in Ruby Dir and File methods.
@@ -63,9 +63,7 @@ class Rosh
           # Allows setting user/group owner using key/value pairs.  If no value is
           # given for user or group, nothing will be changed.
           #
-          # @param [String] :user_name Name of the user to make owner.
           # @param [Fixnum] :uid UID of the user to make owner.
-          # @param [String] :group_name Name of the group to make owner.
           # @param [Fixnum] :gid GID of the group to make owner.
           # @return [Boolean] +true+ if successful, +false+ if not.
           def chown(uid: uid, gid: nil)

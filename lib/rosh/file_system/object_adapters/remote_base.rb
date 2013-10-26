@@ -4,7 +4,7 @@ require_relative 'remote_stat_methods'
 
 class Rosh
   class FileSystem
-    module Adapters
+    module ObjectAdapters
 
       # This is a generic base class for representing file system objects: files,
       # directories, and links.  It implements what's pretty close to Ruby's

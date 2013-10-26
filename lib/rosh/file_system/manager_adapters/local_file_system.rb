@@ -1,12 +1,13 @@
+require_relative 'base'
+
+
 class Rosh
   class FileSystem
-    module Adapters
+    module ManagerAdapters
       class LocalFileSystem
-        class << self
-          def host_name=(host_name)
-            @host_name = host_name
-          end
+        include Base
 
+        class << self
           def blockdev?(path)
             ::File.blockdev?(path)
           end

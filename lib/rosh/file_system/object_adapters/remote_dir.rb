@@ -3,7 +3,7 @@ require_relative 'remote_base'
 
 class Rosh
   class FileSystem
-    module Adapters
+    module ObjectAdapters
 
       # Object representing a directory on a remote file system.
       module RemoteDir

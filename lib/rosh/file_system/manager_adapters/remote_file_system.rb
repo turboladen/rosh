@@ -1,12 +1,13 @@
+require_relative 'base'
+
+
 class Rosh
   class FileSystem
     module Adapters
       class RemoteFileSystem
-        class << self
-          def host_name=(host_name)
-            @host_name = host_name
-          end
+        include Base
 
+        class << self
           def blockdev?(path)
             RemoteStat.blockdev?(path, @host_name)
           end

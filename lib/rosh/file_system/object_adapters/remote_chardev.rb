@@ -3,8 +3,8 @@ require_relative 'remote_base'
 
 class Rosh
   class FileSystem
-    module Adapters
-      class RemoteBlockdev
+    module ObjectAdapters
+      class RemoteChardev
         include RemoteBase
       end
     end

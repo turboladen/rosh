@@ -1,6 +1,6 @@
 class Rosh
   class FileSystem
-    module Adapters
+    module ObjectAdapters
       module LocalStatMethods
         def <=>(other_file)
           f1 = ::File.new(@path)
