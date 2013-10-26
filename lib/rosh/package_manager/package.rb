@@ -37,13 +37,6 @@ class Rosh
         adapter.at_latest_version?
       end
 
-      #   Version of the OS package this represents, if any.  Defaults to
-      #   +nil+.
-      #   @return [String]
-      def version
-        @version ||= adapter.current_version
-      end
-
       def info
         adapter.info
       end
@@ -110,6 +103,13 @@ class Rosh
             current_version != new_version
           end
         end
+      end
+
+      #   Version of the OS package this represents, if any.  Defaults to
+      #   +nil+.
+      #   @return [String]
+      def version
+        @version ||= adapter.current_version
       end
 
       private
