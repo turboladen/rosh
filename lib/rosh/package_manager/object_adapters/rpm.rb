@@ -45,7 +45,7 @@ class Rosh
             cmd = "rpm -qa #{@package_name}"
             result = current_shell.exec(cmd)
 
-            if result.empty?
+            if result.nil? || result.empty?
               nil
             else
               %r[#{@package_name}-(?<version>\d\S*)] =~ result
@@ -93,7 +93,7 @@ class Rosh
           #
           # @return [Boolean] +true+ if installed, +false+ if not.
           def installed?
-            current_shell.exec "yum info #{@package_name}"
+            current_shell.exec "rpm -qa | grep #{@package_name}"
 
             current_shell.last_exit_status.zero?
           end
@@ -109,7 +109,7 @@ class Rosh
           # Uses <tt>yum remove [pkg]</tt> to remove the package.
           #
           # @return [Boolean] +true+ if successful, +false+ if not.
-          def remove_package
+          def remove
             current_shell.exec "yum remove -y #{@package_name}"
 
             current_shell.last_exit_status.zero?
