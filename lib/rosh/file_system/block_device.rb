@@ -22,11 +22,11 @@ class Rosh
         return @adapter if @adapter
 
         @adapter = if current_host.local?
-          require_relative 'adapters/local_blockdev'
-          FileSystem::Adapters::LocalBlockdev
+          require_relative 'object_adapters/local_blockdev'
+          FileSystem::ObjectAdapters::LocalBlockdev
         else
-          require_relative 'adapters/remote_blockdev'
-          FileSystem::Adapters::RemoteBlockdev
+          require_relative 'object_adapters/remote_blockdev'
+          FileSystem::ObjectAdapters::RemoteBlockdev
         end
 
         @adapter.path = @path

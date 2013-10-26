@@ -23,11 +23,11 @@ class Rosh
         return @adapter if @adapter
 
         @adapter = if current_host.local?
-          require_relative 'adapters/local_symlink'
-          FileSystem::Adapters::LocalSymlink
+          require_relative 'object_adapters/local_symlink'
+          FileSystem::ObjectAdapters::LocalSymlink
         else
-          require_relative 'adapters/remote_symlink'
-          FileSystem::Adapters::RemoteSymlink
+          require_relative 'object_adapters/remote_symlink'
+          FileSystem::ObjectAdapters::RemoteSymlink
         end
 
         @adapter.path = @path
