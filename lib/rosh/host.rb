@@ -62,6 +62,10 @@ class Rosh
       @service_manager ||= Rosh::ServiceManager.new(@name)
     end
 
+    def su(user=nil, &block)
+      @shell.su(user, &block)
+    end
+
     def local?
       @name == 'localhost'
     end
