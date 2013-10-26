@@ -49,7 +49,7 @@ class Rosh
         updated_packages = adapter.update_definitions
         success = current_shell.last_exit_status.zero?
 
-        notify_about(self, :package_definitions, from: [], to: updated_packages, criteria: success ) do
+        notify_about(self, :package_definitions, from: '?', to: updated_packages, criteria: success ) do
           updated_packages
         end
       end
@@ -57,14 +57,14 @@ class Rosh
 
     # @todo Use criteria for change
     def upgrade_packages
-      current_packages = self.installed_packages
+      old_packages = self.installed_packages
 
       change_if(true) do
         upgraded_packages = adapter.upgrade_packages
         success = current_shell.last_exit_status.zero?
 
-        upgrade_packages.each do |upgraded_package|
-          old_package = current_packages.find { |pkg| pkg.name == upgraded_package.name }
+        upgraded_packages.each do |upgraded_package|
+          old_package = old_packages.find { |pkg| pkg.name == upgraded_package.name }
 
           notify_about(upgraded_package, :package_version, from: old_package.version, to: upgraded_package.version, criteria: success) do
             upgraded_packages

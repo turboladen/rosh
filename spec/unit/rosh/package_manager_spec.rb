@@ -1,65 +1,49 @@
 require 'spec_helper'
-require 'rosh/host/package_manager'
+require 'rosh/package_manager'
 
 
-describe Rosh::Host::PackageManager do
-  let(:shell) { double 'Rosh::Host::Shell::Fakie' }
+describe Rosh::PackageManager do
+  let(:shell) { double 'Rosh::Shell' }
+  let(:adapter) { double 'Rosh::PackageManager::ManagerAdapters::Test' }
 
   before do
-    allow(subject).to receive(:current_shell) { shell }
+    allow(package_manager).to receive(:current_shell) { shell }
+    allow(package_manager).to receive(:adapter) { adapter }
   end
 
-  subject do
-    allow_any_instance_of(Rosh::Host::PackageManager).to receive(:load_strategy)
-    pm = Rosh::Host::PackageManager.new('testie', 'example.com')
-
-    pm
+  subject(:package_manager) do
+    Rosh::PackageManager.new('example.com')
   end
 
   describe '#[]' do
-    it 'calls #create with the package name' do
-      subject.should_receive(:create_package).with('test')
-      subject['test']
+    let(:package) { double 'Rosh::PackageManager::Package' }
+
+    it 'builds a new Package object' do
+      allow(package).to receive(:add_observer)
+      expect(package_manager).to receive(:package).with('test') { package }
+
+      package_manager['test']
+    end
+
+    it 'adds itself as an observer of the Package' do
+      allow(package_manager).to receive(:package).with('test') { package }
+      expect(package).to receive(:add_observer).with(package_manager)
+
+      package_manager['test']
     end
   end
 
   describe '#installed_packages' do
-    it 'warns about not being implemented' do
-      expect(subject).to receive(:warn).with 'Not implemented!'
+    it 'delegates to the adapter' do
+      expect(adapter).to receive(:installed_packages)
 
-      subject.installed_packages
+      package_manager.installed_packages
     end
   end
 
   describe '#update_definitions' do
     context 'no definitions updated' do
-      before do
-        expect(subject).to receive(:update_definitions_command) { 'cmd' }
-        expect(shell).to receive(:exec).with('cmd') { 'output' }
-        expect(subject).to receive(:extract_updated_definitions) { [] }
-      end
-
-      context 'failed command' do
-        before { allow(shell).to receive(:last_exit_status) { 1 } }
-
-        it 'does not notify observers' do
-          expect(subject).to_not receive(:changed)
-          expect(subject).to_not receive(:notify_observers)
-
-          subject.update_definitions
-        end
-      end
-
-      context 'successful command' do
-        before { expect(shell).to receive(:last_exit_status) { 0 } }
-
-        it 'does not notify observers' do
-          expect(subject).to_not receive(:changed)
-          expect(subject).to_not receive(:notify_observers)
-
-          subject.update_definitions
-        end
-      end
+      pending 'Implementation of determining which packages were updated.'
     end
 
     context 'definitions updated' do
@@ -67,39 +51,40 @@ describe Rosh::Host::PackageManager do
       let(:command_output) { double 'command output' }
 
       before do
-        expect(subject).to receive(:update_definitions_command) { command_output }
-        expect(shell).to receive(:exec).with(command_output) { 'output' }
-        expect(subject).to receive(:extract_updated_definitions) { [updated_definition] }
+        expect(adapter).to receive(:update_definitions) { [updated_definition] }
       end
 
       context 'failed command' do
         before { allow(shell).to receive(:last_exit_status) { 1 } }
 
         it 'does not notify observers' do
-          expect(subject).to_not receive(:changed)
-          expect(subject).to_not receive(:notify_observers)
+          expect(package_manager).to receive(:change_if).with(true).and_yield
+          expect(package_manager).to receive(:notify_about).with(package_manager,
+            :package_definitions,
+            from: '?',
+            to: [updated_definition],
+            criteria: false
+          )
 
-          subject.update_definitions
+          package_manager.update_definitions
         end
       end
 
       context 'successful command' do
         before do
           allow(shell).to receive(:last_exit_status) { 0 }
-          expect(shell).to receive(:su?) { false }
         end
 
         it 'notifies observers' do
-          expect(subject).to receive(:changed)
-          expect(subject).to receive(:notify_observers).
-            with(subject,
-            attribute: :package_definitions,
-            old: [],
-            new: [updated_definition],
-            as_sudo: false
+          expect(package_manager).to receive(:change_if).with(true).and_yield
+          expect(package_manager).to receive(:notify_about).with(package_manager,
+            :package_definitions,
+            from: '?',
+            to: [updated_definition],
+            criteria: true
           )
 
-          subject.update_definitions
+          package_manager.update_definitions
         end
       end
     end
@@ -108,20 +93,18 @@ describe Rosh::Host::PackageManager do
   describe '#upgrade_packages' do
     context 'no packages upgraded' do
       before do
-        expect(subject).to receive(:installed_packages) { [] }
-        expect(subject).to receive(:upgrade_packages_command) { 'cmd' }
-        expect(shell).to receive(:exec).with('cmd') { 'output' }
-        expect(subject).to receive(:extract_upgraded_packages) { [] }
+        expect(package_manager).to receive(:installed_packages) { [] }
+        expect(adapter).to receive(:upgrade_packages) { [] }
       end
 
       context 'failed command' do
         before { expect(shell).to receive(:last_exit_status) { 1 } }
 
         it 'does not notify observers' do
-          expect(subject).to_not receive(:changed)
-          expect(subject).to_not receive(:notify_observers)
+          expect(package_manager).to receive(:change_if).with(true).and_yield
+          expect(package_manager).to_not receive(:notify_about)
 
-          subject.upgrade_packages
+          package_manager.upgrade_packages
         end
       end
 
@@ -129,53 +112,57 @@ describe Rosh::Host::PackageManager do
         before { expect(shell).to receive(:last_exit_status) { 0 } }
 
         it 'does not notify observers' do
-          expect(subject).to_not receive(:changed)
-          expect(subject).to_not receive(:notify_observers)
+          expect(package_manager).to receive(:change_if).with(true).and_yield
+          expect(package_manager).to_not receive(:notify_about)
 
-          subject.upgrade_packages
+          package_manager.upgrade_packages
         end
       end
     end
 
     context 'packages upgraded' do
-      let(:upgraded_package) { double 'upgraded package' }
-      let(:command_output) { double 'command output' }
+      let(:old_package) do
+        double 'Rosh::PackageManager::Package', name: 'test_pkg', version: 1
+      end
+
+      let(:new_package) do
+        double 'Rosh::PackageManager::Package', name: 'test_pkg', version: 2
+      end
 
       before do
-        expect(subject).to receive(:installed_packages) { [] }
-        expect(subject).to receive(:upgrade_packages_command) { command_output }
-        expect(shell).to receive(:exec).with(command_output) { 'output' }
-        expect(subject).to receive(:extract_upgraded_packages) { [upgraded_package] }
+        allow(package_manager).to receive(:installed_packages) { [old_package] }
+        expect(package_manager).to receive(:change_if).with(true).and_yield
+
+        expect(adapter).to receive(:upgrade_packages) { [new_package] }
       end
 
       context 'failed command' do
         before { expect(shell).to receive(:last_exit_status) { 1 } }
 
-        it 'does not notify observers' do
-          expect(subject).to_not receive(:changed)
-          expect(subject).to_not receive(:notify_observers)
+        it 'calls #notify_about with negative criteria for each upgraded package' do
+          expect(package_manager).to receive(:notify_about).with(new_package,
+            :package_version,
+            from: 1,
+            to: 2,
+            criteria: false
+          )
 
-          subject.upgrade_packages
+          package_manager.upgrade_packages
         end
       end
 
       context 'successful command' do
-        before do
-          expect(shell).to receive(:last_exit_status) { 0 }
-          expect(shell).to receive(:su?) { false }
-        end
+        before { expect(shell).to receive(:last_exit_status) { 0 } }
 
-        it 'notifies observers' do
-          expect(subject).to receive(:changed)
-          expect(subject).to receive(:notify_observers).
-            with(subject,
-            attribute: :installed_packages,
-            old: [],
-            new: [upgraded_package],
-            as_sudo: false
+        it 'calls #notify_about with positive criteria for each upgraded package' do
+          expect(package_manager).to receive(:notify_about).with(new_package,
+            :package_version,
+            from: 1,
+            to: 2,
+            criteria: true
           )
 
-          subject.upgrade_packages
+          package_manager.upgrade_packages
         end
       end
     end
