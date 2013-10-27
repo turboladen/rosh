@@ -120,7 +120,7 @@ class Rosh
         @adapter = case current_host.operating_system
         when :linux
           case current_host.distribution
-          when :ubuntu
+          when :ubuntu, :debian
             require_relative 'object_adapters/deb'
             PackageManager::ObjectAdapters::Deb
           when :centos
