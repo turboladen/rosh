@@ -40,6 +40,14 @@ shared_examples_for 'a package manager' do
       expect(host.packages[package_name].at_latest_version?).to eq true
     end
   end
+
+  it 'updates its package cache and upgrades packages' do
+    host.su do
+      host.packages.update_definitions
+
+      host.packages.upgrade_packages
+    end
+  end
 end
 
 
