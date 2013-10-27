@@ -3,6 +3,7 @@ require_relative 'observable'
 require_relative 'observer'
 require_relative 'changeable'
 require_relative 'package_manager/package'
+require_relative 'package_manager/manager_adapter'
 
 
 class Rosh
@@ -78,21 +79,19 @@ class Rosh
     def adapter
       return @adapter if @adapter
 
-      @adapter = case current_host.operating_system
+      type = case current_host.operating_system
       when :darwin
-        require_relative 'package_manager/manager_adapters/brew'
-        PackageManager::ManagerAdapters::Brew
+        :brew
       when :linux
         case current_host.distribution
-        when :ubuntu
-          require_relative 'package_manager/manager_adapters/apt'
-          PackageManager::ManagerAdapters::Apt
+        when :ubuntu, :debian
+          :apt
+        when :centos
+          :yum
         end
       end
 
-      @adapter.host_name = @host_name
-
-      @adapter
+      @adapter = PackageManager::ManagerAdapter.new(type, @host_name)
     end
   end
 end

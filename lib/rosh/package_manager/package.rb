@@ -1,5 +1,6 @@
 require_relative '../changeable'
 require_relative '../observable'
+require_relative 'object_adapter'
 
 
 class Rosh
@@ -117,25 +118,19 @@ class Rosh
       def adapter
         return @adapter if @adapter
 
-        @adapter = case current_host.operating_system
+        type = case current_host.operating_system
         when :linux
           case current_host.distribution
           when :ubuntu, :debian
-            require_relative 'object_adapters/deb'
-            PackageManager::ObjectAdapters::Deb
+            :deb
           when :centos
-            require_relative 'object_adapters/rpm'
-            PackageManager::ObjectAdapters::Rpm
+            :rpm
           end
         when :darwin
-          require_relative 'object_adapters/brew'
-          PackageManager::ObjectAdapters::Brew
+          :brew
         end
 
-        @adapter.package_name = @name
-        @adapter.host_name = @host_name
-
-        @adapter
+        @adapter = PackageManager::ObjectAdapter.new(@name, type, @host_name)
       end
     end
   end
