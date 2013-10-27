@@ -3,6 +3,7 @@ require_relative 'observable'
 require_relative 'observer'
 require_relative 'changeable'
 require_relative 'process_manager/process'
+require_relative 'process_manager/manager_adapter'
 
 
 class Rosh
@@ -35,17 +36,13 @@ class Rosh
     def process_adapter
       return @process_adapter if @process_adapter
 
-      @process_adapter = if current_host.local?
-        require_relative 'process_manager/manager_adapters/local'
-        ProcessManager::ManagerAdapters::Local
+      type = if current_host.local?
+        :local
       else
-        require_relative 'process_manager/manager_adapters/remote'
-        ProcessManager::ManagerAdapters::Remote
+        :remote
       end
 
-      @process_adapter.host_name = @host_name
-
-      @process_adapter
+      @process_adapter = ProcessManager::ManagerAdapter.new(type, @host_name)
     end
 
     def signal_adapter

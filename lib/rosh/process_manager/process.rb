@@ -1,5 +1,6 @@
 require_relative '../changeable'
 require_relative '../observable'
+require_relative 'object_adapter'
 
 
 class Rosh
@@ -19,7 +20,6 @@ class Rosh
         @pid = process_id
       end
 
-
       def send_signal(sig)
         adapter.send_signal(sig)
       end
@@ -29,18 +29,13 @@ class Rosh
       def adapter
         return @adapter if @adapter
 
-        @adapter = if current_host.local?
-          require_relative 'object_adapters/local'
-          ProcessManager::ObjectAdapters::Local
+        type = if current_host.local?
+          :local
         else
-          require_relative 'object_adapters/remote'
-          ProcessManager::ObjectAdapters::Remote
+          :remote
         end
 
-        @adapter.pid = @pid
-        @adapter.host_name = @host_name
-
-        @adapter
+        @adapter = ProcessManager::ObjectAdapter.new(@pid, type, @host_name)
       end
     end
   end
