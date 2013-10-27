@@ -1,3 +1,6 @@
+require_relative '../string_refinements'
+
+
 class Rosh
   class PackageManager
     class ObjectAdapter
@@ -21,7 +24,7 @@ class Rosh
       def load_adapter(type)
         require_relative "object_adapters/#{type}"
         klass =
-          Rosh::PackageManager::ObjectAdapters.const_get(type.to_s.capitalize.to_sym)
+          Rosh::PackageManager::ObjectAdapters.const_get(type.to_s.classify)
         self.extend klass
         @bin_path = klass::DEFAULT_BIN_PATH
       end
