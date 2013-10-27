@@ -27,7 +27,7 @@ class Rosh
     def initialize
       ENV['SHELL'] = ::File.expand_path($0)
 
-      if Rosh.config
+      if Rosh.load_config
         instance_eval Rosh.config
       else
         Rosh.add_host 'localhost'

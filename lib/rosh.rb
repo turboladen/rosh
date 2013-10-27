@@ -50,12 +50,15 @@ class Rosh
   # Reads the configuration from .roshrc.yml.
   #
   # @return [Hash]
-  def self.config
-    return @config if @config
-
+  def self.load_config
     @config = if File.exists? DEFAULT_RC_FILE
       File.read(DEFAULT_RC_FILE)
     end
+  end
+
+  # @return [Hash]
+  def self.config
+    @config
   end
 
   # Resets hosts and configuration to empty values.
