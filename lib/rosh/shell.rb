@@ -2,6 +2,7 @@ require 'shellwords'
 require 'highline/import'
 require 'log_switch'
 require_relative 'kernel_refinements'
+require_relative 'shell/adapter'
 require_relative 'shell/commands'
 
 
@@ -135,16 +136,12 @@ class Rosh
       return @adapter if @adapter
 
       if current_host.local?
-        require_relative 'shell/adapters/local'
-        @adapter = Shell::Adapters::Local
+        @adapter = Shell::Adapter.new(:local, @host_name)
       else
-        require_relative 'shell/adapters/remote'
-        @adapter = Shell::Adapters::Remote
+        @adapter = Shell::Adapter.new(:remote, @host_name)
         @adapter.ssh_options = @ssh_options
         @adapter.user = @user
       end
-
-      @adapter.host_name = @host_name
 
       @internal_pwd = if current_host.local?
         Rosh::FileSystem::Directory.new(Dir.pwd, @host_name)
