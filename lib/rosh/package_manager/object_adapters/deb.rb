@@ -81,9 +81,10 @@ class Rosh
           #
           # @return [Boolean] +true+ if installed, +false+ if not.
           def installed?
-            current_shell.exec "dpkg --status #{@package_name}"
+            output = current_shell.exec "dpkg --status #{@package_name}"
+            return false unless current_shell.last_exit_status.zero?
 
-            current_shell.last_exit_status.zero?
+            !output.match(/not-installed/)
           end
 
           def installed_versions
@@ -98,7 +99,7 @@ class Rosh
           #
           # @return [Boolean] +true+ if successful, +false+ if not.
           def remove
-            current_shell.exec "DEBIAN_FRONTEND=noninteractive apt-get remove #{@package_name}"
+            current_shell.exec "DEBIAN_FRONTEND=noninteractive apt-get remove -y #{@package_name}"
 
             current_shell.last_exit_status.zero?
           end
