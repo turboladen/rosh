@@ -15,7 +15,7 @@ module Kernel
   #
   # @return [Rosh::Host]
   def current_host
-    host = Rosh.find_by_host_name(@host_name) || Rosh.add_host(@host_name)
+    host = Rosh.find_by_host_name(@host_name)
 
     unless host
       raise "No host found with name '#{@host_name}'"
