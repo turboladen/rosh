@@ -12,15 +12,27 @@ describe 'Package Management' do
     #  `vagrant halt #{vagrant_box_name}`
     #end
 
-    it 'can install and remove the package' do
+    before do
       if host.packages[package_name].installed?
         host.su do
           host.packages[package_name].remove
         end
 
-        expect(host.packages[package_name].installed?).to eq true
+        expect(host.packages[package_name].installed?).to eq false
       end
+    end
 
+    after do
+      if host.packages[package_name].installed?
+        host.su do
+          host.packages[package_name].remove
+        end
+
+        expect(host.packages[package_name].installed?).to eq false
+      end
+    end
+
+    it 'can install and remove the package' do
       host.su do
         host.packages[package_name].install
         expect(host.packages[package_name].installed?).to eq true
@@ -29,15 +41,23 @@ describe 'Package Management' do
         expect(host.packages[package_name].installed?).to eq false
       end
     end
+
+    it 'installs the latest version of the package' do
+      host.su do
+        host.packages[package_name].install
+
+        expect(host.packages[package_name].at_latest_version?).to eq true
+      end
+    end
   end
 
   context 'on CentOS 5.6 x86_64' do
-    it_behaves_like 'a package manager' do
-      before do
-        Rosh.add_host('192.168.33.100', host_label: :centos_57_64, user: 'vagrant',
-          keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
-      end
+    before do
+      Rosh.add_host('192.168.33.100', host_label: :centos_57_64, user: 'vagrant',
+        keys: [Dir.home + '/.vagrant.d/insecure_private_key'])
+    end
 
+    it_behaves_like 'a package manager' do
       let(:host) { Rosh.hosts[:centos_57_64] }
       let(:vagrant_box_name) { 'centos_57_64' }
       let(:package_name) { 'curl' }
