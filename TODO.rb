@@ -56,3 +56,9 @@
 # TODO: Add Shell::CommandNotFound errors
 
 # TODO: Clearer logic on when to raise errors.
+
+# TODO: Add Host#linux_family
+
+# TODO: Add FileSystem::Tempfile and Tmpdir
+
+# TODO: Use `test` for remote file checking
