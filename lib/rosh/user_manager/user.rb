@@ -1,5 +1,6 @@
 require_relative '../changeable'
 require_relative '../observable'
+require_relative 'object_adapter'
 
 
 class Rosh
@@ -187,24 +188,18 @@ class Rosh
       def adapter
         return @adapter if @adapter
 
-        @adapter = if current_host.local?
-          require_relative 'object_adapters/local_user'
-          UserManager::ObjectAdapters::LocalUser
+        type = if current_host.local?
+          :local_user
         else
           case current_host.operating_system
-          when :linux
-            require_relative 'object_adapters/unix_user'
-            UserManager::ObjectAdapters::UnixUser
           when :darwin
-            require_relative 'object_adapters/open_directory_user'
-            UserManager::ObjectAdapters::OpenDirectoryUser
+            :open_directory_user
+          else
+            :unix_user
           end
         end
 
-        @adapter.user_name = @name
-        @adapter.host_name = @host_name
-
-        @adapter
+        @adapter = Rosh::UserManager::ObjectAdapter.new(@name, type, @host_name)
       end
     end
   end

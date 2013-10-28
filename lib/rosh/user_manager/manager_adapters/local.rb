@@ -1,5 +1,4 @@
 require 'etc'
-require_relative 'base'
 require_relative '../user'
 require_relative '../group'
 
@@ -7,49 +6,45 @@ require_relative '../group'
 class Rosh
   class UserManager
     module ManagerAdapters
-      class Local
-        include Base
+      module Local
+        def groups
+          groups = []
 
-        class << self
-          def groups
-            groups = []
-
-            Etc.group do |struct|
-              groups << Rosh::UserManager::Group.new(struct.name, @host_name)
-            end
-
-            groups
+          Etc.group do |struct|
+            groups << Rosh::UserManager::Group.new(struct.name, @host_name)
           end
 
-          def group?(name)
-            begin
-              ::Etc.getgrnam(name)
-            rescue ArgumentError
-              return false
-            end
+          groups
+        end
 
-            true
+        def group?(name)
+          begin
+            ::Etc.getgrnam(name)
+          rescue ArgumentError
+            return false
           end
 
-          def users
-            users = []
+          true
+        end
 
-            Etc.passwd do |struct|
-              users << Rosh::UserManager::User.new(struct.name, @host_name)
-            end
+        def users
+          users = []
 
-            users
+          Etc.passwd do |struct|
+            users << Rosh::UserManager::User.new(struct.name, @host_name)
           end
 
-          def user?(name)
-            begin
-              ::Etc.getpwnam(name)
-            rescue ArgumentError
-              return false
-            end
+          users
+        end
 
-            true
+        def user?(name)
+          begin
+            ::Etc.getpwnam(name)
+          rescue ArgumentError
+            return false
           end
+
+          true
         end
       end
     end

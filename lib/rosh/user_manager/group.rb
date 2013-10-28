@@ -17,6 +17,10 @@ class Rosh
         @host_name = host_name
       end
 
+      def exists?
+        adapter.exists?
+      end
+
       def group_id
         adapter.gid
       end
@@ -35,24 +39,18 @@ class Rosh
       def adapter
         return @adapter if @adapter
 
-        @adapter = if current_host.local?
-          require_relative 'object_adapters/local_group'
-          UserManager::ObjectAdapters::LocalGroup
+        type = if current_host.local?
+          :local_group
         else
           case current_host.operating_system
-          when :linux
-            require_relative 'object_adapters/unix_group'
-            UserManager::ObjectAdapters::UnixGroup
           when :darwin
-            require_relative 'object_adapters/open_directory_group'
-            UserManager::ObjectAdapters::OpenDirectoryGroup
+            :open_directory_group
+          else
+            :unix_group
           end
         end
 
-        @adapter.group_name = @name
-        @adapter.host_name = @host_name
-
-        @adapter
+        @adapter = UserManager::ObjectAdapter.new(@name, type, @host_name)
       end
     end
   end

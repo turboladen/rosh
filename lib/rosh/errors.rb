@@ -13,4 +13,8 @@ class Rosh
 
   class PermissionDenied < StandardError
   end
+
+  class Shell
+    class CommandNotFound < RuntimeError; end
+  end
 end

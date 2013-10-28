@@ -5,6 +5,7 @@ require_relative 'observable'
 require_relative 'user_manager/object'
 require_relative 'user_manager/group'
 require_relative 'user_manager/user'
+require_relative 'user_manager/manager_adapter'
 
 
 class Rosh
@@ -61,8 +62,12 @@ class Rosh
       adapter.group?(name)
     end
 
-    def groups
+    def list_groups
       adapter.groups
+    end
+
+    def list_users
+      adapter.users
     end
 
     def object(name)
@@ -77,31 +82,22 @@ class Rosh
       adapter.user?(name)
     end
 
-    def users
-      adapter.users
-    end
-
     private
 
     def adapter
       return @adapter if @adapter
 
-      @adapter = if current_host.local?
-        require_relative 'user_manager/manager_adapters/local'
-        UserManager::ManagerAdapters::Local
+      type = if current_host.local?
+        :local
       else
         if current_host.darwin?
-          require_relative 'user_manager/manager_adapters/open_directory'
-          UserManager::ManagerAdapters::OpenDirectory
+          :open_directory
         else
-          require_relative 'user_manager/manager_adapters/unix'
-          UserManager::ManagerAdapters::Unix
+          :unix
         end
       end
 
-      @adapter.host_name = @host_name
-
-      @adapter
+      @adapter = UserManager::ManagerAdapter.new(type, @host_name)
     end
   end
 end

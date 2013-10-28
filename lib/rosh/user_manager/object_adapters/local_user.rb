@@ -1,123 +1,118 @@
 require 'etc'
-require_relative 'base_user'
 
 
 class Rosh
   class UserManager
     module ObjectAdapters
-      class LocalUser
-        include BaseUser
+      module LocalUser
+        def age
+          passwd = info_by_name
 
-        class << self
-          def age
-            passwd = info_by_name
+          passwd.respond_to?(:age) ? passwd.age : nil
+        end
 
-            passwd.respond_to?(:age) ? passwd.age : nil
+        def change
+          passwd = info_by_name
+
+          return nil unless passwd.respond_to?(:change)
+          return passwd.change if passwd.change.zero?
+
+          Time.at(passwd.change)
+        end
+
+        # @todo Implement create for local user
+        def create
+          warn 'Not implemented'
+        end
+
+        def comment
+          passwd = info_by_name
+
+          passwd.respond_to?(:comment) ? passwd.comment : nil
+        end
+
+        def dir
+          info_by_name.dir
+        end
+
+        def exists?
+          begin
+            info_by_name
+          rescue
+            return false
           end
 
-          def change
-            passwd = info_by_name
+          true
+        end
 
-            return nil unless passwd.respond_to?(:change)
-            return passwd.change if passwd.change.zero?
+        def expire
+          passwd = info_by_name
 
-            Time.at(passwd.change)
-          end
+          passwd.respond_to?(:expire) ? passwd.expire : nil
+        end
 
-          # @todo Implement create for local user
-          def create
-            warn 'Not implemented'
-          end
+        def gecos
+          passwd = info_by_name
 
-          def comment
-            passwd = info_by_name
+          passwd.respond_to?(:gecos) ? passwd.gecos : nil
+        end
 
-            passwd.respond_to?(:comment) ? passwd.comment : nil
-          end
+        def gid
+          info_by_name.gid
+        end
 
-          def dir
-            info_by_name.dir
-          end
+        def info
+          self.gecos
+        end
 
-          def exists?
-            begin
-              info_by_name
-            rescue
-              return false
-            end
+        def name
+          info_by_name.name
+        end
 
-            true
-          end
+        def passwd
+          info_by_name.passwd
+        end
 
-          def expire
-            passwd = info_by_name
+        def shell
+          info_by_name.shell
+        end
 
-            passwd.respond_to?(:expire) ? passwd.expire : nil
-          end
+        def uid
+          info_by_name.uid
+        end
 
-          def gecos
-            passwd = info_by_name
+        private
 
-            passwd.respond_to?(:gecos) ? passwd.gecos : nil
-          end
+        def info_by_name
+          ::Etc.getpwnam(@name)
+        end
 
-          def gid
-            info_by_name.gid
-          end
+        def dir=(new_dir)
+          warn 'Not implemented!'
+        end
 
-          def info
-            self.gecos
-          end
+        def gid=(new_gid)
+          warn 'Not implemented!'
+        end
 
-          def name
-            info_by_name.name
-          end
+        def name=(new_name)
+          warn 'Not implemented!'
+        end
 
-          def passwd
-            info_by_name.passwd
-          end
+        def passwd=(new_password)
+          warn 'Not implemented!'
+        end
 
-          def shell
-            info_by_name.shell
-          end
+        def real_name=(new_name)
+          warn 'Not implemented!'
+        end
 
-          def uid
-            info_by_name.uid
-          end
+        def shell=(new_shell)
+          warn 'Not implemented!'
+        end
 
-          private
-
-          def info_by_name
-            ::Etc.getpwnam(@user_name)
-          end
-
-          def dir=(new_dir)
-            warn 'Not implemented!'
-          end
-
-          def gid=(new_gid)
-            warn 'Not implemented!'
-          end
-
-          def name=(new_name)
-            warn 'Not implemented!'
-          end
-
-          def passwd=(new_password)
-            warn 'Not implemented!'
-          end
-
-          def real_name=(new_name)
-            warn 'Not implemented!'
-          end
-
-          def shell=(new_shell)
-            warn 'Not implemented!'
-          end
-
-          def uid=(new_uid)
-            warn 'Not implemented!'
-          end
+        def uid=(new_uid)
+          warn 'Not implemented!'
         end
       end
     end
