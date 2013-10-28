@@ -50,3 +50,9 @@
 # TODO: Add IO and Enumerable methods to FileSystem.
 
 # TODO: Add ssh manager for User.
+
+# TODO: extract methods from kernel_refinements to a different module.
+
+# TODO: Add Shell::CommandNotFound errors
+
+# TODO: Clearer logic on when to raise errors.
