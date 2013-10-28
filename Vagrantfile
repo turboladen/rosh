@@ -5,6 +5,8 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.synced_folder '.', '/vagrant', disabled: true
+
   config.vm.define :centos_57_64 do |os|
     os.vm.box = 'centos-57-64'
     os.vm.box_url = 'http://www.lyricalsoftware.com/downloads/centos-5.7-x86_64.box'
@@ -40,7 +42,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     os.vm.guest = :freebsd
     os.vm.hostname = 'freebsd-92-64'
     os.vm.network :private_network, ip: '192.168.33.104'
-    os.vm.synced_folder '.', '/vagrant', disabled: true
   end
 
   config.vm.define :gentoo_64 do |os|
@@ -63,7 +64,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     os.vm.guest = :openbsd
     os.vm.hostname = 'openbsd-50-64'
     os.vm.network :private_network, ip: '192.168.33.107'
-    os.vm.synced_folder '.', '/vagrant', disabled: true
   end
 
   config.vm.define :scientific_6_64 do |os|
