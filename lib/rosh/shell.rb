@@ -47,6 +47,8 @@ class Rosh
 
     # @param [Integer] status Exit status code.
     def exit(status=0)
+      echo_rosh_command status
+
       Kernel.exit(status)
     end
 

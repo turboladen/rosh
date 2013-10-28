@@ -29,14 +29,39 @@ module Kernel
   end
 
   def good_info(text)
-    $stdout.puts "[#{current_host.name}]>> #{text.strip}".light_blue
+    $stdout.puts "[#{current_user}@#{current_host.name}]>> #{text.strip}".light_blue
   end
 
   def bad_info(text)
-    $stderr.puts "[#{current_host.name}]!> #{text.strip}".light_red
+    $stderr.puts "[#{current_user}@#{current_host.name}]!> #{text.strip}".light_red
   end
 
   def run_info(text)
-    $stdout.puts "[#{current_host.name}]>> #{text.strip}".yellow
+    $stdout.puts "[#{current_user}@#{current_host.name}]<< #{text.strip}".yellow
+  end
+
+  def echo_rosh_command(*extra)
+    unless internal_call?
+      path, meth = caller_info(caller(1, 1))
+      text = meth
+      text << " #{extra.compact.map(&:strip).join(', ')}" unless extra.empty?
+
+      $stdout.puts "[#{current_user}@#{current_host.name}:#{path}]> #{text}".bold
+    end
+  end
+
+  def caller_info(info)
+    result = info
+    %r[rosh/lib/rosh/(?<path>[^\.]+).*`(?<meth>\w+)'] =~ result.first
+
+    [path, meth.upcase]
+  end
+
+  private
+
+  def internal_call?
+    result = caller(3, 1).first
+
+    result.match %r[rosh/lib/rosh]
   end
 end

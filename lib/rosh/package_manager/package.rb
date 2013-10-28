@@ -39,6 +39,8 @@ class Rosh
       end
 
       def info
+        echo_rosh_command
+
         adapter.info
       end
 
@@ -49,6 +51,8 @@ class Rosh
       # @return [Boolean] +true+ if install was successful, +false+ if not,
       #   +nil+ if no action was required.
       def install(version: nil)
+        echo_rosh_command version
+
         already_installed = self.installed?
         at_latest = self.at_latest_version?
         old_version = self.version
@@ -72,18 +76,26 @@ class Rosh
       end
 
       def installed?
+        echo_rosh_command
+
         adapter.installed?
       end
 
       def installed_versions
+        echo_rosh_command
+
         adapter.installed_versions
       end
 
       def latest_version
+        echo_rosh_command
+
         adapter.latest_version
       end
 
       def remove
+        echo_rosh_command
+
         change_if(self.installed?) do
           adapter.remove
 
@@ -94,6 +106,8 @@ class Rosh
       end
 
       def upgrade
+        echo_rosh_command
+
         current_version = self.version
 
         change_if(current_version < self.latest_version) do
@@ -110,6 +124,8 @@ class Rosh
       #   +nil+.
       #   @return [String]
       def version
+        echo_rosh_command
+
         @version ||= adapter.current_version
       end
 

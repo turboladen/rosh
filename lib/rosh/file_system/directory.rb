@@ -21,6 +21,8 @@ class Rosh
       end
 
       def create
+        echo_rosh_command
+
         change_if(!exists?) do
           notify_about(self, :exists?, from: false, to: true) do
             adapter.mkdir
@@ -29,6 +31,8 @@ class Rosh
       end
 
       def delete
+        echo_rosh_command
+
         change_if(exists?) do
           notify_about(self, :exists?, from: true, to: false) do
             adapter.rmdir
@@ -39,6 +43,8 @@ class Rosh
       alias_method :unlink, :delete
 
       def entries
+        echo_rosh_command
+
         adapter.entries
       end
       alias_method :list, :entries
@@ -49,6 +55,8 @@ class Rosh
 
       # @todo Add #glob.
       def glob
+        echo_rosh_command
+
         warn 'Not implemented!'
       end
 

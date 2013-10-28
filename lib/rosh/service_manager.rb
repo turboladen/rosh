@@ -24,6 +24,8 @@ class Rosh
     end
 
     def list
+      echo_rosh_command
+
       adapter.list_services
     end
 

@@ -7,12 +7,16 @@ class Rosh
     #
     module Commands
       def cat(file)
+        echo_rosh_command file
+
         process(:cat, file: file) do
           adapter.cat(file)
         end
       end
 
       def cd(path)
+        echo_rosh_command path
+
         full_path = adapter.preprocess_path(path, @internal_pwd)
         log %[cd full path '#{full_path}']
 
@@ -28,6 +32,8 @@ class Rosh
       end
 
       def cp(source, destination)
+        echo_rosh_command source, destination
+
         process(:cp, source: source, destination: destination) do
           adapter.cp(source, destination)
         end
@@ -39,6 +45,8 @@ class Rosh
       #
       # @return [Hash] A Hash containing the environment info.
       def env
+        echo_rosh_command
+
         adapter
 
         @path ||= ENV['PATH'].split ':'
@@ -57,18 +65,24 @@ class Rosh
       end
 
       def exec(command)
+        echo_rosh_command command
+
         process(:exec, command: command) do
           adapter.exec(command, @internal_pwd)
         end
       end
 
       def lh
+        echo_rosh_command
+
         process(:lh) do
           [Rosh.hosts.keys.each(&method(:puts)), 0]
         end
       end
 
       def ls(path=nil)
+        echo_rosh_command path
+
         process(:ls, path: path) do
           path ||= '.'
           full_path = adapter.preprocess_path(path, @internal_pwd.to_path)
@@ -77,6 +91,8 @@ class Rosh
       end
 
       def ps(name: nil, pid: nil)
+        echo_rosh_command name, pid
+
         process(:ps, name: name, pid: pid) do
           list = current_host.processes.list(name: name, pid: pid)
 
@@ -85,6 +101,7 @@ class Rosh
       end
 
       def pwd
+        echo_rosh_command
         adapter
 
         _pwd = Rosh::FileSystem::Directory.new(@internal_pwd, @host_name)
@@ -99,6 +116,8 @@ class Rosh
       end
 
       def ruby(code)
+        echo_rosh_command code
+
         process(:ruby, code: code) do
           adapter.ruby(code)
         end

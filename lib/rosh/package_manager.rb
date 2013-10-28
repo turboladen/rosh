@@ -38,6 +38,8 @@ class Rosh
     end
 
     def installed_packages
+      echo_rosh_command
+
       adapter.installed_packages
     end
 
@@ -46,6 +48,8 @@ class Rosh
     end
 
     def update_definitions
+      echo_rosh_command
+
       change_if(true) do
         updated_packages = adapter.update_definitions
         success = current_shell.last_exit_status.zero?
@@ -58,6 +62,8 @@ class Rosh
 
     # @todo Use criteria for change
     def upgrade_packages
+      echo_rosh_command
+
       old_packages = self.installed_packages
 
       change_if(true) do

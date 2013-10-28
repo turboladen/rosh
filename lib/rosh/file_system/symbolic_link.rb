@@ -20,10 +20,14 @@ class Rosh
       end
 
       def destination
+        echo_rosh_command
+
         adapter.destination
       end
 
       def link_to(new_destination)
+        echo_rosh_command
+
         adapter.link_to(new_destination)
       end
 

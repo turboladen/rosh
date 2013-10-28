@@ -66,10 +66,14 @@ class Rosh
       end
 
       def contents
+        echo_rosh_command
+
         adapter.read
       end
 
       def contents=(new_contents)
+        echo_rosh_command new_contents
+
         current_contents = self.contents
 
         change_if(new_contents != current_contents) do
@@ -80,6 +84,8 @@ class Rosh
       end
 
       def copy_to(destination)
+        echo_rosh_command destination
+
         the_copy = current_host.fs[file: destination]
 
         criteria = [
@@ -96,6 +102,8 @@ class Rosh
       end
 
       def hard_link_from(new_path)
+        echo_rosh_command new_path
+
         new_link = current_host.fs[file: new_path]
 
         criteria = [
@@ -111,26 +119,38 @@ class Rosh
       alias_method :link, :hard_link_from
 
       def read(length=nil, offset=nil)
+        echo_rosh_command length, offset
+
         adapter.read(length, offset)
       end
 
       def readlines(separator=$/)
+        echo_rosh_command separator
+
         adapter.readlines(separator)
       end
 
       def each_char(&block)
+        echo_rosh_command
+
         adapter.each_char(&block)
       end
 
       def each_codepoint(&block)
+        echo_rosh_command
+
         contents.each_codepoint(&block)
       end
 
       def each_line(separator=$/, &block)
+        echo_rosh_command
+
         contents.each_line(separator, &block)
       end
 
       def save
+        echo_rosh_command
+
         adapter.save
       end
 

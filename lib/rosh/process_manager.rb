@@ -24,10 +24,14 @@ class Rosh
     end
 
     def list(name: nil, pid: nil)
+      echo_rosh_command name, pid
+
       process_adapter.list_running(name, pid)
     end
 
     def supported_signals
+      echo_rosh_command
+
       signal_adapter.list
     end
 

@@ -63,10 +63,14 @@ class Rosh
     end
 
     def list_groups
+      echo_rosh_command
+
       adapter.groups
     end
 
     def list_users
+      echo_rosh_command
+
       adapter.users
     end
 

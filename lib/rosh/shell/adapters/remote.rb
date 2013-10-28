@@ -121,11 +121,12 @@ class Rosh
           result = run(cmd)
 
           if result.stderr.match %r[No such file or directory]
+            bad_info result.stderr
             error = Rosh::ErrorENOENT.new(result.stderr)
 
             [error, result.exit_status, result.stdout, result.stderr]
           else
-            good_info result.stdout
+            #good_info result.stdout
 
             [result.ruby_object, 0, result.stdout, result.stderr]
           end
@@ -145,6 +146,7 @@ class Rosh
           if result.exit_status.zero?
             [true, 0, result.stdout, result.stderr]
           elsif result.stderr.match %r[No such file or directory]
+            bad_info result.stderr
             error = Rosh::ErrorENOENT.new(result.stderr)
 
             [error, result.exit_status, result.stdout, result.stderr]
@@ -165,6 +167,7 @@ class Rosh
           result = run(cmd)
 
           if result.stderr.match %r[No such file or directory]
+            bad_info result.stderr
             error = Rosh::ErrorENOENT.new(result.stderr)
 
             [error, result.exit_status, result.stdout, result.stderr]
@@ -188,19 +191,18 @@ class Rosh
           command = sudoize("cd #{internal_pwd} && #{command}")
 
           log %[EXEC: #{command}]
-          run_info(command)
           result = run(command)
 
           if result.exit_status.zero?
-            good_info result.stdout unless result.stdout.empty?
+            #good_info result.stdout unless result.stdout.empty?
 
             [result.ruby_object, 0, result.stdout]
           else
-            good_info result.stdout unless result.stdout.empty?
+            #good_info result.stdout unless result.stdout.empty?
             output = if result.stdout.empty? && result.stderr.empty?
               ''
             elsif result.stderr.empty?
-              good_info result.stdout
+              #good_info result.stdout
 
               result.stdout
             elsif result.stdout.empty?
@@ -208,7 +210,7 @@ class Rosh
 
               result.stderr
             else
-              good_info result.stdout
+              #good_info result.stdout
               puts "\n\n"
               bad_info result.stderr
 

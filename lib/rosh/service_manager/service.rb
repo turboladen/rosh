@@ -17,10 +17,14 @@ class Rosh
       end
 
       def exists?
+        echo_rosh_command
+
         adapter.exists?
       end
 
       def info
+        echo_rosh_command
+
         adapter.info
       end
 
@@ -29,6 +33,8 @@ class Rosh
       end
 
       def start
+        echo_rosh_command
+
         current_status = self.status
 
         change_if(current_status != :running) do
@@ -41,6 +47,8 @@ class Rosh
       end
 
       def start!
+        echo_rosh_command
+
         current_status = self.status
 
         change_if(current_status != :running) do
@@ -53,15 +61,21 @@ class Rosh
       end
 
       def start_at_boot!
+        echo_rosh_command
+
         adapter.start_at_boot!
       end
 
       def running?
+        echo_rosh_command
+
         self.status == :running
       end
       alias_method :started?, :running?
 
       def stop
+        echo_rosh_command
+
         current_status = self.status
 
         change_if(current_status != :stopped) do
@@ -74,6 +88,8 @@ class Rosh
       end
 
       def stop!
+        echo_rosh_command
+
         current_status = self.status
 
         change_if(current_status != :stopped) do
@@ -86,10 +102,14 @@ class Rosh
       end
 
       def stopped?
+        echo_rosh_command
+
         self.status == :stopped
       end
 
       def status
+        echo_rosh_command
+
         adapter.status
       end
 

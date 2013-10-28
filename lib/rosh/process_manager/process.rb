@@ -21,6 +21,8 @@ class Rosh
       end
 
       def send_signal(sig)
+        echo_rosh_command sig
+
         adapter.send_signal(sig)
       end
 
