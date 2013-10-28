@@ -84,7 +84,7 @@ class Rosh
         # @return [Boolean] +true+ if the object exists on the file system;
         #   +false+ if not.
         def exists?
-          cmd = "[ -e #{@path} ]"
+          cmd = "test -e #{@path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?

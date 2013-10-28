@@ -24,7 +24,7 @@ class Rosh
 
       def self.blockdev?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -b #{path} ]"
+          cmd = "test -b #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -33,7 +33,7 @@ class Rosh
 
       def self.chardev?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -c #{path} ]"
+          cmd = "test -c #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -66,7 +66,7 @@ class Rosh
 
       def self.directory?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -d #{path} ]"
+          cmd = "test -d #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -75,7 +75,7 @@ class Rosh
 
       def self.executable?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -x #{path} ]"
+          cmd = "test -x #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -84,7 +84,7 @@ class Rosh
 
       def self.file?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -f #{path} ]"
+          cmd = "test -f #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -93,7 +93,7 @@ class Rosh
 
       def self.grpowned?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -G #{path} ]"
+          cmd = "test -G #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -102,7 +102,7 @@ class Rosh
 
       def self.owned?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -O #{path} ]"
+          cmd = "test -O #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -111,7 +111,7 @@ class Rosh
 
       def self.pipe?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -p #{path} ]"
+          cmd = "test -p #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -120,7 +120,7 @@ class Rosh
 
       def self.readable?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -r #{path} ]"
+          cmd = "test -r #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -129,7 +129,7 @@ class Rosh
 
       def self.setgid?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -g #{path} ]"
+          cmd = "test -g #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -138,7 +138,7 @@ class Rosh
 
       def self.setuid?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -u #{path} ]"
+          cmd = "test -u #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -147,7 +147,7 @@ class Rosh
 
       def self.socket?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -S #{path} ]"
+          cmd = "test -S #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -156,7 +156,7 @@ class Rosh
 
       def self.sticky?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -k #{path} ]"
+          cmd = "test -k #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -165,7 +165,7 @@ class Rosh
 
       def self.symlink?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -L #{path} ]"
+          cmd = "test -L #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -174,7 +174,7 @@ class Rosh
 
       def self.writable?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -w #{path} ]"
+          cmd = "test -w #{path}"
           current_shell.exec(cmd)
 
           current_shell.last_exit_status.zero?
@@ -183,7 +183,7 @@ class Rosh
 
       def self.zero?(path, host_name)
         run(path, host_name) do
-          cmd = "[ -s #{path} ]"
+          cmd = "test -s #{path}"
           current_shell.exec(cmd)
 
           !current_shell.last_exit_status.zero?
