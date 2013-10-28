@@ -2,7 +2,7 @@ require_relative '../string_refinements'
 
 
 class Rosh
-  class ProcessManager
+  class ServiceManager
     class ManagerAdapter
       def initialize(type, host_name)
         @host_name = host_name
@@ -13,10 +13,9 @@ class Rosh
       private
 
       def load_adapter(type)
-        class_name = "#{type}_process_manager"
-        require_relative "manager_adapters/#{class_name}"
+        require_relative "manager_adapters/#{type}"
         klass =
-          Rosh::ProcessManager::ManagerAdapters.const_get(class_name.classify)
+          Rosh::ServiceManager::ManagerAdapters.const_get(type.to_s.classify)
         self.extend klass
       end
     end

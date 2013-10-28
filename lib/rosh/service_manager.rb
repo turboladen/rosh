@@ -3,6 +3,7 @@ require_relative 'changeable'
 require_relative 'observer'
 require_relative 'observable'
 require_relative 'service_manager/service'
+require_relative 'service_manager/manager_adapter'
 
 
 class Rosh
@@ -22,8 +23,8 @@ class Rosh
       result
     end
 
-    def installed_services
-      adapter.installed_services
+    def list
+      adapter.list_services
     end
 
     private
@@ -31,18 +32,14 @@ class Rosh
     def adapter
       return @adapter if @adapter
 
-      @adapter = case current_host.operating_system
+      type = case current_host.operating_system
       when :darwin
-        require_relative 'service_manager/manager_adapters/launch_ctl'
-        ServiceManager::ManagerAdapters::LaunchCtl
+        :launch_ctl
       when :linux
-        require_relative 'service_manager/manager_adapters/init'
-        ServiceManager::ManagerAdapters::Init
+        :init
       end
 
-      @adapter.host_name = @host_name
-
-      @adapter
+      @adapter = ServiceManager::ManagerAdapter.new(type, @host_name)
     end
   end
 end

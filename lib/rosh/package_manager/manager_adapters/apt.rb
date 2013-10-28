@@ -31,7 +31,11 @@ class Rosh
 
         def upgrade_packages
           output = current_shell.exec 'DEBIAN_FRONTEND=noninteractive apt-get upgrade -y'
-          return [] if output.match /0 upgraded/
+
+          if output.match /0 upgraded/m
+            puts 'Nothing upgraded'
+            return []
+          end
 
           extract_upgraded_packages(output)
         end

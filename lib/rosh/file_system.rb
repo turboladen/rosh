@@ -160,11 +160,11 @@ class Rosh
       return @adapter if @adapter
 
       @adapter = if current_host.local?
-        require_relative 'file_system/adapters/local_file_system'
-        FileSystem::Adapters::LocalFileSystem
+        require_relative 'file_system/manager_adapters/local_file_system'
+        FileSystem::ManagerAdapters::LocalFileSystem
       else
-        require_relative 'file_system/adapters/remote_file_system'
-        FileSystem::Adapters::RemoteFileSystem
+        require_relative 'file_system/manager_adapters/remote_file_system'
+        FileSystem::ManagerAdapters::RemoteFileSystem
       end
 
       @adapter.host_name = @host_name

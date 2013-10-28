@@ -1,5 +1,6 @@
 require_relative '../changeable'
 require_relative '../observable'
+require_relative 'object_adapter'
 
 
 class Rosh
@@ -10,15 +11,21 @@ class Rosh
       include Rosh::Changeable
       include Rosh::Observable
 
-      attr_reader :name
-
       def initialize(service_name, host_name)
-        @name = service_name
+        @service_name = service_name
         @host_name = host_name
+      end
+
+      def exists?
+        adapter.exists?
       end
 
       def info
         adapter.info
+      end
+
+      def name
+        @service_name
       end
 
       def start
@@ -45,6 +52,15 @@ class Rosh
         end
       end
 
+      def start_at_boot!
+        adapter.start_at_boot!
+      end
+
+      def running?
+        self.status == :running
+      end
+      alias_method :started?, :running?
+
       def stop
         current_status = self.status
 
@@ -69,6 +85,10 @@ class Rosh
         end
       end
 
+      def stopped?
+        self.status == :stopped
+      end
+
       def status
         adapter.status
       end
@@ -78,6 +98,7 @@ class Rosh
       def adapter
         return @adapter if @adapter
 
+=begin
         @adapter = case current_host.operating_system
         when :darwin
           require_relative 'object_adapters/launch_ctl'
@@ -89,8 +110,15 @@ class Rosh
 
         @adapter.service_name = @name
         @adapter.host_name = @host_name
+=end
+        type = case current_host.operating_system
+        when :darwin
+          :launch_ctl
+        else
+          :init
+        end
 
-        @adapter
+        @adapter = ServiceManager::ObjectAdapter.new(@service_name, type, @host_name)
       end
     end
   end

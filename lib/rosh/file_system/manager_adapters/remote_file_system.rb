@@ -3,7 +3,7 @@ require_relative 'base'
 
 class Rosh
   class FileSystem
-    module Adapters
+    module ManagerAdapters
       class RemoteFileSystem
         include Base
 
