@@ -1,7 +1,9 @@
 require 'observer'
+require_relative '../changeable'
+require_relative '../observable'
 require_relative 'base_methods'
 require_relative 'stat_methods'
-require_relative '../changeable'
+require_relative 'object_adapter'
 
 
 class Rosh
@@ -11,6 +13,7 @@ class Rosh
       include BaseMethods
       include StatMethods
       include Rosh::Changeable
+      include Rosh::Observable
 
       def initialize(path, host_name)
         @path = path
@@ -38,6 +41,7 @@ class Rosh
       def entries
         adapter.entries
       end
+      alias_method :list, :entries
 
       def each(&block)
         adapter.entries.each(&block)
@@ -65,18 +69,13 @@ class Rosh
       def adapter
         return @adapter if @adapter
 
-        @adapter = if current_host.local?
-          require_relative 'object_adapters/local_dir'
-          FileSystem::ObjectAdapters::LocalDir
+        type = if current_host.local?
+          :local_dir
         else
-          require_relative 'object_adapters/remote_dir'
-          FileSystem::ObjectAdapters::RemoteDir
+          :remote_dir
         end
 
-        @adapter.path = @path
-        @adapter.host_name = @host_name
-
-        @adapter
+        @adapter = FileSystem::ObjectAdapter.new(@path, type, @host_name)
       end
     end
   end

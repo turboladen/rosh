@@ -5,23 +5,27 @@ require_relative 'local_base'
 class Rosh
   class FileSystem
     module ObjectAdapters
-      class LocalFile
+      module LocalFile
         include LocalBase
 
-        class << self
-          def read(length=nil, offset=nil)
-            ::File.read(@path, length, offset)
-          end
+        def create(&block)
+          f = ::File.open(@path, ::File::CREAT, &block)
 
-          def readlines(separator)
-            ::File.readlines(@path, separator)
-          end
+          ::File.exists? f
+        end
 
-          def copy(destination)
-            result = ::FileUtils.cp(@path, destination)
+        def read(length=nil, offset=nil)
+          ::File.read(@path, length, offset)
+        end
 
-            result.nil?
-          end
+        def readlines(separator)
+          ::File.readlines(@path, separator)
+        end
+
+        def copy(destination)
+          result = ::FileUtils.cp(@path, destination)
+
+          result.nil?
         end
       end
     end

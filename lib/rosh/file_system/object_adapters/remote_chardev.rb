@@ -4,7 +4,7 @@ require_relative 'remote_base'
 class Rosh
   class FileSystem
     module ObjectAdapters
-      class RemoteChardev
+      module RemoteChardev
         include RemoteBase
       end
     end

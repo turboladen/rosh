@@ -1,51 +1,56 @@
-require_relative 'base'
-
-
 class Rosh
   class FileSystem
     module ManagerAdapters
-      class LocalFileSystem
-        include Base
+      module LocalFileSystem
+        def blockdev?(path)
+          return true if path.is_a? FileSystem::BlockDevice
 
-        class << self
-          def blockdev?(path)
-            ::File.blockdev?(path)
-          end
+          ::File.blockdev?(path)
+        end
 
-          def chardev?(path)
-            ::File.chardev?(path)
-          end
+        def chardev?(path)
+          return true if path.is_a? FileSystem::CharacterDevice
 
-          def chroot(new_root)
-            ::Dir.chroot(new_root)
-          end
+          ::File.chardev?(path)
+        end
 
-          def directory?(path)
-            ::File.directory?(path)
-          end
+        def chroot(new_root)
+          ::Dir.chroot(new_root)
+        end
 
-          def file?(path)
-            ::File.file?(path)
-          end
+        def directory?(path)
+          return true if path.is_a? FileSystem::Directory
 
-          def getwd
-            ::Dir.getwd
-          end
+          ::File.directory?(path)
+        end
 
-          def home
-            ::Dir.home
-          end
+        def file?(path)
+          return true if path.is_a? FileSystem::File
 
-          def symlink?(path)
-            ::File.symlink?(path)
-          end
+          ::File.file?(path)
+        end
 
-          def umask(new_umask=nil)
-            if new_umask
-              sprintf('%o', ::File.umask(new_umask))
-            else
-              sprintf('%o', ::File.umask)
-            end
+        def getwd
+          ::Dir.getwd
+        end
+
+        def home
+          output = ::Dir.home
+
+          FileSystem::Directory.new(output, @host_name)
+        end
+
+        def symlink?(path)
+          return true if path.is_a? FileSystem::SymbolicLink
+
+          ::File.symlink?(path)
+        end
+
+        def umask(new_umask=nil)
+          if new_umask
+            sprintf('%o', ::File.umask(new_umask))
+          else
+            sprintf('%o', ::File.umask)
           end
         end
       end

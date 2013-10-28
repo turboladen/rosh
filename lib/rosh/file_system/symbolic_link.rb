@@ -1,8 +1,10 @@
 require 'observer'
-require_relative 'base_methods'
-require_relative 'stat_methods'
 require_relative '../changeable'
 require_relative '../observable'
+require_relative 'base_methods'
+require_relative 'stat_methods'
+require_relative 'object_adapter'
+
 
 class Rosh
   class FileSystem
@@ -17,23 +19,26 @@ class Rosh
         @host_name = host_name
       end
 
+      def destination
+        adapter.destination
+      end
+
+      def link_to(new_destination)
+        adapter.link_to(new_destination)
+      end
+
       private
 
       def adapter
         return @adapter if @adapter
 
-        @adapter = if current_host.local?
-          require_relative 'object_adapters/local_symlink'
-          FileSystem::ObjectAdapters::LocalSymlink
+        type = if current_host.local?
+          :local_symlink
         else
-          require_relative 'object_adapters/remote_symlink'
-          FileSystem::ObjectAdapters::RemoteSymlink
+          :remote_symlink
         end
 
-        @adapter.path = @path
-        @adapter.host_name = @host_name
-
-        @adapter
+        @adapter = FileSystem::ObjectAdapter.new(@path, type, @host_name)
       end
     end
   end

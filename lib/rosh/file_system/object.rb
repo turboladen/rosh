@@ -17,6 +17,10 @@ class Rosh
         @host_name = host_name
       end
 
+      def exists?
+        false
+      end
+
       def to_blockdev
         require_relative 'block_device'
         Rosh::FileSystem::BlockDevice.new(@path, @host_name)

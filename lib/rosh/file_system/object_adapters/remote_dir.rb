@@ -9,27 +9,26 @@ class Rosh
       module RemoteDir
         include RemoteBase
 
-        class << self
-          def entries(_)
-            current_shell.ls(@path)
-          end
-
-          def open
-            warn 'Not implemented!'
-          end
-
-          def mkdir
-            current_shell.exec "mkdir #{@path}"
-
-            current_shell.last_exit_status.zero?
-          end
-
-          def rmdir
-            current_shell.exec "rmdir #{@path}"
-
-            current_shell.last_exit_status.zero?
-          end
+        def entries
+          current_shell.ls(@path)
         end
+
+        def open
+          warn 'Not implemented!'
+        end
+
+        def mkdir
+          current_shell.exec "mkdir #{@path}"
+
+          current_shell.last_exit_status.zero?
+        end
+
+        def rmdir
+          current_shell.exec "rmdir #{@path}"
+
+          current_shell.last_exit_status.zero?
+        end
+      end
 
 =begin
         # @return [String] The owner of the remote directory.
@@ -77,7 +76,6 @@ class Rosh
           success
         end
 =end
-      end
     end
   end
 end

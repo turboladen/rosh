@@ -1,13 +1,15 @@
 require_relative 'kernel_refinements'
+require_relative 'changeable'
+require_relative 'observer'
+require_relative 'observable'
+
 require_relative 'file_system/block_device'
 require_relative 'file_system/character_device'
 require_relative 'file_system/directory'
 require_relative 'file_system/file'
 require_relative 'file_system/object'
 require_relative 'file_system/symbolic_link'
-require_relative 'changeable'
-require_relative 'observer'
-require_relative 'observable'
+require_relative 'file_system/manager_adapter'
 
 
 class Rosh
@@ -82,6 +84,8 @@ class Rosh
     end
 
     def block_device?(path)
+      return true if path.is_a? FileSystem::BlockDevice
+
       adapter.blockdev?(path)
     end
 
@@ -90,6 +94,8 @@ class Rosh
     end
 
     def character_device?(path)
+      return true if path.is_a? FileSystem::CharacterDevice
+
       adapter.chardev?(path)
     end
 
@@ -104,6 +110,8 @@ class Rosh
     end
 
     def directory?(path)
+      return true if path.is_a? FileSystem::Directory
+
       adapter.directory?(path)
     end
 
@@ -116,6 +124,8 @@ class Rosh
     end
 
     def file?(path)
+      return true if path.is_a? FileSystem::File
+
       adapter.file?(path)
     end
 
@@ -132,6 +142,8 @@ class Rosh
     end
 
     def symbolic_link?(path)
+      return true if path.is_a? FileSystem::SymbolicLink
+
       adapter.symlink?(path)
     end
 
@@ -159,17 +171,13 @@ class Rosh
     def adapter
       return @adapter if @adapter
 
-      @adapter = if current_host.local?
-        require_relative 'file_system/manager_adapters/local_file_system'
-        FileSystem::ManagerAdapters::LocalFileSystem
+      type = if current_host.local?
+        :local_file_system
       else
-        require_relative 'file_system/manager_adapters/remote_file_system'
-        FileSystem::ManagerAdapters::RemoteFileSystem
+        :remote_file_system
       end
 
-      @adapter.host_name = @host_name
-
-      @adapter
+      @adapter = FileSystem::ManagerAdapter.new(type, @host_name)
     end
   end
 end

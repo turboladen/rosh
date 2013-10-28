@@ -1,7 +1,8 @@
-require_relative 'base_methods'
-require_relative 'stat_methods'
 require_relative '../changeable'
 require_relative '../observable'
+require_relative 'base_methods'
+require_relative 'stat_methods'
+require_relative 'object_adapter'
 
 
 class Rosh
@@ -62,14 +63,6 @@ class Rosh
       def initialize(path, host_name)
         @path = path
         @host_name = host_name
-      end
-
-      def create
-        change_if(!exists?) do
-          notify_about(self, :exists?, from: false, to: true) do
-            adapter.create
-          end
-        end
       end
 
       def contents
@@ -158,18 +151,13 @@ class Rosh
       def adapter
         return @adapter if @adapter
 
-        @adapter = if current_host.local?
-          require_relative 'object_adapters/local_file'
-          FileSystem::ObjectAdapters::LocalFile
+        type = if current_host.local?
+          :local_file
         else
-          require_relative 'object_adapters/remote_file'
-          FileSystem::ObjectAdapters::RemoteFile
+          :remote_file
         end
 
-        @adapter.path = @path
-        @adapter.host_name = @host_name
-
-        @adapter
+        @adapter = FileSystem::ObjectAdapter.new(@path, type, @host_name)
       end
     end
   end
