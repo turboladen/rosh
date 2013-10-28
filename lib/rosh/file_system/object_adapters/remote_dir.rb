@@ -10,7 +10,21 @@ class Rosh
         include RemoteBase
 
         def entries
-          current_shell.ls(@path)
+          cmd = "ls #{@path}"
+          result = current_shell.exec "ls #{@path}"
+
+          return([]) if result.nil?
+
+          if result.match %r[No such file or directory]
+            raise Rosh::ErrorENOENT, result
+          end
+
+          result.split.map do |entry|
+            next if %w[. ..].include?(entry)
+            full_path = @path == '/' ? "/#{entry}" : "#{@path}/#{entry}"
+
+            Rosh::FileSystem.create(full_path, @host_name)
+          end.compact
         end
 
         def open

@@ -29,6 +29,7 @@ class Rosh
 
             [true, 0]
           rescue Errno::ENOENT, Errno::ENOTDIR => ex
+            bad_info "No such file or directory: #{path}"
             [ex, 1]
           end
         end
@@ -74,6 +75,7 @@ class Rosh
 
             [output, $?.exitstatus]
           rescue => ex
+            bad_info "#{ex}"
             [ex, 1]
           end
         end
@@ -85,22 +87,12 @@ class Rosh
         #   Array of Rosh::Host::FileSystemObjects.  On fail, #last_exit_status is
         #   1 and returns a Errno::ENOENT or Errno::ENOTDIR.
         def ls(path)
-          if File.file? path
-            fso = Rosh::FileSystem.create(path, @host_name)
-            good_info path
+          begin
+            list = current_host.fs[path].list
 
-            [fso, 0]
-          else
-            begin
-              fso_array = Dir.entries(path).map do |entry|
-                good_info entry
-                Rosh::FileSystem.create("#{path}/#{entry}", @host_name)
-              end
-
-              [fso_array, 0]
-            rescue Errno::ENOENT, Errno::ENOTDIR => ex
-              [ex, 1]
-            end
+            [list, 0]
+          rescue Errno::ENOENT, Errno::ENOTDIR => ex
+            [ex, 1]
           end
         end
 

@@ -10,10 +10,10 @@ shared_examples_for 'a file manager' do
   end
 
   it 'can list files in a directory' do
-    dir = host.fs.home
+    dir = host.fs['/etc']
 
     dir.list do |obj|
-      expect(obj.parent).to be_a Rosh::FileSystem
+      expect(obj.class.name).to match /Rosh::FileSystem/
     end
   end
 

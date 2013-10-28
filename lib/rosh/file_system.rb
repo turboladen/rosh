@@ -20,14 +20,7 @@ class Rosh
 
     def self.create(path, host_name)
       object = new(host_name)
-
-      if object.file?(path)
-        object.file(path)
-      elsif object.directory?(path)
-        object.directory(path)
-      else
-        raise "Don't know what to do with #{path}"
-      end
+      object.build(path)
     end
 
     def initialize(host_name)
@@ -59,19 +52,7 @@ class Rosh
           raise "Not sure what '#{path}' is."
         end
       else
-        if file?(path)
-          file(path)
-        elsif directory?(path)
-          directory(path)
-        elsif symbolic_link?(path)
-          symbolic_link(path)
-        elsif character_device?(path)
-          character_device(path)
-        elsif block_device?(path)
-          block_device(path)
-        else
-          object(path)
-        end
+        build(path)
       end
 
       result.add_observer(self)
@@ -106,6 +87,22 @@ class Rosh
         notify_about(self, :root_directory, from: old_root, to: new_root) do
           adapter.chroot(new_root)
         end
+      end
+    end
+
+    def build(path)
+      if file?(path)
+        file(path)
+      elsif directory?(path)
+        directory(path)
+      elsif symbolic_link?(path)
+        symbolic_link(path)
+      elsif character_device?(path)
+        character_device(path)
+      elsif block_device?(path)
+        block_device(path)
+      else
+        object(path)
       end
     end
 

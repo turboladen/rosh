@@ -229,26 +229,15 @@ class Rosh
         #   #last_exit_status is set to the status given by the remote host's
         #   failed 'ls' command, returns a Rosh::ErrorENOENT.
         def ls(path)
-          cmd = sudoize("ls #{path}")
-          log %[LS: #{cmd}]
-          result = run(cmd)
+          begin
+            list = current_host.fs[path].list
 
-          if result.stderr.match %r[No such file or directory]
+            [current_host.fs[path].list, 0]
+          rescue Rosh::ErrnoENOENT
             error = Rosh::ErrorENOENT.new(result.stderr)
 
-            return [error, result.exit_status, result.stdout, result.stderr]
+            return [error, 127]
           end
-
-          return([]) if result.ruby_object.nil?
-
-          listing = result.ruby_object.split.map do |entry|
-            full_path = path == '/' ? "/#{entry}" : "#{path}/#{entry}"
-            good_info full_path
-
-            Rosh::FileSystem.create(full_path, @host_name)
-          end.compact
-
-          [listing, 0, result.stdout, result.stderr]
         end
 
         def ruby(code)

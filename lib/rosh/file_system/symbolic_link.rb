@@ -26,7 +26,7 @@ class Rosh
       end
 
       def link_to(new_destination)
-        echo_rosh_command
+        echo_rosh_command new_destination
 
         adapter.link_to(new_destination)
       end
