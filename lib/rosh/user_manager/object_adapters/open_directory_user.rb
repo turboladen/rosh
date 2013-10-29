@@ -13,6 +13,20 @@ class Rosh
           warn 'Not implemented!'
         end
 
+        def create
+          cmd = "dscl . -create /Users/#{@name}"
+          output = current_shell.exec cmd
+
+          current_shell.last_exit_status.zero?
+        end
+
+        def delete
+          cmd = "dscl . -delete /Users/#{@name}"
+          output = current_shell.exec cmd
+
+          current_shell.last_exit_status.zero?
+        end
+
         def dir
           cmd = "dscl -plist . -read /Users/#{@name} NFSHomeDirectory"
           output = current_shell.exec cmd

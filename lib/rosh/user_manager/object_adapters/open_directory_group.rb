@@ -6,27 +6,44 @@ class Rosh
   class UserManager
     module ObjectAdapters
       module OpenDirectoryGroup
+        def create
+          cmd = "dscl . -create /Groups/#{@name}"
+          output = current_shell.exec cmd
+
+          current_shell.last_exit_status.zero?
+        end
+
+        def delete
+          cmd = "dscl . -delete /Groups/#{@name}"
+          output = current_shell.exec cmd
+
+          current_shell.last_exit_status.zero?
+        end
+
         def exists?
-          warn 'Not implemented.'
+          cmd = "dscl -plist . -read /Groups/#{@name}"
+          output = current_shell.exec cmd
+
+          current_shell.last_exit_status.zero?
         end
 
         def gid
-          cmd = "dscl -plist . -read /Groups/#{@group_name} PrimaryGroupID"
+          cmd = "dscl -plist . -read /Groups/#{@name} PrimaryGroupID"
           output = current_shell.exec cmd
 
           if output =~ /eDSRecordNotFound/
-            raise Rosh::UserManager::GroupNotFound, "Group not found: #{@group_name}"
+            raise Rosh::UserManager::GroupNotFound, "Group not found: #{@name}"
           else
             Plist.parse_xml(output)['dsAttrTypeStandard:PrimaryGroupID'].first.to_i
           end
         end
 
         def members
-          cmd = "dscl -plist . -read /Groups/#{@group_name} GroupMembership"
+          cmd = "dscl -plist . -read /Groups/#{@name} GroupMembership"
           output = current_shell.exec cmd
 
           if output =~ /eDSRecordNotFound/
-            raise Rosh::UserManager::GroupNotFound, "Group not found: #{@group_name}"
+            raise Rosh::UserManager::GroupNotFound, "Group not found: #{@name}"
           else
             Plist.parse_xml(output)['dsAttrTypeStandard:GroupMembership'].map do |user_name|
               Rosh::UserManager::User.new(user_name, @host_name)
@@ -35,22 +52,22 @@ class Rosh
         end
 
         def name
-          cmd = "dscl -plist . -read /Groups/#{@group_name} RecordName"
+          cmd = "dscl -plist . -read /Groups/#{@name} RecordName"
           output = current_shell.exec cmd
 
           if output =~ /eDSRecordNotFound/
-            raise Rosh::UserManager::GroupNotFound, "Group not found: #{@group_name}"
+            raise Rosh::UserManager::GroupNotFound, "Group not found: #{@name}"
           else
             Plist.parse_xml(output)['dsAttrTypeStandard:RecordName'].first
           end
         end
 
         def passwd
-          cmd = "dscl -plist . -read /Groups/#{@group_name} Password"
+          cmd = "dscl -plist . -read /Groups/#{@name} Password"
           output = current_shell.exec cmd
 
           if output =~ /eDSRecordNotFound/
-            raise Rosh::UserManager::GroupNotFound, "Group not found: #{@group_name}"
+            raise Rosh::UserManager::GroupNotFound, "Group not found: #{@name}"
           else
             Plist.parse_xml(output)['dsAttrTypeStandard:Password'].first
           end

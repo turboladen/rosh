@@ -5,6 +5,22 @@ class Rosh
   class UserManager
     module ObjectAdapters
       module LocalUser
+        def self.extended(base)
+          @host_name = base.instance_variable_get(:@host_name)
+
+          type = case current_host.operating_system
+          when :darwin
+            :open_directory_user
+          else
+            :unix_user
+          end
+
+          require_relative "#{type}"
+          klass =
+            Rosh::UserManager::ObjectAdapters.const_get(type.to_s.classify)
+          base.extend klass
+        end
+
         def age
           passwd = info_by_name
 
@@ -18,11 +34,6 @@ class Rosh
           return passwd.change if passwd.change.zero?
 
           Time.at(passwd.change)
-        end
-
-        # @todo Implement create for local user
-        def create
-          warn 'Not implemented'
         end
 
         def comment

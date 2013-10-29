@@ -5,6 +5,18 @@ class Rosh
   class UserManager
     module ObjectAdapters
       module UnixGroup
+        def create
+          current_shell.exec "groupadd #{@name}"
+
+          current_shell.last_exit_status.zero?
+        end
+
+        def delete
+          current_shell.exec "groupdel #{@name}"
+
+          current_shell.last_exit_status.zero?
+        end
+
         def exists?
           current_shell.exec "id -g #{@name}"
 
