@@ -50,9 +50,8 @@ module Kernel
     end
   end
 
-  def caller_info(info)
-    result = info
-    %r[rosh/lib/rosh/(?<path>[^\.]+).*`(?<meth>\w+)'] =~ result.first
+  def caller_info(backtrace)
+    %r[rosh/lib/rosh/(?<path>[^\.]+).*`(?<meth>\S+)'] =~ backtrace.first
 
     [path, meth.upcase]
   end
