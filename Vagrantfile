@@ -92,7 +92,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     os.vm.guest = :windows
     os.vm.box = 'win2008'
     os.vm.box_url = 'http://dl.dropbox.com/u/58604/vagrant/win2k8r2-core.box'
-    os.vm.network :private_network, '192.168.33.10'
+    os.vm.network :private_network, ip: '192.168.33.10'
     os.vm.forward_port 3389, 3390, name: 'rdp', auto: true
     os.vm.forward_port 5985, 5985, name: 'winrm', auto: true
     os.winrm.timeout = 1800
