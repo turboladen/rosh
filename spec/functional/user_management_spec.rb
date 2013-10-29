@@ -55,4 +55,10 @@ describe 'User Management' do
       let(:host) { Rosh.hosts[:debian_squeeze_32] }
     end
   end
+
+  context 'localhost' do
+    it_behaves_like 'a user manager' do
+      let(:host) { Rosh.hosts['localhost'] }
+    end
+  end
 end

@@ -58,5 +58,13 @@ describe 'Service Management' do
       let(:host) { Rosh.hosts[:debian_squeeze_32] }
     end
   end
+
+  context 'localhost' do
+    it_behaves_like 'a service manager' do
+      let(:package) { 'cron' }
+      let(:service) { 'cron' }
+      let(:host) { Rosh.hosts['localhost'] }
+    end
+  end
 end
 

@@ -71,4 +71,10 @@ describe 'Package Management' do
       end
     end
   end
+
+  context 'localhost' do
+    it_behaves_like 'a package manager' do
+      let(:host) { Rosh.hosts['localhost'] }
+    end
+  end
 end

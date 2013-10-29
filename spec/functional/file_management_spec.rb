@@ -94,18 +94,24 @@ describe 'File Management' do
   let(:file) { '/tmp/rosh_test' }
   let(:dir) { '/tmp/rosh_test_dir' }
   let(:symlink) { '/tmp/rosh_test_symlink' }
+  let(:home_directory) { '/home/vagrant' }
+
+  context 'centos' do
+    it_behaves_like 'a file manager' do
+      let(:host) { Rosh.hosts[:centos_57_64] }
+    end
+  end
+
+  context 'debian' do
+    it_behaves_like 'a file manager' do
+      let(:host) { Rosh.hosts[:debian_squeeze_32] }
+    end
+  end
 
   context 'localhost' do
     it_behaves_like 'a file manager' do
       let(:host) { Rosh.hosts['localhost'] }
       let(:home_directory) { Dir.home }
-    end
-  end
-
-  context 'centos' do
-    it_behaves_like 'a file manager' do
-      let(:host) { Rosh.hosts[:centos_57_64] }
-      let(:home_directory) { '/home/vagrant' }
     end
   end
 end

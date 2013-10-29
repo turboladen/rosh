@@ -16,15 +16,21 @@ end
 describe 'Shell use' do
   include_context 'hosts'
 
-  context 'localhost' do
-    it_behaves_like 'a shell' do
-      let(:host) { Rosh.hosts['localhost'] }
-    end
-  end
-
   context 'centos' do
     it_behaves_like 'a shell' do
       let(:host) { Rosh.hosts[:centos_57_64] }
+    end
+  end
+
+  context 'debian' do
+    it_behaves_like 'a shell' do
+      let(:host) { Rosh.hosts[:debian_squeeze_32] }
+    end
+  end
+
+  context 'localhost' do
+    it_behaves_like 'a shell' do
+      let(:host) { Rosh.hosts['localhost'] }
     end
   end
 end

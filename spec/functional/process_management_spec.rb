@@ -42,4 +42,10 @@ describe 'Process Management' do
       let(:host) { Rosh.hosts[:debian_squeeze_32] }
     end
   end
+
+  context 'localhost' do
+    it_behaves_like 'a process manager' do
+      let(:host) { Rosh.hosts['localhost'] }
+    end
+  end
 end
