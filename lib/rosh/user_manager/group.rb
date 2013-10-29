@@ -1,5 +1,6 @@
 require_relative '../changeable'
 require_relative '../observable'
+require_relative 'base'
 
 
 class Rosh
@@ -9,6 +10,7 @@ class Rosh
     class Group
       include Rosh::Changeable
       include Rosh::Observable
+      include Base
 
       attr_reader :name
 
@@ -16,15 +18,6 @@ class Rosh
         @name = group_name
         @host_name = host_name
       end
-
-      def exists?
-        adapter.exists?
-      end
-
-      def group_id
-        adapter.gid
-      end
-      alias_method :gid, :group_id
 
       def members
         adapter.members

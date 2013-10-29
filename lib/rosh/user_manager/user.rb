@@ -1,6 +1,7 @@
 require_relative '../changeable'
 require_relative '../observable'
 require_relative 'object_adapter'
+require_relative 'base'
 
 
 class Rosh
@@ -10,6 +11,7 @@ class Rosh
     class User
       include Rosh::Changeable
       include Rosh::Observable
+      include Base
 
       attr_reader :name
 
@@ -18,31 +20,6 @@ class Rosh
         @host_name = host_name
         @name = user_name
       end
-
-      def create
-        change_if(!exists?) do
-          notify_about(self, :exists?, from: false, to: true) do
-            adapter.create
-          end
-        end
-      end
-
-      def delete
-        change_if(exists?) do
-          notify_about(self, :exists?, from: true, to: false) do
-            adapter.delete
-          end
-        end
-      end
-
-      def exists?
-        adapter.exists?
-      end
-
-      def group_id
-        adapter.gid
-      end
-      alias_method :gid, :group_id
 
       def group_id=(new_gid)
         current_gid = self.group_id
@@ -72,10 +49,6 @@ class Rosh
 
       def info
         adapter.info
-      end
-
-      def password
-        adapter.passwd
       end
 
       # Takes a crypted (aka +crypt(3)+) password.
