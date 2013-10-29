@@ -22,11 +22,15 @@ class Rosh
         end
 
         def update_definitions
-          current_shell.exec %[#{@bin_path}/yum check-update]
+          output = current_shell.exec %[#{@bin_path}/yum check-update]
+
+          extract_updated_definitions(output)
         end
 
         def upgrade_packages
-          current_shell.exec %[#{@bin_path}/yum update -y]
+          output = current_shell.exec %[#{@bin_path}/yum update -y]
+
+          extract_upgraded_packages(output)
         end
 
         private
