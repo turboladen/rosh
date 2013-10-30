@@ -2,6 +2,7 @@ class Rosh
   class Shell
     class Adapter
       attr_accessor :su_user_name
+      attr_reader :workspace
 
       def initialize(type, host_name)
         @host_name = host_name

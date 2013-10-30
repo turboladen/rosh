@@ -37,6 +37,7 @@ class Rosh
       @sudo = false
       @check_state_first = false
       @internal_pwd = nil
+      @workspace = nil
     end
 
     # @return [Boolean] Returns if the shell is set to check the state of
@@ -101,6 +102,10 @@ class Rosh
       result
     end
 
+    def shell_methods
+      self.public_methods(false) | Commands.instance_methods
+    end
+
     # Are commands being run as sudo?
     #
     # @return [Boolean]
@@ -130,6 +135,10 @@ class Rosh
       @host_name = coder['host_name']
       @sudo = false
       @history = []
+    end
+
+    def workspace
+      adapter.workspace
     end
 
     private

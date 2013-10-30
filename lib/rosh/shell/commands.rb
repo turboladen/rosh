@@ -125,7 +125,7 @@ class Rosh
 
       def system_commands
         process(:system_commands) do
-          adapter.system_commands
+          [adapter.system_commands, 0, nil]
         end
       end
 

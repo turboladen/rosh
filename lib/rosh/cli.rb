@@ -7,6 +7,7 @@ require 'log_switch'
 require 'colorize'
 
 require_relative '../rosh'
+require_relative 'kernel_refinements'
 require_relative 'shell/command_result'
 require_relative 'completion'
 
@@ -41,7 +42,7 @@ class Rosh
         Rosh.hosts.values.find { |host| host.name == 'localhost' }
       end
 
-      @current_host ||= localhost
+      @host_name = localhost.name
     end
 
     # Starts the Readline loop for accepting input.  Each iteration through the
@@ -53,15 +54,15 @@ class Rosh
       trap('INT') { system('stty', stty_save); exit }
 
       loop do
-        log "Current host is: #{@current_host.name}"
+        log "Current host is: #{current_host.name}"
         prompt = ENV['PROMPT'] || new_prompt
 
         Readline.completion_proc = Rosh::Completion.build do
           [
-            @current_host.shell.public_methods(false).map(&:to_s) |
-            @current_host.shell.system_commands.map(&:to_s),
+            current_shell.public_methods(false).map(&:to_s) |
+            current_shell.system_commands.map(&:to_s),
             Rosh.hosts.keys,
-            @current_host.shell.workspace.send(:binding)
+            current_shell.workspace.send(:binding)
           ]
         end
 
@@ -91,27 +92,27 @@ class Rosh
 
       if %i[ch].include? command
         self.send(command, *args)
-      elsif @current_host.shell.public_methods(false).include? command
+      elsif current_shell.shell_methods.include? command
         if !args.empty?
-          @current_host.shell.send(command, *args)
+          current_shell.send(command, *args)
         else
-          @current_host.shell.send(command)
+          current_shell.send(command)
         end
-      elsif @current_host.shell.system_commands.include? command.to_s
-        @current_host.shell.exec(argv)
-      elsif @current_host.shell.system_commands.include? command.to_s.split('/').last
-        @current_host.shell.exec(argv)
+      elsif current_shell.system_commands.include? command.to_s
+        current_shell.exec(argv)
+      elsif current_shell.system_commands.include? command.to_s.split('/').last
+        current_shell.exec(argv)
       else
         $stdout.puts "Running Ruby: #{argv}"
-        @current_host.shell.ruby(argv)
+        current_shell.ruby(argv)
       end
     end
 
     def new_prompt
       user_and_host = '['.blue
-      user_and_host << "#{@current_host.user}".red
-      user_and_host << "@#{@current_host.name}".red
-      user_and_host << ":#{@current_host.shell._env[:pwd].split('/').last}".red
+      user_and_host << "#{current_user}".red
+      user_and_host << "@#{current_host.name}".red
+      user_and_host << ":#{current_shell.env[:pwd].to_path.split('/').last}".red
       user_and_host << ']'.blue
 
 =begin
@@ -171,7 +172,7 @@ class Rosh
         Rosh::Shell::CommandResult.new(new_host, 1)
       else
         log "Changed to host '#{host_name}'"
-        @current_host = new_host
+        @host_name = new_host.name
         Rosh::Shell::CommandResult.new(new_host, 0)
       end
     end
