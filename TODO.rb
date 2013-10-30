@@ -60,3 +60,5 @@
 # TODO: Add Host#linux_family
 
 # TODO: Add FileSystem::Tempfile and Tmpdir
+
+# TODO: @internal_pwd for shells should always be a FileSystem::Directory, no?
