@@ -113,6 +113,10 @@ class Rosh
       @sudo
     end
 
+    def system_commands
+      adapter.system_commands
+    end
+
     def upload(source_path, destination_path)
       adapter.upload(source_path, destination_path)
     end

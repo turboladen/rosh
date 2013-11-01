@@ -123,12 +123,6 @@ class Rosh
         end
       end
 
-      def system_commands
-        process(:system_commands) do
-          [adapter.system_commands, 0, nil]
-        end
-      end
-
       private
 
       # Saves the result of the block given to #last_result and exit code to
