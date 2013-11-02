@@ -4,6 +4,8 @@ require 'log_switch'
 require 'awesome_print'
 require 'sys/proctable'
 
+require_relative '../../kernel_refinements'
+
 
 class Rosh
   class Shell
