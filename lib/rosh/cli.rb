@@ -76,7 +76,10 @@ class Rosh
           log "Multi-line Ruby; argv is now: #{argv}"
         end
 
-        execute(argv)
+        result = execute(argv)
+        puts result
+
+        result
       end
     end
 

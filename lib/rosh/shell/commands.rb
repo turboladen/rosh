@@ -127,8 +127,6 @@ class Rosh
           [_pwd, 0, nil]
         end
 
-        puts _pwd
-
         _pwd
       end
 
