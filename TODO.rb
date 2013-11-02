@@ -64,3 +64,5 @@
 # TODO: @internal_pwd for shells should always be a FileSystem::Directory, no?
 
 # TODO: Remote actions like `ls` take a long time to run when many objects.  Maybe just store strings internally, but return the object when needed.
+
+# TODO: Really should be capturing/setting STDOUT _and_ STDERR.  All remote stuff is -> STDOUT, regardless now.
