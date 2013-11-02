@@ -1,11 +1,11 @@
 require 'spec_helper'
-require 'rosh/host/service_types/init'
+require 'rosh/service_manager/object_adapters/init'
 
 
-describe Rosh::Host::ServiceTypes::Init do
-  let(:shell) { double 'Rosh::Host::Shell' }
+describe Rosh::ServiceManager::ObjectAdapters::Init do
+  let(:shell) { double 'Rosh::Shell' }
   before { allow(subject).to receive(:current_shell) { shell } }
-  subject { Object.new.extend Rosh::Host::ServiceTypes::Init }
+  subject { Object.new.extend(described_class) }
 
   context 'linux' do
     before do

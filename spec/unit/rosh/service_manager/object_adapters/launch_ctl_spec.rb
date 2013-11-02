@@ -1,15 +1,16 @@
 require 'spec_helper'
-require 'rosh/host/service_types/launch_ctl'
+require 'rosh/service_manager/object_adapters/launch_ctl'
 
 
-describe Rosh::Host::ServiceTypes::LaunchCtl do
-  let(:shell) { double 'Rosh::Host::Shell' }
+describe Rosh::ServiceManager::ObjectAdapters::LaunchCtl do
+  let(:shell) { double 'Rosh::Shell' }
+
   before do
     allow(subject).to receive(:current_shell) { shell }
     subject.instance_variable_set(:@name, 'com.thing')
   end
 
-  subject { Object.new.extend Rosh::Host::ServiceTypes::LaunchCtl }
+  subject { Object.new.extend(described_class) }
 
   describe '#info' do
     let(:info) { {} }
