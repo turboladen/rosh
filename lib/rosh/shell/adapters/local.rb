@@ -80,22 +80,6 @@ class Rosh
           end
         end
 
-        # @param [String] path Path to the directory to list its contents.  If no
-        #   path given, lists the current working directory.
-        #
-        # @return [Array<Rosh::Host::Adapters::LocalBase>] On success, returns an
-        #   Array of Rosh::Host::FileSystemObjects.  On fail, #last_exit_status is
-        #   1 and returns a Errno::ENOENT or Errno::ENOTDIR.
-        def ls(path)
-          begin
-            list = current_host.fs[path].list
-
-            [list, 0]
-          rescue Errno::ENOENT, Errno::ENOTDIR => ex
-            [ex, 1]
-          end
-        end
-
         # Executes Ruby code in the context of an IRB::WorkSpace.  Thus, variables
         # are maintained across calls to this.
         #
@@ -136,13 +120,6 @@ class Rosh
           rescue StandardError => ex
             [ex, 1]
           end
-        end
-
-        # @return [Array<String>] List of commands given in the PATH.
-        def system_commands
-          current_shell.env[:path].map do |dir|
-            Dir["#{dir}/*"].map { |f| ::File.basename(f) }
-          end.flatten
         end
 
         # Expands paths based on the context of the shell.  Allows for using Ruby

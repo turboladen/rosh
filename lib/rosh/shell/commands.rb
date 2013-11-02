@@ -80,13 +80,30 @@ class Rosh
         end
       end
 
+      # @param [String] path Path to the directory to list its contents.  If no
+      #   path given, lists the current working directory.
+      #
+      # @return [Array<Rosh::RemoteBase>, Rosh::ErrorENOENT] On
+      #   success, returns an Array of Rosh::RemoteFileSystemObjects.  On fail,
+      #   #last_exit_status is set to the status given by the remote host's
+      #   failed 'ls' command, returns a Rosh::ErrorENOENT.
       def ls(path=nil)
         echo_rosh_command path
 
         process(:ls, path: path) do
           path ||= '.'
-          full_path = adapter.preprocess_path(path, @internal_pwd.to_path)
-          adapter.ls(full_path)
+          full_path = adapter.preprocess_path(path, @internal_pwd)
+
+          begin
+            list = current_host.fs[full_path].list
+            ap list
+
+            [list, 0]
+          rescue Rosh::ErrnoENOENT, Errno::ENOENT, Errno::ENOTDIR => ex
+            error = Rosh::ErrorENOENT.new(result.stderr)
+
+            [error, 127]
+          end
         end
       end
 
@@ -104,13 +121,13 @@ class Rosh
         echo_rosh_command
         adapter
 
-        _pwd = Rosh::FileSystem::Directory.new(@internal_pwd, @host_name)
+        _pwd = @internal_pwd
 
         process(:pwd) do
           [_pwd, 0, nil]
         end
 
-        puts _pwd.to_path
+        puts _pwd
 
         _pwd
       end

@@ -112,7 +112,7 @@ class Rosh
       user_and_host = '['.blue
       user_and_host << "#{current_user}".red
       user_and_host << "@#{current_host.name}".red
-      user_and_host << ":#{current_shell.env[:pwd].to_path.split('/').last}".red
+      user_and_host << ":#{current_shell.env[:pwd].split('/').last}".red
       user_and_host << ']'.blue
 
 =begin
@@ -166,6 +166,7 @@ class Rosh
 
     def ch(host_name)
       new_host = Rosh.hosts[host_name]
+      new_host = Rosh.hosts[host_name.to_sym] unless new_host
 
       if new_host.nil?
         log "No host defined for '#{host_name}'"

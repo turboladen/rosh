@@ -221,25 +221,6 @@ class Rosh
           end
         end
 
-        # @param [String] path Path to the directory to list its contents.  If no
-        #   path given, lists the current working directory.
-        #
-        # @return [Array<Rosh::RemoteBase>, Rosh::ErrorENOENT] On
-        #   success, returns an Array of Rosh::RemoteFileSystemObjects.  On fail,
-        #   #last_exit_status is set to the status given by the remote host's
-        #   failed 'ls' command, returns a Rosh::ErrorENOENT.
-        def ls(path)
-          begin
-            list = current_host.fs[path].list
-
-            [current_host.fs[path].list, 0]
-          rescue Rosh::ErrnoENOENT
-            error = Rosh::ErrorENOENT.new(result.stderr)
-
-            return [error, 127]
-          end
-        end
-
         def ruby(code)
           ['Not implemented!', 1, nil]
         end

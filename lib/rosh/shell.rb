@@ -113,8 +113,11 @@ class Rosh
       @sudo
     end
 
+    # @return [Array<String>] List of commands given in the PATH.
     def system_commands
-      adapter.system_commands
+      current_shell.env[:path].map do |dir|
+        Dir["#{dir}/*"].map { |f| ::File.basename(f) }
+      end.flatten
     end
 
     def upload(source_path, destination_path)
@@ -159,10 +162,9 @@ class Rosh
       end
 
       @internal_pwd = if current_host.local?
-        Rosh::FileSystem::Directory.new(Dir.pwd, @host_name)
+        Dir.pwd
       else
-        result = @adapter.exec('pwd')[2].strip
-        Rosh::FileSystem::Directory.new(result, @host_name)
+        @adapter.exec('pwd')[2].strip
       end
 
       @adapter
