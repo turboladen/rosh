@@ -10,7 +10,6 @@ class Rosh
         include RemoteBase
 
         def entries
-          cmd = "ls #{@path}"
           result = current_shell.exec "ls #{@path}"
 
           return([]) if result.nil?
