@@ -6,13 +6,14 @@ describe Rosh::PackageManager do
   let(:shell) { double 'Rosh::Shell' }
   let(:adapter) { double 'Rosh::PackageManager::ManagerAdapters::Test' }
 
+  subject(:package_manager) do
+    Rosh::PackageManager.new('example.com')
+  end
+
   before do
     allow(package_manager).to receive(:current_shell) { shell }
     allow(package_manager).to receive(:adapter) { adapter }
-  end
-
-  subject(:package_manager) do
-    Rosh::PackageManager.new('example.com')
+    allow(package_manager).to receive(:echo_rosh_command)
   end
 
   describe '#[]' do

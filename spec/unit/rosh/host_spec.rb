@@ -11,7 +11,7 @@ describe Rosh::Host do
 
   describe '#initialize' do
     before do
-      Rosh::Host::Shells::Remote.should_receive(:new)
+      Rosh::Shell.should_receive(:new).with(name, {})
     end
 
     its(:name) { should eq name }
