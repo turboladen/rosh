@@ -1,7 +1,7 @@
 class Rosh
   module Observer
     def update(obj, attribute, old_value, new_value, as_sudo)
-      puts "I got updated!"
+      puts "I' a #{self.class} and I got updated!"
       puts  attribute
       puts  old_value
       puts  new_value

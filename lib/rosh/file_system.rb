@@ -14,6 +14,13 @@ require_relative 'file_system/manager_adapter'
 
 class Rosh
   class FileSystem
+    class UnknownResourceType < RuntimeError
+      def initialize(resource_type)
+        message = "Resource type '#{resource_type}' does not exist."
+        super(message)
+      end
+    end
+
     include Rosh::Changeable
     include Rosh::Observer
     include Rosh::Observable
@@ -32,6 +39,25 @@ class Rosh
       end
     end
 
+    # Creates a Rosh::FileSystem::* object based on the actual file system type
+    # resource and adds itself as an observer of the newly created object.
+    #
+    # If given a String, it tries to figure out what the resource is
+    # and returns the according Rosh object.  If it can't determine what type
+    # it is, it returns a Rosh::FileSystem::Object.
+    #
+    # If given a key/value pair, it creates a Rosh object that maps to the key:
+    #   * :file => Rosh::FileSystem::File
+    #   * :dir => Rosh::FileSystem::Directory
+    #   * :directory => Rosh::FileSystem::Directory
+    #   * :symbolic_link => Rosh::FileSystem::SymbolicLink
+    #   * :character_device => Rosh::FileSystem::CharacterDevice
+    #   * :block_device => Rosh::FileSystem::BlockDevice
+    #
+    # If given a key that does not map to an object, it raises
+    #
+    # @param [Hash,String] path File system path to the object to build.
+    # @return [Rosh::FileSystem::*]
     def [](path)
       result = if path.is_a? Hash
         if path[:file]
@@ -49,7 +75,7 @@ class Rosh
         elsif path[:object]
           object(path[:object])
         else
-          raise "Not sure what '#{path}' is."
+          raise UnknownResourceType, path.keys.first
         end
       else
         build(path)
@@ -58,6 +84,24 @@ class Rosh
       result.add_observer(self)
 
       result
+    end
+
+    # @param [String] path File system path to the object to build.
+    # @return [Rosh::FileSystem::*]
+    def build(path)
+      if file?(path)
+        file(path)
+      elsif directory?(path)
+        directory(path)
+      elsif symbolic_link?(path)
+        symbolic_link(path)
+      elsif character_device?(path)
+        character_device(path)
+      elsif block_device?(path)
+        block_device(path)
+      else
+        object(path)
+      end
     end
 
     def block_device(path)
@@ -87,22 +131,6 @@ class Rosh
         notify_about(self, :root_directory, from: old_root, to: new_root) do
           adapter.chroot(new_root)
         end
-      end
-    end
-
-    def build(path)
-      if file?(path)
-        file(path)
-      elsif directory?(path)
-        directory(path)
-      elsif symbolic_link?(path)
-        symbolic_link(path)
-      elsif character_device?(path)
-        character_device(path)
-      elsif block_device?(path)
-        block_device(path)
-      else
-        object(path)
       end
     end
 
