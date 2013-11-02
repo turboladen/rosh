@@ -51,7 +51,7 @@ class Rosh
         echo_rosh_command source, destination
 
         process(:cp, source: source, destination: destination) do
-          adapter.cp(source, destination)
+          current_host.fs[source].copy_to(destination)
         end
       end
 

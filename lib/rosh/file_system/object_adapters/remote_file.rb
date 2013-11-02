@@ -46,7 +46,19 @@ class Rosh
         end
 
         def copy(destination)
-          current_shell.cp(@path, destination)
+          cmd = "cp #{@path} #{destination}"
+          result = current_shell.exec(cmd)
+
+          if current_shell.last_exit_status.zero? && result.nil?
+            return true
+          end
+
+          if result.match %r[No such file or directory]
+            bad_info result
+           raise Rosh::ErrorENOENT, result
+          elsif result.match %r[omitting directory]
+            raise Rosh::ErrorEISDIR, result
+          end
         end
 
         # Stores +new_contents+ in memory until #save is called.

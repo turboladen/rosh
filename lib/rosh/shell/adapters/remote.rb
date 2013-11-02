@@ -133,31 +133,6 @@ class Rosh
           end
         end
 
-        # @param [String] source The path to the file to copy.
-        # @param [String] destination The destination to copy the file to.
-        #
-        # @return [TrueClass,Rosh::ErrorENOENT,Rosh::ErrorEISDIR] On success,
-        #   returns +true+.  On fail, #last_exit_status is set to the exit status
-        #   from the remote command, returns the exception that was raised.
-        def cp(source, destination)
-          cmd = sudoize("cp #{source} #{destination}")
-          log %[CP: #{cmd}]
-          result = run(cmd)
-
-          if result.stderr.match %r[No such file or directory]
-            bad_info result.stderr
-            error = Rosh::ErrorENOENT.new(result.stderr)
-
-            [error, result.exit_status, result.stdout, result.stderr]
-          elsif result.stderr.match %r[omitting directory]
-            error = Rosh::ErrorEISDIR.new(result.stderr)
-
-            [error, result.exit_status, result.stdout, result.stderr]
-          else
-            [true, result.exit_status, result.stdout, result.stderr]
-          end
-        end
-
         # @param [String] command The system command to execute.
         #
         # @return [String] On success, returns the output of the command.  On
