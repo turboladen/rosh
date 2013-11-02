@@ -1,7 +1,7 @@
 require 'spec_helper'
-require 'rosh/file_system/controllers/stat_methods'
+require 'rosh/file_system/stat_methods'
 
-describe Rosh::FileSystem::Controllers::StatMethods do
+describe Rosh::FileSystem::StatMethods do
   let(:fake_adapter) { double 'Adapter' }
 
   subject do

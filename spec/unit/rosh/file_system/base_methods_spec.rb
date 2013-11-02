@@ -1,8 +1,8 @@
 require 'spec_helper'
-require 'rosh/file_system/controllers/base_methods'
+require 'rosh/file_system/base_methods'
 
 
-describe Rosh::FileSystem::Controllers::BaseMethods do
+describe Rosh::FileSystem::BaseMethods do
   describe '#mode=' do
     before do
       subject.stub(:mode).and_return 644

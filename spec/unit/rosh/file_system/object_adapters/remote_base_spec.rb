@@ -1,10 +1,10 @@
 require 'spec_helper'
-require 'rosh/file_system/adapters/remote_base'
+require 'rosh/file_system/object_adapters/remote_base'
 
 
-describe Rosh::FileSystem::Adapters::RemoteBase do
+describe Rosh::FileSystem::ObjectAdapters::RemoteBase do
   subject do
-    k = Class.new { include(Rosh::FileSystem::Adapters::RemoteBase) }
+    k = Class.new { include(described_class) }
     k.instance_variable_set(:@path, path)
     k.instance_variable_set(:@host_name, host_name)
 
@@ -13,7 +13,7 @@ describe Rosh::FileSystem::Adapters::RemoteBase do
 
   let(:path) { '/file' }
   let(:host_name) { 'hostname' }
-  let(:shell) { double 'Rosh::Host::Shells::Remote', :su? => false }
+  let(:shell) { double 'Rosh::Shell', :su? => false }
   before { allow(subject).to receive(:current_shell) { shell } }
 
   describe '#create' do

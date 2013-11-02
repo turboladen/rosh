@@ -1,16 +1,16 @@
 require 'spec_helper'
-require 'rosh/host/service'
+require 'rosh/service_manager/service'
 
 
-describe Rosh::Host::Service do
+describe Rosh::ServiceManager::Service do
   let(:shell) { double 'Rosh::Host::Shell' }
 
   before do
-    Rosh::Host::Service.any_instance.stub(:load_strategy)
+    described_class.any_instance.stub(:load_adapter)
     allow(subject).to receive(:current_shell) { shell }
   end
 
-  subject { Rosh::Host::Service.new(:test, 'thing', 'example.com') }
+  subject { described_class.new('thing', 'example.com') }
 
   describe '#build_info' do
     context 'only status is given' do

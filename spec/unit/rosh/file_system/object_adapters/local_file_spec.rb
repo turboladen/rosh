@@ -1,8 +1,8 @@
 require 'spec_helper'
-require 'rosh/file_system/adapters/local_file'
+require 'rosh/file_system/object_adapters/local_file'
 
 
-describe Rosh::FileSystem::Adapters::LocalFile do
+describe Rosh::FileSystem::ObjectAdapters::LocalFile do
   subject do
     k = described_class
     k.instance_variable_set(:@path, 'file')

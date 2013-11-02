@@ -1,14 +1,14 @@
 require 'spec_helper'
-require 'rosh/file_system/adapters/remote_file'
+require 'rosh/file_system/object_adapters/remote_file'
 
 
-describe Rosh::FileSystem::Adapters::RemoteFile do
+describe Rosh::FileSystem::ObjectAdapters::RemoteFile do
   subject do
     described_class.new(path, 'test_host')
   end
 
   let(:path) { '/file' }
-  let(:shell) { double 'Rosh::Host::Shells::Remote', :su? => false }
+  let(:shell) { double 'Rosh::Shell', :su? => false }
   before { allow(subject).to receive(:current_shell) { shell } }
 
   describe '#contents' do

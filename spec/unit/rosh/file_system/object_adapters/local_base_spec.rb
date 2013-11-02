@@ -1,10 +1,10 @@
 require 'spec_helper'
-require 'rosh/file_system/adapters/local_base'
+require 'rosh/file_system/object_adapters/local_base'
 
 
-describe Rosh::FileSystem::Adapters::LocalBase do
+describe Rosh::FileSystem::ObjectAdapters::LocalBase do
   subject do
-    Class.new { include(Rosh::FileSystem::Adapters::LocalBase) }
+    Class.new { include(described_class) }
   end
 
   describe '#owner' do
