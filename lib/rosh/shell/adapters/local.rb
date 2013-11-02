@@ -14,10 +14,6 @@ class Rosh
         extend LogSwitch
         include LogSwitch::Mixin
 
-        def cat(file)
-          File.read(file)
-        end
-
         # @param [String] path The absolute or relative path to make the new working
         #   directory.
         #

@@ -1,5 +1,6 @@
 require 'fileutils'
 require_relative 'local_base'
+require_relative '../../errors'
 
 
 class Rosh
@@ -15,7 +16,11 @@ class Rosh
         end
 
         def read(length=nil, offset=nil)
-          ::File.read(@path, length, offset)
+          begin
+            ::File.read(@path, length, offset)
+          rescue Errno::ENOENT => ex
+            raise Rosh::ErrorENOENT, ex
+          end
         end
 
         def readlines(separator)

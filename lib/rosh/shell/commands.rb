@@ -1,3 +1,6 @@
+require_relative '../errors'
+
+
 class Rosh
   class Shell
 
@@ -6,11 +9,24 @@ class Rosh
     # ssh_output].
     #
     module Commands
+
+      # @param [String] file The path of the file to cat.
+      #
+      # @return [String, ROSH::ErrorNOENT] On success, returns the contents of
+      #   the file as a String.  On fail, #last_exit_status is set to the exit
+      #   status from the remote command, and a Rosh::ErrorNOENT error is
+      #   returned.
       def cat(file)
         echo_rosh_command file
 
         process(:cat, file: file) do
-          adapter.cat(file)
+          begin
+            output = current_host.fs[file: file].contents
+
+            [output, 0]
+          rescue Rosh::ErrorENOENT => ex
+            [ex, 127]
+          end
         end
       end
 
@@ -57,8 +73,6 @@ class Rosh
             shell: ::File.expand_path(::File.basename($0), ::File.dirname($0)),
             pwd: @internal_pwd
           }
-
-          ap _env
 
           [_env, 0]
         end

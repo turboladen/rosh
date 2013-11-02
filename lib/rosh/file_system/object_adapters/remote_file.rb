@@ -29,6 +29,12 @@ class Rosh
           cmd << " count=#{length}" if length
           cmd << " skip=#{offset}" if offset
           results = current_shell.exec(cmd)
+
+          if results.match /.*No such file.*/m
+            bad_info results
+            raise Rosh::ErrorENOENT, "No such file or directory: #{@path}"
+          end
+
           contents = results.split /[^\n]+records in\r?\n/
 
           current_shell.last_exit_status.zero? ? contents.first : nil

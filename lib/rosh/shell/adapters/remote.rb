@@ -110,28 +110,6 @@ class Rosh
           result
         end
 
-        # @param [String] file The path of the file to cat.
-        #
-        # @return [String, ROSH::ErrorNOENT] On success, returns the contents of
-        #   the file as a String.  On fail, #last_exit_status is set to the exit
-        #   status from the remote command, and a Rosh::ErrorNOENT error is
-        #   returned.
-        def cat(file)
-          cmd = sudoize("cat #{file}")
-          result = run(cmd)
-
-          if result.stderr.match %r[No such file or directory]
-            bad_info result.stderr
-            error = Rosh::ErrorENOENT.new(result.stderr)
-
-            [error, result.exit_status, result.stdout, result.stderr]
-          else
-            #good_info result.stdout
-
-            [result.ruby_object, 0, result.stdout, result.stderr]
-          end
-        end
-
         # @param [String] path The absolute or relative path to make the new
         #   working directory.
         #
