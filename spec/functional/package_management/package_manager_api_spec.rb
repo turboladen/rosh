@@ -1,3 +1,4 @@
+=begin
 require 'spec_helper'
 require 'rosh/package_manager/manager_adapters/apt'
 require 'rosh/package_manager/manager_adapters/brew'
@@ -44,3 +45,4 @@ describe 'Package manager API' do
     end
   end
 end
+=end

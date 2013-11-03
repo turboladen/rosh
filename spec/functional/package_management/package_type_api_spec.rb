@@ -1,3 +1,4 @@
+=begin
 require 'spec_helper'
 require 'rosh/package_manager/object_adapters/brew'
 require 'rosh/package_manager/object_adapters/deb'
@@ -44,3 +45,4 @@ describe 'Package type API' do
     end
   end
 end
+=end
