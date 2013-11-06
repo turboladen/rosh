@@ -13,9 +13,9 @@ class Rosh
       def self.stat(path, host_name)
         run(path, host_name) do
           result = if current_host.darwin?
-            current_shell.exec("#{OSX_CMD} #{path}")
+            current_shell.exec_internal("#{OSX_CMD} #{path}")
           else
-            current_shell.exec("#{LINUX_CMD} #{path}")
+            current_shell.exec_internal("#{LINUX_CMD} #{path}")
           end
 
           new(result, host_name)
@@ -25,7 +25,7 @@ class Rosh
       def self.blockdev?(path, host_name)
         run(path, host_name) do
           cmd = "test -b #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -34,7 +34,7 @@ class Rosh
       def self.chardev?(path, host_name)
         run(path, host_name) do
           cmd = "test -c #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -48,7 +48,7 @@ class Rosh
             "stat -c '%t' #{path}"
           end
 
-          current_shell.exec(cmd).strip.to_i
+          current_shell.exec_internal(cmd).strip.to_i
         end
       end
 
@@ -60,14 +60,14 @@ class Rosh
             "stat -c '%T' #{path}"
           end
 
-          current_shell.exec(cmd).strip.to_i
+          current_shell.exec_internal(cmd).strip.to_i
         end
       end
 
       def self.directory?(path, host_name)
         run(path, host_name) do
           cmd = "test -d #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -76,7 +76,7 @@ class Rosh
       def self.executable?(path, host_name)
         run(path, host_name) do
           cmd = "test -x #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -85,7 +85,7 @@ class Rosh
       def self.file?(path, host_name)
         run(path, host_name) do
           cmd = "test -f #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -94,7 +94,7 @@ class Rosh
       def self.grpowned?(path, host_name)
         run(path, host_name) do
           cmd = "test -G #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -103,7 +103,7 @@ class Rosh
       def self.owned?(path, host_name)
         run(path, host_name) do
           cmd = "test -O #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -112,7 +112,7 @@ class Rosh
       def self.pipe?(path, host_name)
         run(path, host_name) do
           cmd = "test -p #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -121,7 +121,7 @@ class Rosh
       def self.readable?(path, host_name)
         run(path, host_name) do
           cmd = "test -r #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -130,7 +130,7 @@ class Rosh
       def self.setgid?(path, host_name)
         run(path, host_name) do
           cmd = "test -g #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -139,7 +139,7 @@ class Rosh
       def self.setuid?(path, host_name)
         run(path, host_name) do
           cmd = "test -u #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -148,7 +148,7 @@ class Rosh
       def self.socket?(path, host_name)
         run(path, host_name) do
           cmd = "test -S #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -157,7 +157,7 @@ class Rosh
       def self.sticky?(path, host_name)
         run(path, host_name) do
           cmd = "test -k #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -166,7 +166,7 @@ class Rosh
       def self.symlink?(path, host_name)
         run(path, host_name) do
           cmd = "test -L #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -175,7 +175,7 @@ class Rosh
       def self.writable?(path, host_name)
         run(path, host_name) do
           cmd = "test -w #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -184,7 +184,7 @@ class Rosh
       def self.zero?(path, host_name)
         run(path, host_name) do
           cmd = "test -s #{path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           !current_shell.last_exit_status.zero?
         end

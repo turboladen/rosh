@@ -12,7 +12,7 @@ class Rosh
         #   the latest version available.
         def at_latest_version?
           cmd = "apt-cache policy #{@package_name}"
-          result = current_shell.exec(cmd)
+          result = current_shell.exec_internal(cmd)
           %r[Installed: (?<current>\S+)\r\n\s*Candidate: (?<candidate>\S+)] =~ result
 
           if $~
@@ -24,7 +24,7 @@ class Rosh
         #   if the package is not installed.
         def current_version
           cmd = "apt-cache policy #{@package_name}"
-          result = current_shell.exec(cmd)
+          result = current_shell.exec_internal(cmd)
           %r[Installed: (?<version>\S*)] =~ result
 
           if $~
@@ -38,7 +38,7 @@ class Rosh
         #
         # @return [Hash]
         def info
-          output = current_shell.exec "dpkg --status #{@package_name}"
+          output = current_shell.exec_internal "dpkg --status #{@package_name}"
           info_hash = {}
 
           output.each_line do |line|
@@ -65,7 +65,7 @@ class Rosh
           cmd = "apt-get install #{@package_name}"
           cmd << "=#{version}" if version
           cmd << ' -y'
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -75,7 +75,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if installed, +false+ if not.
         def installed?
-          output = current_shell.exec "dpkg --status #{@package_name}"
+          output = current_shell.exec_internal "dpkg --status #{@package_name}"
           return false unless current_shell.last_exit_status.zero?
 
           !output.match(/not-installed/)
@@ -93,7 +93,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def remove
-          current_shell.exec "DEBIAN_FRONTEND=noninteractive apt-get remove -y #{@package_name}"
+          current_shell.exec_internal "DEBIAN_FRONTEND=noninteractive apt-get remove -y #{@package_name}"
 
           current_shell.last_exit_status.zero?
         end

@@ -17,9 +17,9 @@ class Rosh
         #   objects; when :pid is given, a single Rosh::ProcessManager::RemoteProcTable is returned.
         def list_running(name=nil, pid=nil)
           result = if pid
-            current_shell.exec "ps uxe -p #{pid}"
+            current_shell.exec_internal "ps uxe -p #{pid}"
           else
-            current_shell.exec 'ps auxe'
+            current_shell.exec_internal 'ps auxe'
           end
 
           list = []

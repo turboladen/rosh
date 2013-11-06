@@ -12,7 +12,7 @@ class Rosh
         end
 
         def exists?
-          current_shell.exec("ls #{script_dir}/#{@service_name}")
+          current_shell.exec_internal("ls #{script_dir}/#{@service_name}")
 
           current_shell.last_exit_status.zero?
         end
@@ -34,7 +34,7 @@ class Rosh
         # @return [Symbol]
         # @todo Check for the process if 'Usage: ...' is returned.
         def status
-          result = current_shell.exec("#{script_dir}/#{@service_name} #{status_command}")
+          result = current_shell.exec_internal("#{script_dir}/#{@service_name} #{status_command}")
 
           if current_shell.last_exit_status.zero?
             pid = fetch_pid
@@ -58,7 +58,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def start
-          current_shell.exec("#{script_dir}/#{@service_name} start")
+          current_shell.exec_internal("#{script_dir}/#{@service_name} start")
 
           current_shell.last_exit_status.zero?
         end
@@ -69,7 +69,7 @@ class Rosh
         # @raise [Rosh::PermissionDenied]
         # @raise [Rosh::UnrecognizedService]
         def start!
-          result = current_shell.exec("#{script_dir}/#{@service_name} start")
+          result = current_shell.exec_internal("#{script_dir}/#{@service_name} start")
 
           if current_shell.last_exit_status.zero?
             if permission_denied? result
@@ -90,19 +90,19 @@ class Rosh
             "update-rc.d #{@service_name} defaults"
           end
 
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
 
         def stop
-          current_shell.exec("#{script_dir}/#{@service_name} stop")
+          current_shell.exec_internal("#{script_dir}/#{@service_name} stop")
 
           current_shell.last_exit_status.zero?
         end
 
         def stop!
-          result = current_shell.exec("#{script_dir}/#{@service_name} stop")
+          result = current_shell.exec_internal("#{script_dir}/#{@service_name} stop")
 
           if current_shell.last_exit_status.zero?
             if permission_denied? result
@@ -144,7 +144,7 @@ class Rosh
         end
 
         def fetch_status
-          result = current_shell.exec("#{@script_dir}/#{@name} #{status_command}")
+          result = current_shell.exec_internal("#{@script_dir}/#{@name} #{status_command}")
 
           if current_shell.last_exit_status.zero?
             pid = fetch_pid

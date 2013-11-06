@@ -11,13 +11,13 @@ class Rosh
         #   the latest version available.
         def at_latest_version?
           cmd = "yum list updates #{@package_name}"
-          result = current_shell.exec(cmd)
+          result = current_shell.exec_internal(cmd)
 
           # Could be that: a) not a package, b) the package is not installed, c)
           # the package is at the latest.
           if result =~ /No matching Packages to list/
             cmd = "yum info #{@package_name}"
-            result = current_shell.exec(cmd)
+            result = current_shell.exec_internal(cmd)
 
             if result =~ /Available Packages/m
               false
@@ -37,7 +37,7 @@ class Rosh
         #   if the package is not installed.
         def current_version
           cmd = "rpm -qa #{@package_name}"
-          result = current_shell.exec(cmd)
+          result = current_shell.exec_internal(cmd)
 
           if result.nil? || result.empty?
             nil
@@ -52,7 +52,7 @@ class Rosh
         #
         # @return [Hash]
         def info
-          output = current_shell.exec "yum info #{@package_name}"
+          output = current_shell.exec_internal "yum info #{@package_name}"
           info_hash = {}
 
           output.each_line do |line|
@@ -77,7 +77,7 @@ class Rosh
         def install(version=nil)
           cmd = "yum install -y #{@package_name}"
           cmd << "-#{version}" if version
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -87,7 +87,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if installed, +false+ if not.
         def installed?
-          current_shell.exec "rpm -qa | grep #{@package_name}"
+          current_shell.exec_internal "rpm -qa | grep #{@package_name}"
 
           current_shell.last_exit_status.zero?
         end
@@ -104,7 +104,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def remove
-          current_shell.exec "yum remove -y #{@package_name}"
+          current_shell.exec_internal "yum remove -y #{@package_name}"
 
           current_shell.last_exit_status.zero?
         end
@@ -113,7 +113,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if install was successful, +false+ if not.
         def upgrade
-          output = current_shell.exec "yum upgrade -y #{@package_name}"
+          output = current_shell.exec_internal "yum upgrade -y #{@package_name}"
           success = current_shell.last_exit_status.zero?
 
           return false if output.match(/#{@package_name} available, but not installed/m)

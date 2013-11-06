@@ -63,27 +63,39 @@ class Rosh
       def env
         echo_rosh_command
 
+        process(:env) do
+          _env = env_internal
+
+          private_result(_env, 0)
+        end
+      end
+
+      def env_internal
         adapter
 
         @path ||= ENV['PATH'].split ':'
 
-        process(:env) do
-          _env = {
-            path: @path,
-            shell: ::File.expand_path(::File.basename($0), ::File.dirname($0)),
-            pwd: @internal_pwd
-          }
-
-          [_env, 0]
-        end
+        {
+          path: @path,
+          shell: ::File.expand_path(::File.basename($0), ::File.dirname($0)),
+          pwd: @internal_pwd
+        }
       end
 
       def exec(command)
         echo_rosh_command command
 
-        process(:exec, command: command) do
-          adapter.exec(command, @internal_pwd)
+        process(:exec, command) do
+          exec_internal(command)
         end
+      end
+
+      # Use for running #exec, but without updating the host's history.
+      #
+      # @param [String] command
+      # @return [Rosh::Shell::PrivateCommandResult]
+      def exec_internal(command)
+        @history << adapter.exec(command, @internal_pwd)
       end
 
       def lh
@@ -133,15 +145,16 @@ class Rosh
 
       def pwd
         echo_rosh_command
-        adapter
-
-        _pwd = @internal_pwd
 
         process(:pwd) do
-          [_pwd, 0, nil]
+          private_result(pwd_internal, 0)
         end
+      end
 
-        _pwd
+      def pwd_internal
+        adapter
+
+        @internal_pwd
       end
 
       def ruby(code)

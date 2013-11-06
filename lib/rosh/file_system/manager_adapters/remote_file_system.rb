@@ -22,7 +22,7 @@ class Rosh
         end
 
         def chroot(new_root)
-          current_shell.exec "chroot #{new_root}"
+          current_shell.exec_internal "chroot #{new_root}"
         end
 
         def directory?(path)
@@ -38,13 +38,13 @@ class Rosh
         end
 
         def getwd
-          output = current_shell.exec('pwd').strip
+          output = current_shell.exec_internal('pwd').strip
 
           FileSystem::Directory.new(output, @host_name)
         end
 
         def home
-          output = current_shell.exec('echo ~').strip
+          output = current_shell.exec_internal('echo ~').strip
 
           FileSystem::Directory.new(output, @host_name)
         end
@@ -57,9 +57,9 @@ class Rosh
 
         def umask(new_umask=nil)
           if new_umask
-            current_shell.exec("umask #{new_umask}").strip
+            current_shell.exec_internal("umask #{new_umask}").strip
           else
-            current_shell.exec('umask').strip
+            current_shell.exec_internal('umask').strip
           end
         end
       end

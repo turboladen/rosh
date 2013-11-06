@@ -8,28 +8,28 @@ class Rosh
       module OpenDirectoryGroup
         def create
           cmd = "dscl . -create /Groups/#{@name}"
-          output = current_shell.exec cmd
+          current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?
         end
 
         def delete
           cmd = "dscl . -delete /Groups/#{@name}"
-          output = current_shell.exec cmd
+          current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?
         end
 
         def exists?
           cmd = "dscl -plist . -read /Groups/#{@name}"
-          output = current_shell.exec cmd
+          current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?
         end
 
         def gid
           cmd = "dscl -plist . -read /Groups/#{@name} PrimaryGroupID"
-          output = current_shell.exec cmd
+          output = current_shell.exec_internal cmd
 
           if output =~ /eDSRecordNotFound/
             raise Rosh::UserManager::GroupNotFound, "Group not found: #{@name}"
@@ -40,7 +40,7 @@ class Rosh
 
         def members
           cmd = "dscl -plist . -read /Groups/#{@name} GroupMembership"
-          output = current_shell.exec cmd
+          output = current_shell.exec_internal cmd
 
           if output =~ /eDSRecordNotFound/
             raise Rosh::UserManager::GroupNotFound, "Group not found: #{@name}"
@@ -53,7 +53,7 @@ class Rosh
 
         def name
           cmd = "dscl -plist . -read /Groups/#{@name} RecordName"
-          output = current_shell.exec cmd
+          output = current_shell.exec_internal cmd
 
           if output =~ /eDSRecordNotFound/
             raise Rosh::UserManager::GroupNotFound, "Group not found: #{@name}"
@@ -64,7 +64,7 @@ class Rosh
 
         def passwd
           cmd = "dscl -plist . -read /Groups/#{@name} Password"
-          output = current_shell.exec cmd
+          output = current_shell.exec_internal cmd
 
           if output =~ /eDSRecordNotFound/
             raise Rosh::UserManager::GroupNotFound, "Group not found: #{@name}"

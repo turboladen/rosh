@@ -4,9 +4,9 @@ class Rosh
       module Remote
         def send_signal(sig)
           output = if sig.kind_of? String
-            current_shell.exec("kill -s #{sig} #{@pid}")
+            current_shell.exec_internal("kill -s #{sig} #{@pid}")
           else
-            current_shell.exec("kill -#{sig} #{@pid}")
+            current_shell.exec_internal("kill -#{sig} #{@pid}")
           end
 
           return true if current_shell.last_exit_status.zero?

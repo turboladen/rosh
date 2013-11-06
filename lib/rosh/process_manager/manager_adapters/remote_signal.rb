@@ -9,7 +9,7 @@ class Rosh
 
         class << self
           def list
-            output = current_shell.exec 'kill -l'
+            output = current_shell.exec_internal 'kill -l'
             signal_list = {}
 
             output.split(/\s/).inject([]) do |result, signal|

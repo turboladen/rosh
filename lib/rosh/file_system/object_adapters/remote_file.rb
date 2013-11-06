@@ -16,7 +16,7 @@ class Rosh
         # @todo Do something with the block.
         # @return [Boolean]
         def create(&block)
-          current_shell.exec "touch #{@path}"
+          current_shell.exec_internal "touch #{@path}"
 
           current_shell.last_exit_status.zero?
         end
@@ -28,7 +28,7 @@ class Rosh
           cmd = "dd bs=1 if=#{@path}"
           cmd << " count=#{length}" if length
           cmd << " skip=#{offset}" if offset
-          results = current_shell.exec(cmd)
+          results = current_shell.exec_internal(cmd)
 
           if results.match /.*No such file.*/m
             bad_info results
@@ -47,7 +47,7 @@ class Rosh
 
         def copy(destination)
           cmd = "cp #{@path} #{destination}"
-          result = current_shell.exec(cmd)
+          result = current_shell.exec_internal(cmd)
 
           if current_shell.last_exit_status.zero? && result.nil?
             return true

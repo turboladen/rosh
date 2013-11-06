@@ -7,7 +7,7 @@ class Rosh
     module ManagerAdapters
       module OpenDirectory
         def groups
-          result = current_shell.exec 'dscacheutil -q group'
+          result = current_shell.exec_internal 'dscacheutil -q group'
           group_texts = result.split("\r\n\r\n")
 
           group_texts.map do |group_text|
@@ -30,13 +30,13 @@ class Rosh
 
         def group?(name)
           cmd = "dscl . -read /Groups/#{name}"
-          current_shell.exec cmd
+          current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?
         end
 
         def users
-          result = current_shell.exec 'dscacheutil -q user'
+          result = current_shell.exec_internal 'dscacheutil -q user'
           user_texts = result.split("\r\n\r\n")
 
           user_texts.map do |user_text|
@@ -58,7 +58,7 @@ class Rosh
 
         def user?(name)
           cmd = "dscl . -read /Users/#{name}"
-          current_shell.exec cmd
+          current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?
         end

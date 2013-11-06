@@ -6,7 +6,7 @@ class Rosh
     module ManagerAdapters
       module LaunchCtl
         def list_services
-          result = current_shell.exec 'launchctl list'
+          result = current_shell.exec_internal 'launchctl list'
 
           services = []
           result.each_line.each do |line|

@@ -42,7 +42,7 @@ class Rosh
         # @param [String,Integer] mode_int
         # @return [Boolean]
         def chmod(mode_int)
-          current_shell.exec("chmod #{mode_int} #{@path}")
+          current_shell.exec_internal("chmod #{mode_int} #{@path}")
 
           current_shell.last_exit_status.zero?
         end
@@ -55,7 +55,7 @@ class Rosh
           cmd << ":#{gid}" if gid
           cmd << " #{@path}"
 
-          current_shell.exec cmd
+          current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?
         end
@@ -67,7 +67,7 @@ class Rosh
 
         # @return [Boolean]
         def delete
-          current_shell.exec "rm #{@path}"
+          current_shell.exec_internal "rm #{@path}"
 
           current_shell.last_exit_status.zero?
         end
@@ -85,7 +85,7 @@ class Rosh
         #   +false+ if not.
         def exists?
           cmd = "test -e #{@path}"
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -97,7 +97,7 @@ class Rosh
             warn 'Not implemented'
           else
             cmd = "readlink -f #{@path}"
-            current_shell.exec(cmd).strip
+            current_shell.exec_internal(cmd).strip
           end
         end
 
@@ -123,7 +123,7 @@ class Rosh
             "stat -c '%F' #{@path}"
           end
 
-          output_string = current_shell.exec(cmd).strip.downcase
+          output_string = current_shell.exec_internal(cmd).strip.downcase
 
           output_string.gsub(/ /, '_').to_sym
         end
@@ -131,7 +131,7 @@ class Rosh
         # @param [String] new_path
         # @return [Boolean]
         def link(new_path)
-          current_shell.exec "ln #{@path} #{new_path}"
+          current_shell.exec_internal "ln #{@path} #{new_path}"
 
           current_shell.last_exit_status.zero?
         end
@@ -147,22 +147,22 @@ class Rosh
 
         # @return [String]
         def readlink
-          current_shell.exec("readlink #{@path}").strip
+          result = current_shell.exec_internal("readlink #{@path}").strip
         end
 
         # @todo Use +dir_path+
         def realdirpath(dir_path=nil)
-          current_shell.exec("readlink -f #{dirname}").strip
+          result = current_shell.exec_internal("readlink -f #{dirname}").strip
         end
 
         def realpath
-          current_shell.exec("readlink -f #{@path}").strip
+          result = current_shell.exec_internal("readlink -f #{@path}").strip
         end
 
         # @param [String] new_name
         # @return [Boolean]
         def rename(new_name)
-          current_shell.exec("mv #{@path} #{new_name}")
+          current_shell.exec_internal("mv #{@path} #{new_name}")
 
           current_shell.last_exit_status.zero?
         end
@@ -178,7 +178,7 @@ class Rosh
         # @param [String] new_name
         # @return [Boolean]
         def symlink(new_name)
-          current_shell.exec("ln -s #{@path} #{new_name}")
+          current_shell.exec_internal("ln -s #{@path} #{new_name}")
 
           current_shell.last_exit_status.zero?
         end
@@ -190,7 +190,7 @@ class Rosh
         # @param [Integer] len
         # @return [Boolean]
         def truncate(len)
-          current_shell.exec("head --bytes=#{len} --silent #{@path} > #{@path}")
+          current_shell.exec_internal("head --bytes=#{len} --silent #{@path} > #{@path}")
 
           current_shell.last_exit_status.zero?
         end
@@ -199,10 +199,10 @@ class Rosh
           atime_cmd = "touch -a --no-create --date=#{access_time}"
           mtime_cmd = "touch -m --no-create --date=#{modification_time}"
 
-          current_shell.exec(atime_cmd)
+          current_shell.exec_internal(atime_cmd)
           atime_ok = current_shell.last_exit_status.zero?
 
-          current_shell.exec(mtime_cmd)
+          current_shell.exec_internal(mtime_cmd)
           mtime_ok = current_shell.last_exit_status.zero?
 
           (atime_ok && mtime_ok) ? 1 : 0

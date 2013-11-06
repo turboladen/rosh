@@ -8,7 +8,7 @@ class Rosh
     module ObjectAdapters
       module UnixUser
         def add_to_group(group)
-          current_shell.exec "usermod --append --groups #{group} #{@name}"
+          current_shell.exec_internal "usermod --append --groups #{group} #{@name}"
 
           current_shell.last_exit_status.zero?
         end
@@ -18,7 +18,7 @@ class Rosh
         end
 
         def change
-          result = current_shell.exec "chage --list #{@name} | grep 'Last password change'"
+          result = current_shell.exec_internal "chage --list #{@name} | grep 'Last password change'"
           date = result.split(': ').last
 
           Time.parse(date)
@@ -31,7 +31,7 @@ class Rosh
 
         def create
           cmd = "useradd #{@name}"
-          result = current_shell.exec(cmd)
+          result = current_shell.exec_internal(cmd)
 
           if current_shell.last_exit_status.zero?
             true
@@ -42,7 +42,7 @@ class Rosh
         end
 
         def delete
-          current_shell.exec "userdel #{@name}"
+          current_shell.exec_internal "userdel #{@name}"
 
           current_shell.last_exit_status.zero?
         end
@@ -52,13 +52,13 @@ class Rosh
         end
 
         def exists?
-          current_shell.exec "id #{@name}"
+          current_shell.exec_internal "id #{@name}"
 
           current_shell.last_exit_status.zero?
         end
 
         def expire
-          result = current_shell.exec "chage --list #{@name} | grep 'Account expires'"
+          result = current_shell.exec_internal "chage --list #{@name} | grep 'Account expires'"
           date = result.split(': ').last
 
           date.strip == 'never' ? nil : Time.parse(date)
@@ -69,7 +69,7 @@ class Rosh
         end
 
         def gid
-          result = current_shell.exec "id --group #{@name}"
+          result = current_shell.exec_internal "id --group #{@name}"
 
           result.to_i
         end
@@ -79,7 +79,7 @@ class Rosh
         end
 
         def name
-          result = current_shell.exec "id --user --name #{@name}"
+          result = current_shell.exec_internal "id --user --name #{@name}"
 
           result.strip
         end
@@ -97,7 +97,7 @@ class Rosh
         end
 
         def uid
-          result = current_shell.exec "id --user #{@name}"
+          result = current_shell.exec_internal "id --user #{@name}"
 
           result.to_i
         end
@@ -106,7 +106,7 @@ class Rosh
 
         def getent_passwd
           cmd = "getent passwd #{@name}"
-          result = current_shell.exec cmd
+          result = current_shell.exec_internal cmd
 
           if result.match /Permission denied/
             raise Rosh::PermissionDenied, "Command: #{cmd}"
@@ -126,7 +126,7 @@ class Rosh
         end
 
         def getent_shadow
-          result = current_shell.exec "getent shadow #{@name}"
+          result = current_shell.exec_internal "getent shadow #{@name}"
           result_split = result.split(':')
 
           {
@@ -145,44 +145,44 @@ class Rosh
         end
 
         def dir=(new_dir)
-          current_shell.exec %[usermod --home "#{new_dir}" --move-home #{@name}]
+          current_shell.exec_internal %[usermod --home "#{new_dir}" --move-home #{@name}]
 
           current_shell.last_exit_status.zero?
         end
 
         def gid=(new_gid)
-          current_shell.exec %[usermod --gid #{new_gid} #{@name}]
+          current_shell.exec_internal %[usermod --gid #{new_gid} #{@name}]
 
           current_shell.last_exit_status.zero?
         end
 
         def name=(new_name)
-          current_shell.exec "usermod --login #{new_name} #{@name}"
+          current_shell.exec_internal "usermod --login #{new_name} #{@name}"
 
           current_shell.last_exit_status.zero?
         end
 
         def passwd=(new_password)
           cmd = %[echo "#{@name}:#{new_password}" | chpasswd]
-          current_shell.exec cmd
+          current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?
         end
 
         def real_name=(new_name)
-          current_shell.exec %[chfn --full-name "#{new_name}" #{@name}]
+          current_shell.exec_internal %[chfn --full-name "#{new_name}" #{@name}]
 
           current_shell.last_exit_status.zero?
         end
 
         def shell=(new_shell)
-          current_shell.exec %[usermod --shell "#{new_shell}" #{@name}]
+          current_shell.exec_internal %[usermod --shell "#{new_shell}" #{@name}]
 
           current_shell.last_exit_status.zero?
         end
 
         def uid=(new_uid)
-          current_shell.exec %[usermod --uid #{new_uid} #{@name}]
+          current_shell.exec_internal %[usermod --uid #{new_uid} #{@name}]
 
           current_shell.last_exit_status.zero?
         end

@@ -11,7 +11,7 @@ class Rosh
         #
         # @return [Array<Rosh::Host::PackageTypes::Rpm>]
         def installed_packages
-          output = current_shell.exec 'yum list'
+          output = current_shell.exec_internal 'yum list'
 
           output.each_line.map do |line|
             /^(?<name>\S+)\.(?<arch>\S+)\s+(?<version>\S+)\s+(?<status>\S*)/ =~ line
@@ -22,13 +22,13 @@ class Rosh
         end
 
         def update_definitions
-          output = current_shell.exec %[#{@bin_path}/yum check-update]
+          output = current_shell.exec_internal %[#{@bin_path}/yum check-update]
 
           extract_updated_definitions(output)
         end
 
         def upgrade_packages
-          output = current_shell.exec %[#{@bin_path}/yum update -y]
+          output = current_shell.exec_internal %[#{@bin_path}/yum update -y]
 
           extract_upgraded_packages(output)
         end

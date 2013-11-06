@@ -115,7 +115,7 @@ class Rosh
 
     # @return [Array<String>] List of commands given in the PATH.
     def system_commands
-      current_shell.env[:path].map do |dir|
+      env_internal[:path].map do |dir|
         Dir["#{dir}/*"].map { |f| ::File.basename(f) }
       end.flatten
     end

@@ -11,7 +11,7 @@ class Rosh
         DEFAULT_BIN_PATH = '/usr/bin'
 
         def installed_packages
-          result = current_shell.exec 'dpkg --list'
+          result = current_shell.exec_internal 'dpkg --list'
 
           result.split("\n").map do |pkg|
             if pkg.match(/^[A-za-z]{1,3}\s+/)
@@ -24,13 +24,13 @@ class Rosh
         end
 
         def update_definitions
-          output = current_shell.exec 'DEBIAN_FRONTEND=noninteractive apt-get update -y'
+          output = current_shell.exec_internal 'DEBIAN_FRONTEND=noninteractive apt-get update -y'
 
           extract_updated_definitions(output)
         end
 
         def upgrade_packages
-          output = current_shell.exec 'DEBIAN_FRONTEND=noninteractive apt-get upgrade -y'
+          output = current_shell.exec_internal 'DEBIAN_FRONTEND=noninteractive apt-get upgrade -y'
 
           if output.match /0 upgraded/m
             puts 'Nothing upgraded'

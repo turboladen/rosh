@@ -141,7 +141,7 @@ class Rosh
             "stat -c '%A' #{@path} | grep 'r\\S\\S$'"
           end
 
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end
@@ -153,7 +153,7 @@ class Rosh
             "stat -c '%A' #{@path} | grep 'w\\S$'"
           end
 
-          current_shell.exec(cmd)
+          current_shell.exec_internal(cmd)
 
           current_shell.last_exit_status.zero?
         end

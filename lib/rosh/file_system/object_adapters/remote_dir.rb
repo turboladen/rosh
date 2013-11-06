@@ -10,7 +10,7 @@ class Rosh
         include RemoteBase
 
         def entries
-          result = current_shell.exec "ls #{@path}"
+          result = current_shell.exec_internal "ls #{@path}"
 
           return([]) if result.nil?
 
@@ -31,13 +31,13 @@ class Rosh
         end
 
         def mkdir
-          current_shell.exec "mkdir #{@path}"
+          current_shell.exec_internal "mkdir #{@path}"
 
           current_shell.last_exit_status.zero?
         end
 
         def rmdir
-          current_shell.exec "rmdir #{@path}"
+          current_shell.exec_internal "rmdir #{@path}"
 
           current_shell.last_exit_status.zero?
         end

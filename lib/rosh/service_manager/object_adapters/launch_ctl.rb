@@ -31,7 +31,7 @@ class Rosh
         #
         # @return [Boolean] +true+ if successful, +false+ if not.
         def start
-          current_shell.exec("launchctl load #{@service_name}")
+          current_shell.exec_internal("launchctl load #{@service_name}")
 
           current_shell.last_exit_status.zero?
         end
@@ -42,7 +42,7 @@ class Rosh
         # @return [NilClass]
         # @raises [Rosh::UnrecognizedService]
         def start!
-          result = current_shell.exec("launchctl load #{@service_name}")
+          result = current_shell.exec_internal("launchctl load #{@service_name}")
 
           if result =~ /nothing found to load/m
             raise Rosh::UnrecognizedService, result
@@ -56,7 +56,7 @@ class Rosh
         end
 
         def stop
-          current_shell.exec("launchctl unload #{@service_name}")
+          current_shell.exec_internal("launchctl unload #{@service_name}")
 
           current_shell.last_exit_status.zero?
         end
@@ -65,7 +65,7 @@ class Rosh
 
         # @return [Integer,nil]
         def fetch_pid
-          pid_result = current_shell.exec("launchctl list | grep #{@service_name}")
+          pid_result = current_shell.exec_internal("launchctl list | grep #{@service_name}")
           temp_pid = pid_result.match /^\d+/
 
           temp_pid.to_s.to_i if temp_pid
@@ -73,7 +73,7 @@ class Rosh
 
         # @return [Array[Symbol, String, Integer]]
         def fetch_status
-          result = current_shell.exec("launchctl list -x #{@service_name}")
+          result = current_shell.exec_internal("launchctl list -x #{@service_name}")
           pid = @pid || fetch_pid
 
           if current_shell.last_exit_status.zero? && pid

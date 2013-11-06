@@ -11,7 +11,7 @@ class Rosh
         #
         # @return [Array<Rosh::Host::PackageTypes::Brew>]
         def installed_packages
-          output = current_shell.exec("#{@bin_path}/brew list")
+          output = current_shell.exec_internal("#{@bin_path}/brew list")
 
           output.split(/\s+/).map do |pkg|
             Rosh::PackageManager::Package.new(pkg, @host_name)
@@ -20,14 +20,14 @@ class Rosh
 
         # @return [Array]
         def update_definitions
-          output = current_shell.exec "#{@bin_path}/brew update"
+          output = current_shell.exec_internal "#{@bin_path}/brew update"
           return [] if output.match /\aAlready up-to-date/
 
           extract_updated_definitions(output)
         end
 
         def upgrade_packages
-          output = current_shell.exec "#{@bin_path}/brew upgrade"
+          output = current_shell.exec_internal "#{@bin_path}/brew upgrade"
 
           extract_upgraded_packages(output)
         end
