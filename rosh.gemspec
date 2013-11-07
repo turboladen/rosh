@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'plist'
   s.add_dependency 'net-ssh'
   s.add_dependency 'net-scp'
+  s.add_dependency 'simple_states', '~> 1.0.0'
   s.add_dependency 'sys-proctable'
 
   s.add_development_dependency 'bundler', '>= 1.0.1'
