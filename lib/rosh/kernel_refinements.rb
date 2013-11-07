@@ -1,5 +1,6 @@
 require 'colorize'
 require_relative '../rosh'
+require_relative 'shell/private_command_result'
 
 
 module Kernel
@@ -38,6 +39,10 @@ module Kernel
 
   def run_info(text)
     $stdout.puts "[#{current_user}@#{current_host.name}]<< #{text.strip}".yellow
+  end
+
+  def private_result(ruby_object, exit_status, as_string=nil)
+    Rosh::Shell::PrivateCommandResult.new(ruby_object, exit_status, as_string)
   end
 
   def echo_rosh_command(*extra)

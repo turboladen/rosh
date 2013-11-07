@@ -10,55 +10,55 @@ class Rosh
         end
 
         def blksize
-          ::File.stat(@path).blksize
+          process { ::File.stat(@path).blksize }
         end
 
         def blockdev?
-          ::File.stat(@path).blockdev?
+          process { ::File.stat(@path).blockdev? }
         end
 
         def blocks
-          ::File.stat(@path).blocks
+          process { ::File.stat(@path).blocks }
         end
 
         def chardev?
-          ::File.stat(@path).chardev?
+          process { ::File.stat(@path).chardev? }
         end
 
         def dev
-          ::File.stat(@path).dev
+          process { ::File.stat(@path).dev }
         end
 
         def dev_major
-          ::File.stat(@path).dev_major
+          process { ::File.stat(@path).dev_major }
         end
 
         def dev_minor
-          ::File.stat(@path).dev_minor
+          process { ::File.stat(@path).dev_minor }
         end
 
         def directory?
-          ::File.directory? @path
+          process { ::File.directory? @path }
         end
 
         def executable?
-          ::File.executable? @path
+          process { ::File.executable? @path }
         end
 
         def executable_real?
-          ::File.executable_real? @path
+          process { ::File.executable_real? @path }
         end
 
         def file?
-          ::File.file? @path
+          process { ::File.file? @path }
         end
 
         def gid
-          ::File.stat(@path).gid
+          process { ::File.stat(@path).gid }
         end
 
         def grpowned?
-          ::File.stat(@path).grpowned?
+          process { ::File.stat(@path).grpowned? }
         end
 
         # @todo Implement.
@@ -69,7 +69,7 @@ class Rosh
 =end
 
         def ino
-          ::File.stat(@path).ino
+          process { ::File.stat(@path).ino }
         end
 
 =begin
@@ -79,89 +79,99 @@ class Rosh
 =end
 
         def mode
-          mode = ::File.stat(@path).mode
+          process do
+            mode = ::File.stat(@path).mode
 
-          sprintf('%o', mode)
+            sprintf('%o', mode)
+          end
         end
 
         def nlink
-          ::File.stat(@path).nlink
+          process { ::File.stat(@path).nlink }
         end
 
         def owned?
-          ::File.stat(@path).owned?
+          process { ::File.stat(@path).owned? }
         end
 
         def pipe?
-          ::File.stat(@path).pipe?
+          process { ::File.stat(@path).pipe? }
         end
 
         def rdev
-          ::File.stat(@path).rdev
+          process { ::File.stat(@path).rdev }
         end
 
         def rdev_major
-          ::File.stat(@path).rdev_major
+          process { ::File.stat(@path).rdev_major }
         end
 
         def rdev_minor
-          ::File.stat(@path).rdev_minor
+          process { ::File.stat(@path).rdev_minor }
         end
 
         def readable?
-          ::File.stat(@path).readable?
+          process { ::File.stat(@path).readable? }
         end
 
         def readable_real?
-          ::File.stat(@path).readable_real?
+          process { ::File.stat(@path).readable_real? }
         end
 
         def setgid?
-          ::File.stat(@path).setgid?
+          process { ::File.stat(@path).setgid? }
         end
 
         def setuid?
-          ::File.stat(@path).setuid?
+          process { ::File.stat(@path).setuid? }
         end
 
         def size
-          ::File.size(@path)
+          process { ::File.size(@path) }
         end
 
         def socket?
-          ::File.stat(@path).socket?
+          process { ::File.stat(@path).socket? }
         end
 
         def sticky?
-          ::File.stat(@path).sticky?
+          process { ::File.stat(@path).sticky? }
         end
 
         def symlink?
-          ::File.stat(@path).symlink?
+          process { ::File.stat(@path).symlink? }
         end
 
         def uid
-          ::File.stat(@path).uid
+          process { ::File.stat(@path).uid }
         end
 
         def world_readable?
-          ::File.stat(@path).world_readable?
+          process { ::File.stat(@path).world_readable? }
         end
 
         def world_writable?
-          ::File.stat(@path).world_writable?
+          process { ::File.stat(@path).world_writable? }
         end
 
         def writable?
-          ::File.stat(@path).writable?
+          process { ::File.stat(@path).writable? }
         end
 
         def writable_real?
-          ::File.stat(@path).writable_real?
+          process { ::File.stat(@path).writable_real? }
         end
 
         def zero?
-          ::File.stat(@path).zero?
+          process { ::File.stat(@path).zero? }
+        end
+
+        private
+
+        def process
+          result = yield
+
+          private_result(result, 0)
         end
       end
     end

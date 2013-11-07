@@ -9,21 +9,25 @@ class Rosh
       module RemoteDir
         include RemoteBase
 
+        # @return [Array<Rosh::FileSystem::*]
         def entries
           result = current_shell.exec_internal "ls #{@path}"
 
-          return([]) if result.nil?
+          return private_result([], 0) unless result
 
           if result.match %r[No such file or directory]
-            raise Rosh::ErrorENOENT, result
+            ex = Rosh::ErrorENOENT.new(@path)
+            return private_result(ex, 1)
           end
 
-          result.split.map do |entry|
+          actual_result = result.split.map do |entry|
             next if %w[. ..].include?(entry)
             full_path = @path == '/' ? "/#{entry}" : "#{@path}/#{entry}"
 
             Rosh::FileSystem.create(full_path, @host_name)
           end.compact
+
+          private_result(actual_result, 0)
         end
 
         def open
@@ -32,14 +36,18 @@ class Rosh
 
         def mkdir
           current_shell.exec_internal "mkdir #{@path}"
+          result = current_shell.last_exit_status.zero?
+          exit_status = result ? 0 : 1
 
-          current_shell.last_exit_status.zero?
+          private_result(result, exit_status)
         end
 
         def rmdir
           current_shell.exec_internal "rmdir #{@path}"
+          result = current_shell.last_exit_status.zero?
+          exit_status = result ? 0 : 1
 
-          current_shell.last_exit_status.zero?
+          private_result(result, exit_status)
         end
       end
 

@@ -4,45 +4,54 @@ class Rosh
       module RemoteStatMethods
         def <=>(other_file)
           other_object = FileSystem.create(other_file)
+          result = mtime <=> other_object.mtime
 
-          mtime <=> other_object.mtime
+          private_result(result, 0)
         end
 
         def blksize
-          RemoteStat.stat(@path, @host_name).blksize
+          size = RemoteStat.stat(@path, @host_name).blksize
+
+          private_result(size, 0, size.to_s)
         end
 
         def blockdev?
-          RemoteStat.blockdev?(@path, @host_name)
+          process { RemoteStat.blockdev?(@path, @host_name) }
         end
 
         def blocks
-          RemoteStat.stat(@path, @host_name).blocks
+          b = RemoteStat.stat(@path, @host_name).blocks
+
+          private_result(size, 0, b.to_s)
         end
 
         def chardev?
-          RemoteStat.chardev?(@path, @host_name)
+          process { RemoteStat.chardev?(@path, @host_name) }
         end
 
         def dev
-          RemoteStat.stat(@path, @host_name).dev
+          process { RemoteStat.stat(@path, @host_name).dev }
         end
 
         def dev_major
-          RemoteStat.dev_major(@path, @host_name)
+          d = RemoteStat.dev_major(@path, @host_name)
+
+          private_result(d, 0, d.to_s)
         end
 
         def dev_minor
-          RemoteStat.dev_minor(@path, @host_name)
+          d = RemoteStat.dev_minor(@path, @host_name)
+
+          private_result(d, 0, d.to_s)
         end
 
         # @return [Boolean] +true+ if the object is a directory; +false+ if not.
         def directory?
-          RemoteStat.directory?(@path, @host_name)
+          process { RemoteStat.directory?(@path, @host_name) }
         end
 
         def executable?
-          RemoteStat.executable?(@path, @host_name)
+          process { RemoteStat.executable?(@path, @host_name) }
         end
 
 =begin
@@ -53,51 +62,55 @@ class Rosh
 
         # @return [Boolean] +true+ if the object is a file; +false+ if not.
         def file?
-          RemoteStat.file?(@path, @host_name)
+          process { RemoteStat.file?(@path, @host_name) }
         end
 
         def gid
-          RemoteStat.stat(@path, @host_name).gid
+          g = RemoteStat.stat(@path, @host_name).gid
+
+          private_result(g, 0, g.to_s)
         end
 
         def grpowned?
-          RemoteStat.grpowned?(@path, @host_name)
+          process { RemoteStat.grpowned?(@path, @host_name) }
         end
 
         def ino
-          RemoteStat.stat(@path, @host_name).ino
+          i = RemoteStat.stat(@path, @host_name).ino
+
+          private_result(i, 0, i.to_s)
         end
 
         def mode
-          RemoteStat.stat(@path, @host_name).mode
+          process { RemoteStat.stat(@path, @host_name).mode }
         end
 
         def nlink
-          RemoteStat.stat(@path, @host_name).nlink
+          process { RemoteStat.stat(@path, @host_name).nlink }
         end
 
         def owned?
-          RemoteStat.owned?(@path, @host_name)
+          process { RemoteStat.owned?(@path, @host_name) }
         end
 
         def pipe?
-          RemoteStat.pipe?(@path, @host_name)
+          process { RemoteStat.pipe?(@path, @host_name) }
         end
 
         def rdev
-          RemoteStat.stat(@path, @host_name).rdev
+          process { RemoteStat.stat(@path, @host_name).rdev }
         end
 
         def rdev_major
-          RemoteStat.dev_major(@path, @host_name)
+          process { RemoteStat.dev_major(@path, @host_name) }
         end
 
         def rdev_minor
-          RemoteStat.dev_minor(@path, @host_name)
+          process { RemoteStat.dev_minor(@path, @host_name) }
         end
 
         def readable?
-          RemoteStat.readable?(@path, @host_name)
+          process { RemoteStat.readable?(@path, @host_name) }
         end
 
 =begin
@@ -107,31 +120,35 @@ class Rosh
 =end
 
         def setgid?
-          RemoteStat.setgid?(@path, @host_name)
+          process { RemoteStat.setgid?(@path, @host_name) }
         end
 
         def setuid?
-          RemoteStat.setuid?(@path, @host_name)
+          process { RemoteStat.setuid?(@path, @host_name) }
         end
 
         def size
-          RemoteStat.stat(@path, @host_name).size
+          s = RemoteStat.stat(@path, @host_name).size
+
+          private_result(s, 0, s.to_s)
         end
 
         def socket?
-          RemoteStat.socket?(@path, @host_name)
+          process { RemoteStat.socket?(@path, @host_name) }
         end
 
         def sticky?
-          RemoteStat.sticky?(@path, @host_name)
+          process { RemoteStat.sticky?(@path, @host_name) }
         end
 
         def symlink?
-          RemoteStat.symlink?(@path, @host_name)
+          process { RemoteStat.symlink?(@path, @host_name) }
         end
 
         def uid
-          RemoteStat.stat(@path, @host_name).uid
+          u = RemoteStat.stat(@path, @host_name).uid
+
+          private_result(u, 0, u.to_s)
         end
 
         def world_readable?
@@ -142,8 +159,10 @@ class Rosh
           end
 
           current_shell.exec_internal(cmd)
+          result = current_shell.last_exit_status.zero?
+          exit_status = result ? 0 : 1
 
-          current_shell.last_exit_status.zero?
+          private_result(result, exit_status)
         end
 
         def world_writable?
@@ -154,12 +173,14 @@ class Rosh
           end
 
           current_shell.exec_internal(cmd)
+          result = current_shell.last_exit_status.zero?
+          exit_status = result ? 0 : 1
 
-          current_shell.last_exit_status.zero?
+          private_result(result, exit_status)
         end
 
         def writable?
-          RemoteStat.writable?(@path, @host_name)
+          process { RemoteStat.writable?(@path, @host_name) }
         end
 
 =begin
@@ -168,7 +189,15 @@ class Rosh
 =end
 
         def zero?
-          RemoteStat.zero?(@path, @host_name)
+          process { RemoteStat.zero?(@path, @host_name) }
+        end
+
+        private
+
+        def process
+          result = yield
+
+          private_result(result, 0)
         end
       end
     end

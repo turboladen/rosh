@@ -19,7 +19,9 @@ class Rosh
 
         # @return [Time]
         def atime
-          RemoteStat.stat(@path, @host_name).atime
+          time = RemoteStat.stat(@path, @host_name).atime
+
+          private_result(time, 0)
         end
 
         # @param [String] suffix
@@ -28,23 +30,28 @@ class Rosh
           cmd = "basename #{@path}"
           cmd << " #{suffix}" if suffix
 
-          current_shell.exec(cmd).strip
+          private_result(current_shell.exec_internal(cmd).strip, 0)
         end
 
         def blockdev?
-          RemoteStat.blockdev?(@path, @host_name)
+          result = RemoteStat.blockdev?(@path, @host_name)
+
+          private_result(result, 0)
         end
 
         def chardev?
-          RemoteStat.chardev?(@path, @host_name)
+          result = RemoteStat.chardev?(@path, @host_name)
+
+          private_result(result, 0)
         end
 
         # @param [String,Integer] mode_int
         # @return [Boolean]
         def chmod(mode_int)
           current_shell.exec_internal("chmod #{mode_int} #{@path}")
+          result = current_shell.last_exit_status.zero?
 
-          current_shell.last_exit_status.zero?
+          private_result(result, 0)
         end
 
         # @param [String,Integer] uid
@@ -56,29 +63,39 @@ class Rosh
           cmd << " #{@path}"
 
           current_shell.exec_internal cmd
+          result = current_shell.last_exit_status.zero?
+          exit_status = result ? 0 : 1
 
-          current_shell.last_exit_status.zero?
+          private_result(result, exit_status)
         end
 
         # @return [Time]
         def ctime
-          RemoteStat.stat(@path, @host_name).ctime
+          time = RemoteStat.stat(@path, @host_name).ctime
+
+          private_result(time, 0)
         end
 
         # @return [Boolean]
         def delete
           current_shell.exec_internal "rm #{@path}"
+          result = current_shell.last_exit_status.zero?
+          exit_status = result ? 0 : 1
 
-          current_shell.last_exit_status.zero?
+          private_result(result, exit_status)
         end
 
         def directory?
-          RemoteStat.directory?(@path, @host_name)
+          result = RemoteStat.directory?(@path, @host_name)
+
+          private_result(result, 0)
         end
 
         # @return [String]
         def dirname
-          ::File.dirname(@path)
+          name = ::File.dirname(@path)
+
+          private_result(name, 0)
         end
 
         # @return [Boolean] +true+ if the object exists on the file system;
@@ -86,28 +103,36 @@ class Rosh
         def exists?
           cmd = "test -e #{@path}"
           current_shell.exec_internal(cmd)
+          result = current_shell.last_exit_status.zero?
+          exit_status = result ? 0 : 1
 
-          current_shell.last_exit_status.zero?
+          private_result(result, exit_status)
         end
 
         # @param [String] dir_string
         # @return [String]
         def expand_path(dir_string=nil)
-          if current_host.darwin?
+          result = if current_host.darwin?
             warn 'Not implemented'
           else
             cmd = "readlink -f #{@path}"
             current_shell.exec_internal(cmd).strip
           end
+
+          private_result(result, 0)
         end
 
         # @return [String]
         def extname
-          ::File.extname(basename)
+          ext = ::File.extname(basename)
+
+          private_result(ext, 0)
         end
 
         def file?
-          RemoteStat.file?(@path, @host_name)
+          result = RemoteStat.file?(@path, @host_name)
+
+          private_result(result, 0)
         end
 
         # @todo Implement.
@@ -124,75 +149,96 @@ class Rosh
           end
 
           output_string = current_shell.exec_internal(cmd).strip.downcase
+          result = output_string.gsub(/ /, '_').to_sym
 
-          output_string.gsub(/ /, '_').to_sym
+          private_result(result, 0)
         end
 
         # @param [String] new_path
         # @return [Boolean]
         def link(new_path)
           current_shell.exec_internal "ln #{@path} #{new_path}"
+          result = current_shell.last_exit_status.zero?
+          exit_status = result ? 0 : 1
 
-          current_shell.last_exit_status.zero?
+          private_result(result, exit_status)
         end
 
         # @return [Time]
         def mtime
-          RemoteStat.stat(@path, @host_name).mtime
+          time = RemoteStat.stat(@path, @host_name).mtime
+
+          private_result(time, 0)
         end
 
         def path
-          @path
+          private_result(@path, 0)
         end
 
         # @return [String]
         def readlink
           result = current_shell.exec_internal("readlink #{@path}").strip
+
+          private_result(result, 0)
         end
 
         # @todo Use +dir_path+
         def realdirpath(dir_path=nil)
           result = current_shell.exec_internal("readlink -f #{dirname}").strip
+
+          private_result(result, 0)
         end
 
         def realpath
           result = current_shell.exec_internal("readlink -f #{@path}").strip
+
+          private_result(result, 0)
         end
 
         # @param [String] new_name
         # @return [Boolean]
         def rename(new_name)
           current_shell.exec_internal("mv #{@path} #{new_name}")
+          result = current_shell.last_exit_status.zero?
+          exit_status = result ? 0 : 1
 
-          current_shell.last_exit_status.zero?
+          private_result(result, exit_status)
         end
 
         def split
-          ::File.split(@path)
+          result = ::File.split(@path)
+
+          private_result(result, 0)
         end
 
         def stat
-          RemoteStat.stat(@path, @host_name)
+          s = RemoteStat.stat(@path, @host_name)
+
+          private_result(s, 0)
         end
 
         # @param [String] new_name
         # @return [Boolean]
         def symlink(new_name)
           current_shell.exec_internal("ln -s #{@path} #{new_name}")
+          result = current_shell.last_exit_status.zero?
 
-          current_shell.last_exit_status.zero?
+          private_result(result, 0)
         end
 
         def symlink?
-          RemoteStat.symlink?(@path, @host_name)
+          result = RemoteStat.symlink?(@path, @host_name)
+
+          private_result(result, 0)
         end
 
         # @param [Integer] len
         # @return [Boolean]
         def truncate(len)
           current_shell.exec_internal("head --bytes=#{len} --silent #{@path} > #{@path}")
+          result = current_shell.last_exit_status.zero?
 
-          current_shell.last_exit_status.zero?
+          private_result(result, 0)
         end
 
         def utime(access_time, modification_time)
@@ -205,7 +251,10 @@ class Rosh
           current_shell.exec_internal(mtime_cmd)
           mtime_ok = current_shell.last_exit_status.zero?
 
-          (atime_ok && mtime_ok) ? 1 : 0
+          result = atime_ok && mtime_ok
+          exit_status = result ? 0 : 1
+
+          private_result(result, exit_status)
         end
       end
     end

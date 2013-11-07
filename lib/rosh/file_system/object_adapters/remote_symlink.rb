@@ -16,7 +16,10 @@ class Rosh
             current_shell.exec_internal("chmod #{mode_int} #{@path}")
           end
 
-          current_shell.last_exit_status.zero?
+          result = current_shell.last_exit_status.zero?
+          exit_status = result ? 0 : 1
+
+          private_result(result, exit_status)
         end
 
         # @param [String,Integer] uid
@@ -33,20 +36,25 @@ class Rosh
           cmd << " #{@path}"
           current_shell.exec_internal cmd
 
+          result = current_shell.last_exit_status.zero?
+          exit_status = result ? 0 : 1
 
-          current_shell.last_exit_status.zero?
+          private_result(result, exit_status)
         end
 
         def destination
           f = current_shell.exec_internal "readlink #{@path}"
+          file = FileSystem::File.new(f.strip, @host_name)
 
-          FileSystem::File.new(f.strip, @host_name)
+          private_result(file, 0, file.to_s)
         end
 
         def link_to(destination)
           current_shell.exec_internal "ln -s #{destination} #{@path}"
+          result = current_shell.last_exit_status.zero?
+          exit_status = result ? 0 : 1
 
-          current_shell.last_exit_status.zero?
+          private_result(result, exit_status)
         end
 
         # @return [Boolean] +true+ if the object exists on the file system;
@@ -55,12 +63,18 @@ class Rosh
           cmd = "test -L #{@path}"
           current_shell.exec_internal(cmd)
 
-          current_shell.last_exit_status.zero?
+          result = current_shell.last_exit_status.zero?
+          exit_status = result ? 0 : 1
+
+          private_result(result, exit_status)
         end
 
         # @return [String]
         def stat
           result = current_shell.exec_internal "stat #{@path}"
+          exit_status = current_shell.last_exit_status.zero? ? 0 : 1
+
+          private_result(result, exit_status)
         end
       end
     end

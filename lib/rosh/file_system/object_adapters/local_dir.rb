@@ -11,16 +11,21 @@ class Rosh
 
         # @return [Array<Rosh::Host::Adapters>]
         def entries
-          begin
-            ::Dir.entries(@path).map do |entry|
+          result = begin
+            listing = ::Dir.entries(@path).map do |entry|
               next if %w[. ..].include?(entry)
               Rosh::FileSystem.create("#{@path}/#{entry}", @host_name)
             end.compact
+
+            exit_status = 0
+
+            listing
           rescue Errno::ENOENT => ex
-            raise Rosh::ErrorENOENT, ex.message
-          rescue Errno::ENOTDIR => ex
-            raise Rosh::ErrorENOTDIR, ex.message
+            exit_status = 1
+            Rosh::ErrorENOENT.new(@path)
           end
+
+          Rosh::Shell::PrivateCommandResult.new(result, exit_status)
         end
 
         # Opens the directory, passes it to the block, then closes it.

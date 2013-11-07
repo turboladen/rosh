@@ -3,36 +3,35 @@ require 'log_switch'
 
 class Rosh
   class Shell
-    class CommandResult
+
+    # Used by adapters to convey the output of commands to the public
+    # API so the public API can decide how to present the result.
+    class PrivateCommandResult
       extend LogSwitch
       include LogSwitch::Mixin
 
-      attr_reader :exit_status
       attr_reader :ruby_object
-      attr_reader :stdout
-      attr_reader :stderr
+      attr_reader :exit_status
+      attr_reader :executed_at
 
-      def initialize(ruby_object, exit_status, stdout=nil, stderr=nil)
+      def initialize(ruby_object, exit_status, as_string=nil)
         @ruby_object = ruby_object
         @exit_status = exit_status
-        @stdout = stdout
-        @stderr = stderr
+        @string = as_string
+        @executed_at = Time.now.to_s
 
-        if @stdout && !@stdout.empty? && @ruby_object.nil?
-          @ruby_object = @stdout
-        end
-
-=begin
-      if @ssh_result.is_a?(Net::SSH::Simple::Error) && @ruby_object.nil?
-        @ruby_object = @ssh_result.wrapped
-        @ssh_result.backtrace.each(&method(:puts))
-        @ssh_result = @ssh_result.result
-      end
-=end
         msg = "New result: ruby_object=#{@ruby_object}; "
         msg << "exit_status: #{@exit_status}; "
-        msg << "stdout=#{@stdout}; stderr=#{@stderr}"
+        msg << "string: #{@string}; "
         log msg
+      end
+
+      def string
+        @string || @ruby_object.to_s
+      end
+
+      def string=(new_string)
+        @string = new_string
       end
 
       # @return [Boolean] Tells if the result was an exception.  Exceptions are
@@ -49,4 +48,4 @@ class Rosh
   end
 end
 
-Rosh::Shell::CommandResult.log_class_name = true
+Rosh::Shell::PrivateCommandResult.log_class_name = true

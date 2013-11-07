@@ -25,10 +25,13 @@ class Rosh
             Dir.chdir(path)
             @internal_pwd = Dir.pwd
 
-            [true, 0]
-          rescue Errno::ENOENT, Errno::ENOTDIR => ex
-            bad_info "No such file or directory: #{path}"
-            [ex, 1]
+            private_result(true, 0)
+          rescue Errno::ENOENT
+            ex = Rosh::ErrorENOENT.new(path)
+            private_result(ex, 1, ex.message)
+          rescue Errno::ENOTDIR
+            ex = Rosh::ErrorENOTDIR.new(path)
+            private_result(ex, 1, ex.message)
           end
         end
 
@@ -71,10 +74,9 @@ class Rosh
               Process.wait(pid)
             end
 
-            [output, $?.exitstatus]
+            private_result(output, $?.exitstatus)
           rescue => ex
-            bad_info "#{ex}"
-            [ex, 1]
+            private_result(ex, 1, ex.message)
           end
         end
 
@@ -103,20 +105,20 @@ class Rosh
             log code
             r = @workspace.evaluate(binding, code)
 
-            [r, 0]
+            private_result(r, 0, r.to_s)
           rescue NoMethodError => ex
             %r[undefined method `(?<meth>[^']+)] =~ ex.message
             log "NoMethodError for: #{meth}"
 
             if retried
-              raise ex
+              private_result(ex, 1, ex.message)
             else
               code = fix_no_method(meth, code)
               retried = true
               retry
             end
           rescue StandardError => ex
-            [ex, 1]
+            private_result(ex, 1, ex.message)
           end
         end
 

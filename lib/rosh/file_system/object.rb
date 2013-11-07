@@ -21,6 +21,14 @@ class Rosh
         false
       end
 
+      def entries
+        echo_rosh_command
+        error = Rosh::ErrorENOENT.new(@path)
+
+        [Rosh::Shell::PrivateCommandResult.new(error, 1), error.message]
+      end
+      alias_method :list, :entries
+
       def to_blockdev
         require_relative 'block_device'
         Rosh::FileSystem::BlockDevice.new(@path, @host_name)

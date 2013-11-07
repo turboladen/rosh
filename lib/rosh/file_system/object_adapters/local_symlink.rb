@@ -8,27 +8,34 @@ class Rosh
         include LocalBase
 
         def chmod(mode_int)
-          ::File.lchmod(mode_int, @path)
+          result = ::File.lchmod(mode_int, @path)
+
+          private_result(result, 0)
         end
 
         def chown(new_uid: nil, new_gid: nil)
-          ::File.lchown(new_uid, new_gid, @path)
+          result = ::File.lchown(new_uid, new_gid, @path)
+
+          private_result(result, 0)
         end
 
         def destination
           f = ::File.readlink(@path)
 
-          FileSystem::File.new(f, @host_name)
+          private_result(FileSystem::File.new(f, @host_name), 0)
         end
 
         def link_to(destination)
           result = ::File.symlink(destination, @path)
+          exit_status = result.zero? ? 0 : 1
 
-          result.zero?
+          private_result(result.zero?, exit_status)
         end
 
         def stat
-          ::File.lstat(@path)
+          result = ::File.lstat(@path)
+
+          private_result(result, 0)
         end
       end
     end

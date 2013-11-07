@@ -6,7 +6,7 @@ require 'yaml'
 require 'time'
 require 'awesome_print'
 
-require_relative '../command_result'
+require_relative '../private_command_result'
 
 
 class Rosh
@@ -54,7 +54,7 @@ class Rosh
         # @param [String] source The source file to upload.
         # @param [String] destination The destination path to upload to.
         #
-        # @return [Rosh::Shell::CommandResult]
+        # @return [Rosh::Shell::PrivateCommandResult]
         def upload(source, destination, doing_sudo_upload=false, original_dest=nil)
           retried = false
 
@@ -72,7 +72,7 @@ class Rosh
             log "sudo is #{@sudo}"
             scp(source, destination)
 
-            Rosh::Shell::CommandResult.new(nil, 0)
+            Rosh::Shell::PrivateCommandResult.new(nil, 0)
           rescue StandardError => ex
             log "Exception: #{ex.class}".red
             log "Exception: #{ex.message}".red
@@ -90,7 +90,7 @@ class Rosh
               end
             end
 
-            Rosh::Shell::CommandResult.new(ex, 1)
+            Rosh::Shell::PrivateCommandResult.new(ex, 1)
           end
 
           if @sudo && doing_sudo_upload
@@ -122,14 +122,15 @@ class Rosh
           result = run(cmd)
 
           if result.exit_status.zero?
-            [true, 0, result.stdout, result.stderr]
+            private_result(true, 0)
           elsif result.stderr.match %r[No such file or directory]
             bad_info result.stderr
-            error = Rosh::ErrorENOENT.new(result.stderr)
+            error = Rosh::ErrorENOENT.new(path)
 
-            [error, result.exit_status, result.stdout, result.stderr]
+            private_result(error, 1, error.message)
           else
-            result
+            log result
+            private_result(true, 0)
           end
         end
 
@@ -147,35 +148,24 @@ class Rosh
           result = run(command)
 
           if result.exit_status.zero?
-            #good_info result.stdout unless result.stdout.empty?
-
-            [result.ruby_object, 0, result.stdout]
+            private_result(result.ruby_object, 0)
           else
-            #good_info result.stdout unless result.stdout.empty?
             output = if result.stdout.empty? && result.stderr.empty?
               ''
             elsif result.stderr.empty?
-              #good_info result.stdout
-
               result.stdout
             elsif result.stdout.empty?
-              bad_info result.stderr
-
               result.stderr
             else
-              #good_info result.stdout
-              puts "\n\n"
-              bad_info result.stderr
-
               result.stdout + "\n\n" + result.stderr
             end
 
-            [output, result.exit_status, result.stdout, result.stderr]
+            private_result(output, 1)
           end
         end
 
         def ruby(code)
-          ['Not implemented!', 1, nil]
+          private_result('Not implemented!', 1)
         end
 
         def preprocess_path(path, internal_pwd)
@@ -203,13 +193,13 @@ class Rosh
         #
         # @param [String] command The command to run on the remote box.
         #
-        # @return [Rosh::Shell::CommandResult]
+        # @return [Rosh::Shell::PrivateCommandResult]
         def run(command)
           retried = false
 
           begin
             result = ssh_exec(command)
-            Rosh::Shell::CommandResult.new(nil, result.exit_status, result.stdout, result.stderr)
+            Rosh::Shell::PrivateCommandResult.new(result.stdout, result.exit_status)
           rescue StandardError => ex
             log "Error: #{ex.class}"
             log "Error: #{ex.message}"
@@ -240,7 +230,7 @@ class Rosh
               end
             end
 
-            Rosh::Shell::CommandResult.new(ex, 1)
+            Rosh::Shell::PrivateCommandResult.new(ex, 1)
           end
         end
 

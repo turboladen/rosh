@@ -17,8 +17,10 @@ class Rosh
         # @return [Boolean]
         def create(&block)
           current_shell.exec_internal "touch #{@path}"
+          result = current_shell.last_exit_status.zero?
+          exit_status = result ? 0 : 1
 
-          current_shell.last_exit_status.zero?
+          private_result(result, exit_status)
         end
 
         # @return [String] The contents of the remote file.
@@ -32,17 +34,25 @@ class Rosh
 
           if results.match /.*No such file.*/m
             bad_info results
-            raise Rosh::ErrorENOENT, "No such file or directory: #{@path}"
+            ex = Rosh::ErrorENOENT.new(@path)
+            return private_result(ex, 1)
           end
 
-          contents = results.split /[^\n]+records in\r?\n/
+          output = results.split /[^\n]+records in\r?\n/
 
-          current_shell.last_exit_status.zero? ? contents.first : nil
+          contents = if current_shell.last_exit_status.zero?
+            output.first
+          else
+            ''
+          end
+
+          private_result(contents, 0)
         end
 
         def readlines(separator)
           contents = self.read
-          contents.lines(separator)
+
+          private_result contents.lines(separator), 0
         end
 
         def copy(destination)
@@ -50,15 +60,17 @@ class Rosh
           result = current_shell.exec_internal(cmd)
 
           if current_shell.last_exit_status.zero? && result.nil?
-            return true
+            private_result(true, 0)
           end
 
-          if result.match %r[No such file or directory]
+          ex = if result.match %r[No such file or directory]
             bad_info result
-           raise Rosh::ErrorENOENT, result
+            Rosh::ErrorENOENT.new(@path)
           elsif result.match %r[omitting directory]
-            raise Rosh::ErrorEISDIR, result
+            Rosh::ErrorEISDIR.new(@path)
           end
+
+          private_result(ex, 1)
         end
 
         # Stores +new_contents+ in memory until #save is called.
@@ -67,7 +79,7 @@ class Rosh
         def write(new_contents)
           @unwritten_contents = new_contents
 
-          true
+          private_result(true, 0)
         end
 
         # If in-memory contents exist, writes them to the file.
@@ -78,7 +90,10 @@ class Rosh
           create_ok = exists? ? true : create
           upload_ok = @unwritten_contents ? upload_new_content : true
 
-          create_ok && upload_ok
+          result = create_ok && upload_ok
+          exit_status = result ? 0 : 1
+
+          private_result(result, exit_status)
         end
 
         private
