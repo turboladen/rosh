@@ -1,6 +1,7 @@
 require 'etc'
-require 'socket'
 require 'log_switch'
+require 'drama_queen/producer'
+require 'drama_queen/consumer'
 
 require_relative 'observer'
 require_relative 'observable'
@@ -21,17 +22,77 @@ class Rosh
     extend LogSwitch
     include LogSwitch::Mixin
     include Host::Attributes
-    include Rosh::Observer
-    include Rosh::Observable
+    include DramaQueen::Consumer
+    include DramaQueen::Producer
 
     attr_reader :name
     attr_reader :shell
     attr_reader :user
+    attr_reader :history
+
+    # Set to +true+ to tell the command to check the
+    # state of the object its working on before working on it.  For
+    # example, when enabled and running a command to create a user "joe"
+    # will check to see if "joe" exists before creating it.  Defaults to
+    # +false+.
+    # @!attribute [w] idempotent_mode
+    attr_writer :idempotent_mode
 
     def initialize(host_name, **ssh_options)
       @name = host_name
       @user = ssh_options[:user] || Etc.getlogin
       @shell = Rosh::Shell.new(@name, ssh_options)
+      @idempotent_mode = false
+      @history = []
+      subscribe('rosh.command_results', :process_result)
+    end
+
+
+    # @return [Boolean] Returns if commands are set to check the state of
+    #   host objects to determine if the command needs to be run.
+    def idempotent_mode?
+      !!@idempotent_mode
+    end
+
+    def process_result(command_result)
+      log "#{name} got command result as string: #{command_result.string}"
+      @history << command_result
+    end
+
+    def last_exception
+      return nil if @history.empty?
+      exception = @history.reverse.find { |event| event[:result].kind_of? Exception }
+
+      exception[:output]
+    end
+
+    def last_exit_status
+      @history.empty? ? nil : @history.last[:exit_status]
+    end
+
+    def last_result
+      @history.empty? ? nil : @history.last[:result]
+    end
+
+    def update_stdout(string)
+      publish('stdout', string)
+    end
+
+    def update_stderr(string)
+      publish('stderr', string)
+    end
+
+    def update_history(cmd, ruby_object, exit_status, *args, **options)
+      @history << {
+        time: Time.now.to_s,
+        command: cmd,
+        result: ruby_object,
+        exit_status: exit_status,
+        arguments: args.compact,
+        options: options
+      }
+
+      puts "History updated: #{@history.last}"
     end
 
     def set(**ssh_options)
@@ -46,9 +107,14 @@ class Rosh
       return @file_system if @file_system
 
       @file_system = Rosh::FileSystem.new(@name)
-      @file_system.add_observer(self)
+      #@file_system.add_observer(self)
+      subscribe 'rosh.file_system', :update
 
       @file_system
+    end
+
+    def update
+      puts 'update called'
     end
 
     # Access to the UserManager for the Host's OS type.

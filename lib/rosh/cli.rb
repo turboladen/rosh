@@ -2,13 +2,13 @@ require 'etc'
 require 'ripper'
 require 'readline'
 require 'shellwords'
+require 'drama_queen/consumer'
 
 require 'log_switch'
 require 'colorize'
 
 require_relative '../rosh'
 require_relative 'kernel_refinements'
-require_relative 'shell/command_result'
 require_relative 'completion'
 
 
@@ -19,6 +19,7 @@ class Rosh
     include Shellwords
     include Readline
     include LogSwitch::Mixin
+    include DramaQueen::Consumer
 
     # Convenience method for calling Rosh::CLI.new.run.
     def self.run
@@ -43,6 +44,7 @@ class Rosh
       end
 
       @host_name = localhost.name
+      subscribe('rosh.command_results', :output)
     end
 
     # Starts the Readline loop for accepting input.  Each iteration through the
@@ -60,7 +62,7 @@ class Rosh
         Readline.completion_proc = Rosh::Completion.build do
           [
             current_shell.public_methods(false).map(&:to_s) |
-            current_shell.system_commands.map(&:to_s),
+              current_shell.system_commands.map(&:to_s),
             Rosh.hosts.keys,
             current_shell.workspace.send(:binding)
           ]
@@ -77,14 +79,15 @@ class Rosh
         end
 
         result = execute(argv)
-        puts result
+        #puts result
 
         result
       end
     end
 
+
     # @param [String] argv The command given at the prompt.
-    # @return [Rosh::Shell::CommandResult]
+    # @return [Rosh::Shell::PublicCommandResult]
     def execute(argv)
       new_argv = argv.dup.shellsplit
       command = new_argv.shift.to_sym
@@ -93,29 +96,40 @@ class Rosh
       log "command: #{command}"
       log "new argv: #{new_argv}"
 
-      if %i[ch].include? command
+      result = if %i[ch].include? command
         self.send(command, *args)
       elsif current_shell.shell_methods.include? command
         if !args.empty?
-          current_shell.send(command, *args)
+          if args.first.match /\w+:/
+            h = Hash[*args].inject({}) do |result, k_and_v|
+              result[k_and_v.first.chop.to_sym] = k_and_v.last
+              result
+            end
+
+            current_shell.send(command, **h)
+          else
+            current_shell.send(command, *args)
+          end
         else
           current_shell.send(command)
         end
       elsif current_shell.system_commands.include? command.to_s
-        current_shell.exec(argv)
+        current_shell.exec_internal(argv)
       elsif current_shell.system_commands.include? command.to_s.split('/').last
-        current_shell.exec(argv)
+        current_shell.exec_internal(argv)
       else
         $stdout.puts "Running Ruby: #{argv}"
         current_shell.ruby(argv)
       end
+
+      result
     end
 
     def new_prompt
       user_and_host = '['.blue
       user_and_host << "#{current_user}".red
       user_and_host << "@#{current_host.name}".red
-      user_and_host << ":#{current_shell.env[:pwd].split('/').last}".red
+      user_and_host << ":#{current_shell.env_internal[:pwd].split('/').last}".red
       user_and_host << ']'.blue
 
 =begin
@@ -173,13 +187,22 @@ class Rosh
 
       if new_host.nil?
         log "No host defined for '#{host_name}'"
-        Rosh::Shell::CommandResult.new(new_host, 1)
+        Rosh::Shell::PublicCommandResult.new(new_host, 1)
       else
         log "Changed to host '#{host_name}'"
         @host_name = new_host.name
-        Rosh::Shell::CommandResult.new(new_host, 0)
+        Rosh::Shell::PublicCommandResult.new(new_host, 0)
       end
     end
+
+    def output(command_result)
+      if command_result.exit_status.zero?
+        $stdout.puts(command_result.string)
+      else
+        $stderr.puts(command_result.string.red)
+      end
+    end
+
   end
 end
 

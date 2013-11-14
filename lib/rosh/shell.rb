@@ -17,14 +17,6 @@ class Rosh
     #     commands will be run as sudo or until it is disabled.
     attr_accessor :sudo
 
-    # Set to +true+ to tell the shell to check the
-    # state of the object its working on before working on it.  For
-    # example, when enabled and running a command to create a user "joe"
-    # will check to see if "joe" exists before creating it.  Defaults to
-    # +false+.
-    # @!attribute [w] check_state_first
-    attr_writer :check_state_first
-
     # @return [Array<Hash>] the list of commands that the shell has executed
     #   throughout its life.
     attr_reader :history
@@ -35,15 +27,8 @@ class Rosh
       @ssh_options = ssh_options
       @history = []
       @sudo = false
-      @check_state_first = false
       @internal_pwd = nil
       @workspace = nil
-    end
-
-    # @return [Boolean] Returns if the shell is set to check the state of
-    #   commands to determine if the command needs to be run.
-    def check_state_first?
-      !!@check_state_first
     end
 
     # @param [Integer] status Exit status code.
@@ -168,6 +153,22 @@ class Rosh
       end
 
       @adapter
+    end
+
+    def process(cmd, *args, **options)
+      cmd_result = yield
+
+      @history << cmd_result
+      current_host.update_history(cmd, cmd_result.ruby_object,
+        cmd_result.exit_status, args, options)
+
+      if cmd_result.exit_status.zero?
+        current_host.update_stdout(cmd_result.string)
+      else
+        current_host.update_stderr(cmd_result.string)
+      end
+
+      cmd_result.ruby_object
     end
   end
 end

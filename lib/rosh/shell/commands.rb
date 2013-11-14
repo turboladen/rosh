@@ -1,4 +1,5 @@
 require_relative '../errors'
+require_relative 'private_command_result'
 
 
 class Rosh
@@ -12,45 +13,36 @@ class Rosh
 
       # @param [String] file The path of the file to cat.
       #
-      # @return [String, ROSH::ErrorNOENT] On success, returns the contents of
+      # @return [String, Rosh::ErrorENOENT, Rosh::ErrorEISDIR] On success, returns the contents of
       #   the file as a String.  On fail, #last_exit_status is set to the exit
       #   status from the remote command, and a Rosh::ErrorNOENT error is
       #   returned.
       def cat(file)
         echo_rosh_command file
 
-        process(:cat, file: file) do
-          begin
-            output = current_host.fs[file: file].contents
-
-            [output, 0]
-          rescue Rosh::ErrorENOENT => ex
-            [ex, 127]
-          end
+        process(:cat, file) do
+          current_host.fs[file: file].contents
         end
       end
 
       def cd(path)
         echo_rosh_command path
 
-        full_path = adapter.preprocess_path(path, @internal_pwd)
-        log %[cd full path '#{full_path}']
+        process(:cd, path) do
+          full_path = adapter.preprocess_path(path, @internal_pwd)
+          log %[cd full path '#{full_path}']
 
-        result = process(:cd, path: path) do
-          adapter.cd(full_path)
+          cmd_result = adapter.cd(full_path)
+          @internal_pwd = full_path if last_exit_status.zero?
+
+          cmd_result
         end
-
-        if last_exit_status.zero?
-          @internal_pwd = full_path
-        end
-
-        result
       end
 
       def cp(source, destination)
         echo_rosh_command source, destination
 
-        process(:cp, source: source, destination: destination) do
+        process(:cp, source, destination) do
           current_host.fs[source].copy_to(destination)
         end
       end
@@ -102,7 +94,9 @@ class Rosh
         echo_rosh_command
 
         process(:lh) do
-          [Rosh.hosts.keys.each(&method(:puts)), 0]
+          list = Rosh.hosts.keys.map(&:to_s)
+
+          private_result(list, 0, list.join("\n"))
         end
       end
 
@@ -113,23 +107,19 @@ class Rosh
       #   success, returns an Array of Rosh::RemoteFileSystemObjects.  On fail,
       #   #last_exit_status is set to the status given by the remote host's
       #   failed 'ls' command, returns a Rosh::ErrorENOENT.
-      def ls(path=nil)
+      def ls(path=nil, color: false)
         echo_rosh_command path
 
-        process(:ls, path: path) do
+        process(:ls, path, color: color) do
           path ||= '.'
           full_path = adapter.preprocess_path(path, @internal_pwd)
+          cmd_result = current_host.fs[full_path].list
 
-          begin
-            list = current_host.fs[full_path].list
-            ap list
-
-            [list, 0]
-          rescue Rosh::ErrnoENOENT, Errno::ENOENT, Errno::ENOTDIR => ex
-            error = Rosh::ErrorENOENT.new(result.stderr)
-
-            [error, 127]
+          if color
+            cmd_result.string = cmd_result.string.yellow
           end
+
+          cmd_result
         end
       end
 
@@ -137,9 +127,7 @@ class Rosh
         echo_rosh_command name, pid
 
         process(:ps, name: name, pid: pid) do
-          list = current_host.processes.list(name: name, pid: pid)
-
-          [list, 0, nil]
+          current_host.processes.list(name: name, pid: pid)
         end
       end
 
@@ -160,11 +148,12 @@ class Rosh
       def ruby(code)
         echo_rosh_command code
 
-        process(:ruby, code: code) do
+        process(:ruby, code) do
           adapter.ruby(code)
         end
       end
 
+=begin
       private
 
       # Saves the result of the block given to #last_result and exit code to
@@ -174,7 +163,8 @@ class Rosh
       #
       # @return The result of the block that was given.
       def process(cmd, **args, &block)
-        result, exit_status, ssh_output = block.call
+
+        result_object, exit_status, ssh_output = block.call
 
         @history << {
           time: Time.now.to_s,
@@ -184,9 +174,25 @@ class Rosh
           exit_status: exit_status,
           ssh_output: ssh_output
         }
+        #@history << CommandResult.new(cmd, args, result_object, exit_status,
+        #  ssh_output: ssh_output)
+
+
+        @history.last[:output]
+
+        private_result = block.call
+
+        @history << {
+          time: private_result.executed_at,
+          command: cmd,
+          arguments: args,
+          output: private_result.ruby_object,
+          exit_status: private_result.exit_status
+        }
 
         @history.last[:output]
       end
+=end
     end
   end
 end

@@ -49,7 +49,7 @@ module Kernel
     unless internal_call?
       path, meth = caller_info(caller(1, 1))
       text = meth
-      text << " #{extra.compact.map(&:strip).join(', ')}" unless extra.empty?
+      text << " #{extra.compact.map(&:to_s).map(&:strip).join(', ')}" unless extra.empty?
 
       $stdout.puts "[#{current_user}@#{current_host.name}:#{path}]> #{text}".bold
     end
