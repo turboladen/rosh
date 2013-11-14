@@ -24,6 +24,11 @@ class String
     camel_case.to_sym
   end
 
+  # Turns 'Rosh::FileSystem::File' into 'rosh.file_system.file'
+  def declassify(separator='.')
+    split('::').map(&:snake_case).map(&:downcase).join(separator)
+  end
+
   def snake_case
     self.gsub(/::/, '/').
       gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').

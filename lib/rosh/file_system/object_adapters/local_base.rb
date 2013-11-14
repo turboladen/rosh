@@ -8,18 +8,15 @@ class Rosh
       # Base class for local file system objects.  Simply, it provides for
       # delegating to built-in Ruby Dir and File methods.
       module LocalBase
+        include LocalStatMethods
 
         # @param [String] dir_string
         def absolute_path(dir_string=nil)
-          path = ::File.absolute_path(@path, dir_string)
-
-          private_result(path, 0)
+          handle_errors_and_return_result { ::File.absolute_path(@path, dir_string) }
         end
 
         def atime
-          time = ::File.atime(@path)
-
-          private_result(time, 0)
+          handle_errors_and_return_result { ::File.atime(@path) }
         end
 
         # Just like Ruby's File#basename, returns the base name of the object.
@@ -27,31 +24,25 @@ class Rosh
         # @param [String] suffix Removes the file suffix, if given.
         # @return [String]
         def basename(suffix=nil)
-          name = if suffix
-            ::File.basename(@path, suffix)
-          else
-            ::File.basename(@path)
+          handle_errors_and_return_result do
+            if suffix
+              ::File.basename(@path, suffix)
+            else
+              ::File.basename(@path)
+            end
           end
-
-          private_result(name, 0)
         end
 
         def blockdev?
-          result = ::File.blockdev?(@path)
-
-          private_result(result, 0)
+          handle_errors_and_return_result { ::File.blockdev?(@path) }
         end
 
         def chardev?
-          result = ::File.chardev?(@path)
-
-          private_result(result, 0)
+          handle_errors_and_return_result { ::File.chardev?(@path) }
         end
 
         def chmod(mode_int)
-          result = ::File.chmod(mode_int, @path)
-
-          private_result(result, 0)
+          handle_errors_and_return_result { ::File.chmod(mode_int, @path) }
         end
 
         # Allows setting user/group owner using key/value pairs.  If no value is
@@ -61,72 +52,55 @@ class Rosh
         # @param [Fixnum] :gid GID of the group to make owner.
         # @return [Boolean] +true+ if successful, +false+ if not.
         def chown(uid: uid, gid: nil)
-          result = ::File.chown(uid, gid, @path)
-          actual_result = !result.zero?
-          exit_status = actual_result ? 0 : 1
+          handle_errors_and_return_result do
+            result = ::File.chown(uid, gid, @path)
+            actual_result = !result.zero?
+            exit_status = actual_result ? 0 : 1
 
-          private_result(actual_result, exit_status)
+            [actual_result, exit_status]
+          end
         end
 
         def ctime
-          time = ::File.ctime(@path)
-
-          private_result(time, 0)
+          handle_errors_and_return_result { ::File.ctime(@path) }
         end
 
         def delete
-          begin
+          handle_errors_and_return_result do
             result = ::File.delete(@path)
             actual_result = !result.zero?
             exit_status = actual_result ? 0 : 1
 
-            private_result(actual_result, exit_status)
-          rescue Errno::ENOENT
-            private_result(false, 1)
+            [actual_result, exit_status]
           end
         end
 
         def directory?
-          result = ::File.directory?(@path)
-
-          private_result(result, 0)
+          handle_errors_and_return_result { ::File.directory?(@path) }
         end
 
         def dirname
-          result = ::File.dirname(@path)
-
-          private_result(result, 0)
+          handle_errors_and_return_result { ::File.dirname(@path) }
         end
 
         def exists?
-          result = ::File.exists? @path
-          puts "result: #{result}"
-
-          private_result(result, 0)
+          handle_errors_and_return_result { ::File.exists? @path }
         end
 
         def expand_path(dir_string=nil)
-          path = ::File.expand_path(@path, dir_string)
-
-          private_result(path, 0)
+          handle_errors_and_return_result { ::File.expand_path(@path, dir_string) }
         end
 
         def extname
-          ext = ::File.extname(@path)
-
-          private_result(ext, 0)
+          handle_errors_and_return_result { ::File.extname(@path) }
         end
 
         def file?
-          result = ::File.file?(@path)
-
-          private_result(result, 0)
+          handle_errors_and_return_result { ::File.file?(@path) }
         end
 
         def fnmatch(pattern, *flags)
-          result = ::File.fnmatch(pattern, @path, *flags)
-
-          private_result(result, 0)
+          handle_errors_and_return_result { :File.fnmatch(pattern, @path, *flags) }
         end
         alias_method :fnmatch?, :fnmatch
 
@@ -136,23 +110,23 @@ class Rosh
         end
 
         def ftype
-          type = ::File.ftype(path)
-
-          private_result(type, 0)
+          handle_errors_and_return_result { ::File.ftype(@path) }
         end
 
+        # @return [Rosh::FileSystem::*]
         def link(new_path)
-          result = ::File.link(@path, new_path)
-          actual_result = result.zero?
-          exit_status = actual_result ? 0 : 1
+          handle_errors_and_return_result do
+            result = ::File.link(@path, new_path)
+            actual_result = result.zero?
+            exit_status = actual_result ? 0 : 1
+            fso = current_host.fs[new_path]
 
-          private_result(actual_result, exit_status)
+            [fso, exit_status]
+          end
         end
 
         def mtime
-          time = ::File.mtime(@path)
-
-          private_result(time, 0)
+          handle_errors_and_return_result { ::File.mtime(@path) }
         end
 
 =begin
@@ -162,83 +136,93 @@ class Rosh
 =end
 
         def path
-          p = ::File.path(@path)
-
-          private_result(p, 0)
+          handle_errors_and_return_result { ::File.path(@path) }
         end
 
         def readlink
-          result = ::File.readlink(@path)
-
-          private_result(result, 0)
+          handle_errors_and_return_result { ::File.readlink(@path) }
         end
 
         def realdirpath(dir_path=nil)
-          p = ::File.realdirpath(@path, dir_path)
-
-          private_result(p, 0)
+          handle_errors_and_return_result { ::File.realdirpath(@path, dir_path) }
         end
 
         def realpath(dir_path=nil)
-          path = ::File.realpath(@path, dir_path)
-
-          private_result(path, 0)
+          handle_errors_and_return_result { ::File.realpath(@path, dir_path) }
         end
 
         def rename(new_name)
-          result = ::File.rename(@path, new_name)
-          actual_result = result.zero?
-          exit_status = actual_result ? 0 : 1
+          handle_errors_and_return_result do
+            result = ::File.rename(@path, new_name)
+            actual_result = result.zero?
+            exit_status = actual_result ? 0 : 1
 
-          private_result(actual_result, exit_status)
+            [actual_result, exit_status]
         end
+      end
 
         def split
-          result = ::File.split(@path)
-
-          private_result(result, 0)
+          handle_errors_and_return_result { ::File.split(@path) }
         end
 
         def stat
-          s = ::File.stat(@path)
-
-          private_result(s, 0)
+          handle_errors_and_return_result { ::File.stat(@path) }
         end
 
         def symlink(new_name)
-          result = ::File.symlink(@path, new_name)
-          actual_result = result.zero?
-          exit_status = actual_result ? 0 : 1
+          handle_errors_and_return_result do
+            result = ::File.symlink(@path, new_name)
+            actual_result = result.zero?
+            exit_status = actual_result ? 0 : 1
 
-          private_result(actual_result, exit_status)
+            [actual_result, exit_status]
+          end
         end
 
         def symlink?
-          result = ::File.symlink?(@path)
-
-          private_result(result, 0)
+          handle_errors_and_return_result { ::File.symlink?(@path) }
         end
 
         def truncate(len)
-          result = ::File.truncate(@path, len)
-          actual_result = result.zero?
-          exit_status = actual_result ? 0 : 1
+          handle_errors_and_return_result do
+            result = ::File.truncate(@path, len)
+            actual_result = result.zero?
+            exit_status = actual_result ? 0 : 1
 
-          private_result(actual_result, exit_status)
+            [actual_result, exit_status]
+          end
         end
 
         def unlink
-          result = ::File.unlink(@path)
-          actual_result = !result.zero?
-          exit_status = actual_result ? 0 : 1
+          handle_errors_and_return_result do
+            result = ::File.unlink(@path)
+            actual_result = !result.zero?
+            exit_status = actual_result ? 0 : 1
 
-          private_result(actual_result, exit_status)
+            [actual_result, exit_status]
+          end
         end
 
         def utime(access_time, modification_time)
-          time = ::File.utime(access_time, modification_time, @path)
+          handle_errors_and_return_result { ::File.utime(access_time, modification_time, @path) }
+        end
 
-          private_result(time, 0)
+        private
+
+        def handle_errors_and_return_result(&block)
+          result, exit_status = block.call
+
+          unless exit_status
+            exit_status = result ? 0 : 1
+          end
+
+          private_result(result, exit_status)
+        rescue Errno::ENOENT
+          ex = Rosh::ErrorENOENT.new @path
+          private_result(ex, 1, ex.message)
+        rescue Errno::EEXIST
+          ex = Rosh::ErrorEEXIST.new @path
+          private_result(ex, 2, ex.message)
         end
       end
     end

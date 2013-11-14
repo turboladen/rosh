@@ -1,6 +1,3 @@
-require 'observer'
-require_relative '../changeable'
-require_relative '../observable'
 require_relative 'base_methods'
 require_relative 'stat_methods'
 require_relative 'object_adapter'
@@ -9,17 +6,15 @@ require_relative 'object_adapter'
 class Rosh
   class FileSystem
     class Directory
-      include Observable
       include BaseMethods
       include StatMethods
-      include Rosh::Changeable
-      include Rosh::Observable
 
       def initialize(path, host_name)
         @path = path
         @host_name = host_name
       end
 
+=begin
       def create
         echo_rosh_command
 
@@ -29,28 +24,30 @@ class Rosh
           end
         end
       end
+=end
 
       def delete
         echo_rosh_command
 
-        change_if(exists?) do
-          notify_about(self, :exists?, from: true, to: false) do
-            adapter.rmdir
-          end
+        run_command(-> { self.exists? }) do
+          adapter.rmdir
         end
       end
       alias_method :remove, :delete
       alias_method :unlink, :delete
 
       def entries
-        echo_rosh_command
+        run_command do
+          cmd_result = adapter.entries
+          cmd_result.string = cmd_result.ruby_object.map(&:to_s).join("\n")
 
-        adapter.entries
+          cmd_result
+        end
       end
       alias_method :list, :entries
 
       def each(&block)
-        adapter.entries.each(&block)
+        run_command { adapter.entries.each(&block) }
       end
 
       # @todo Add #glob.

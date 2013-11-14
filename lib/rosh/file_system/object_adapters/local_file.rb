@@ -10,87 +10,52 @@ class Rosh
       module LocalFile
         include LocalBase
 
+        attr_accessor :unwritten_contents
+
         def create(&block)
-          result = begin
+          handle_errors_and_return_result do
             f = ::File.open(@path, ::File::CREAT, &block)
-            exit_status = 0
 
             ::File.exists? f
-          rescue Errno::ENOENT => ex
-            exit_status = 1
-
-            Rosh::ErrorENOENT.new(@path)
           end
-
-          private_result(result, exit_status)
         end
 
         def read(length=nil, offset=nil)
-          result = begin
-            contents = ::File.read(@path, length, offset)
-            exit_status = 0
-
-            contents
-          rescue Errno::ENOENT => ex
-            exit_status = 1
-
-            Rosh::ErrorENOENT.new(@path)
+          handle_errors_and_return_result do
+            ::File.read(@path, length, offset)
           end
-
-          private_result(result, exit_status)
         end
 
         def readlines(separator)
-          result = begin
-            contents = ::File.readlines(@path, separator)
-            exit_status = 0
-
-            contents
-          rescue Errno::ENOENT
-            exit_status = 1
-
-            Rosh::ErrorENOENT.new(@path)
+          handle_errors_and_return_result do
+            ::File.readlines(@path, separator)
           end
-
-          private_result(result, exit_status)
         end
 
         def copy(destination)
-          result = begin
+          handle_errors_and_return_result do
             ::FileUtils.cp(@path, destination)
-            exit_status = 0
 
-            true
-          rescue Errno::ENOENT
-            exit_status = 1
-
-            Rosh::ErrorENOENT.new(@path)
+            new_file = current_host.fs[file: destination]
+            new_file.save
+            new_file
           end
-
-          private_result(result, exit_status)
         end
 
         def save
-          ok = if @unwritten_contents
-            ::File.open(@path, 'w') do |f|
-              f.write(@unwritten_contents)
+          handle_errors_and_return_result do
+            ok = if @unwritten_contents
+              ::File.open(@path, 'w') do |f|
+                f.write(@unwritten_contents)
+              end
+            else
+              false
             end
-          else
-            false
+
+            exit_status = ok ? 0 : 1
+
+            [ok, exit_status]
           end
-
-          exit_status = ok ? 0 : 1
-
-          private_result(ok, exit_status)
-        end
-
-        # Stores +new_contents+ in memory until #save is called.
-        #
-        # @param [String] new_contents Contents to write to the file on #save.
-        def write(new_contents)
-          @unwritten_contents = new_contents
-
-          private_result(true, 0)
         end
       end
     end

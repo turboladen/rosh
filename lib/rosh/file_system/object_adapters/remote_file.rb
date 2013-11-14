@@ -13,6 +13,8 @@ class Rosh
       module RemoteFile
         include RemoteBase
 
+        attr_accessor :unwritten_contents
+
         # @todo Do something with the block.
         # @return [Boolean]
         def create(&block)
@@ -71,15 +73,6 @@ class Rosh
           end
 
           private_result(ex, 1)
-        end
-
-        # Stores +new_contents+ in memory until #save is called.
-        #
-        # @param [String] new_contents Contents to write to the file on #save.
-        def write(new_contents)
-          @unwritten_contents = new_contents
-
-          private_result(true, 0)
         end
 
         # If in-memory contents exist, writes them to the file.

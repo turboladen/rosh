@@ -1,7 +1,5 @@
 require_relative 'base_methods'
 require_relative 'stat_methods'
-require_relative '../changeable'
-require_relative '../observable'
 
 
 class Rosh
@@ -9,8 +7,6 @@ class Rosh
     class Object
       include BaseMethods
       include StatMethods
-      include Rosh::Changeable
-      include Rosh::Observable
 
       def initialize(path, host_name)
         @path = path
@@ -22,10 +18,11 @@ class Rosh
       end
 
       def entries
-        echo_rosh_command
-        error = Rosh::ErrorENOENT.new(@path)
+        run_command do
+          error = Rosh::ErrorENOENT.new(@path)
 
-        [Rosh::Shell::PrivateCommandResult.new(error, 1), error.message]
+          private_result(error, 1, error.message)
+        end
       end
       alias_method :list, :entries
 

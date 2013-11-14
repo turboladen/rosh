@@ -1,5 +1,3 @@
-require_relative '../changeable'
-require_relative '../observable'
 require_relative 'base_methods'
 require_relative 'stat_methods'
 require_relative 'object_adapter'
@@ -10,8 +8,6 @@ class Rosh
     class BlockDevice
       include BaseMethods
       include StatMethods
-      include Rosh::Changeable
-      include Rosh::Observable
 
       def initialize(path, host_name)
         @path = path

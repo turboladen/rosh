@@ -6,6 +6,13 @@ class Rosh
     end
   end
 
+  class ErrorEEXIST < StandardError
+    def initialize(path)
+      msg = "File system object already exists at path: #{path}"
+      super(msg)
+    end
+  end
+
   class ErrorEISDIR < StandardError
     def initialize(path)
       msg = "File system object is a directory: #{path}"

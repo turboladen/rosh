@@ -1,6 +1,3 @@
-require 'observer'
-require_relative '../changeable'
-require_relative '../observable'
 require_relative 'base_methods'
 require_relative 'stat_methods'
 require_relative 'object_adapter'
@@ -11,8 +8,6 @@ class Rosh
     class SymbolicLink
       include BaseMethods
       include StatMethods
-      include Rosh::Changeable
-      include Rosh::Observable
 
       def initialize(path, host_name)
         @path = path
@@ -20,15 +15,13 @@ class Rosh
       end
 
       def destination
-        echo_rosh_command
-
-        adapter.destination
+        run_command { adapter.destination }
       end
 
       def link_to(new_destination)
         echo_rosh_command new_destination
 
-        adapter.link_to(new_destination)
+        run_command { adapter.link_to(new_destination) }
       end
 
       private

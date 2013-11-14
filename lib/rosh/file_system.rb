@@ -1,8 +1,8 @@
-require_relative 'kernel_refinements'
-require_relative 'changeable'
-require_relative 'observer'
-require_relative 'observable'
+require 'drama_queen/producer'
+require 'drama_queen/consumer'
+require 'simple_states'
 
+require_relative 'kernel_refinements'
 require_relative 'file_system/block_device'
 require_relative 'file_system/character_device'
 require_relative 'file_system/directory'
@@ -21,18 +21,21 @@ class Rosh
       end
     end
 
-    include Rosh::Changeable
-    include Rosh::Observer
-    include Rosh::Observable
+    include DramaQueen::Consumer
 
     def self.create(path, host_name)
       object = new(host_name)
       object.build(path)
     end
 
+    def update(*args)
+      puts "file system updated with args: #{args}"
+    end
+
     def initialize(host_name)
       @host_name = host_name
       @root_directory = '/'
+      self.subscribe('rosh.file_system.*', :update)
 
       unless current_host.local?
         require_relative 'file_system/remote_stat'
@@ -81,7 +84,8 @@ class Rosh
         build(path)
       end
 
-      result.add_observer(self)
+      #result.add_observer(self)
+      #result.subscribe('rosh.file_system',)
 
       result
     end
