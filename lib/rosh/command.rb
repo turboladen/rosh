@@ -34,11 +34,12 @@ class Rosh
     #   this parameter is disregarded and the +cmd_block+ is executed.
     # @return [Object]
     def run_idempotent_command(no_change_needed, &cmd_block)
+      log "Idempotency: No change needed evaluates to: #{no_change_needed}"
+
       cmd_result = if current_host.idempotent_mode?
         log "Idempotency: #{current_host.name} is in idempotent mode"
 
         if no_change_needed
-          log 'Idempotency: no change needed.'
           private_result(:idempotent_skip, -1, 'Idempotency mode enabled and nothing to do.')
         else
           cmd_block.call
