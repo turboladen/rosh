@@ -107,6 +107,10 @@ class Rosh
         end
       end
 
+      # Copies this File object to the +destination+.  If the copy was
+      # successful and a block is given, yields the new File to the block; the
+      # return value is the result of this command--not any internal commands.
+      #
       # @param [String] destination
       # @return [Rosh::FileSystem::File] The newly copied filed.
       def copy_to(destination)
@@ -120,14 +124,24 @@ class Rosh
           -> { the_copy.contents != self.contents }
         ]
 
-        result = matches.none?(&:call)
-        log "copy_to matches result: #{result}"
+        match_result = matches.none?(&:call)
+        log "copy_to matches result: #{match_result}"
 
-        run_idempotent_command(result) do
-          adapter.copy(destination)
+        run_idempotent_command(match_result) do
+          copy_result = adapter.copy(destination)
+
+          if copy_result.exit_status.zero? && block_given?
+            yield copy_result.ruby_object
+          end
+
+          copy_result
         end
       end
 
+      # Hard links this File object to the +new_path+.  If the link creation was
+      # successful and a block is given, yields the new File to the block; the
+      # return value is the result of this command--not any internal commands.
+      #
       # @param [String] new_path
       # @return [Rosh::Shell::PrivateCommandResult]
       def hard_link_to(new_path)
@@ -135,11 +149,15 @@ class Rosh
 
         new_link = current_host.fs[file: new_path]
 
-        result = run_idempotent_command(new_link.persisted?) do
-          adapter.link(new_path)
-        end
+        run_idempotent_command(new_link.persisted?) do
+          link_result = adapter.link(new_path)
 
-        result || new_link
+          if link_result.exit_status.zero? && block_given?
+            yield link_result.ruby_object
+          end
+
+          link_result || new_link
+        end
       end
       alias_method :link, :hard_link_to
 
