@@ -48,6 +48,8 @@ class Rosh
               ::File.open(@path, 'w') do |f|
                 f.write(@unwritten_contents)
               end
+
+              true
             else
               false
             end
