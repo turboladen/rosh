@@ -28,7 +28,7 @@ class Rosh
 
         def readlines(separator)
           handle_errors_and_return_result do
-            ::File.readlines(@path, separator)
+            [::File.readlines(@path, separator)]
           end
         end
 
