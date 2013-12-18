@@ -71,6 +71,8 @@ class Rosh
         echo_rosh_command
 
         run_command do
+          log "State: #{state}"
+
           if dirtied? || transient?
             private_result(adapter.unwritten_contents, 0)
           else
@@ -185,6 +187,7 @@ class Rosh
         echo_rosh_command
 
         previous_state = self.state
+        log "Previous state: #{previous_state}"
 
         run_idempotent_command(self.persisted?) do
           cmd_result = adapter.save
@@ -192,11 +195,12 @@ class Rosh
           if cmd_result.exit_status.zero?
             adapter.unwritten_contents.clear
 
-            if previous_state == :transient
+            case previous_state
+            when :transient
               persist(:exists?, cmd_result, current_shell.su?,
                 from: false, to: true)
-            elsif previous_state == :dirtied
-              update(:dirtied?, cmd_result, current_shell.su?,
+            when :dirtied
+              persist(:dirtied?, cmd_result, current_shell.su?,
                 from: true, to: false)
             end
           end
