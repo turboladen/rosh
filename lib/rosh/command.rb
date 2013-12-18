@@ -25,13 +25,21 @@ class Rosh
       cmd_result.ruby_object
     end
 
+    # @param [Boolean] no_change_needed Only applies to if the Host is in
+    #   idempotent mode.  If it is and this expression evaluates to +true+
+    #   then the running of the command is skipped, a PrivateCommandResult is
+    #   published describing this, and the Symbol +:idempotent_skip+ is returned.
+    #   If idempotent mode is enabled on the host and this evaluates to +false+,
+    #   then the +cmd_block+ is executed.  If  idempotency mode is disabled,
+    #   this parameter is disregarded and the +cmd_block+ is executed.
+    # @return [Object]
     def run_idempotent_command(no_change_needed, &cmd_block)
       cmd_result = if current_host.idempotent_mode?
         log "Idempotency: #{current_host.name} is in idempotent mode"
 
         if no_change_needed
           log 'Idempotency: no change needed.'
-          private_result(:idempotent_skip, 0)
+          private_result(:idempotent_skip, -1, 'Idempotency mode enabled and nothing to do.')
         else
           cmd_block.call
         end
