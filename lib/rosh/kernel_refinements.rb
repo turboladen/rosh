@@ -46,12 +46,10 @@ module Kernel
   end
 
   def echo_rosh_command(*extra)
-    unless internal_call?
-      path, meth = caller_info(caller(1, 1))
-      text = meth
-      text << " #{extra.compact.map(&:to_s).map(&:strip).join(', ')}" unless extra.empty?
-
-      $stdout.puts "[#{current_user}@#{current_host.name}:#{path}]> #{text}".bold
+    if !internal_call?
+      $stdout.puts(call_text(*extra).bold)
+    elsif internal_call? #&& self.respond_to?(:log)
+      log call_text(*extra).blue
     end
   end
 
@@ -62,6 +60,14 @@ module Kernel
   end
 
   private
+
+  def call_text(*extra)
+    path, meth = caller_info(caller(2, 1))
+    text = meth
+    text << " #{extra.compact.map(&:to_s).map(&:strip).join(', ')}" unless extra.empty?
+
+    "[#{current_user}@#{current_host.name}:#{path}]> #{text}"
+  end
 
   def internal_call?
     result = caller(3, 1).first
