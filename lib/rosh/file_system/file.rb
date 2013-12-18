@@ -120,7 +120,10 @@ class Rosh
           -> { the_copy.contents != self.contents }
         ]
 
-        run_idempotent_command(matches.any?(&:call)) do
+        result = matches.none?(&:call)
+        log "copy_to matches result: #{result}"
+
+        run_idempotent_command(result) do
           adapter.copy(destination)
         end
       end
