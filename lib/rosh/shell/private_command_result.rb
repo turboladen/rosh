@@ -20,9 +20,10 @@ class Rosh
         @string = as_string
         @executed_at = Time.now.to_s
 
-        msg = "New result: ruby_object=#{@ruby_object}; "
-        msg << "exit_status: #{@exit_status}; "
-        msg << "string: #{@string}; "
+        msg = "New result:\n"
+        msg << "\truby_object: #{@ruby_object.inspect}\n"
+        msg << "\texit_status: #{@exit_status}\n"
+        msg << "\tstring: #{string}"
         log msg
       end
 
