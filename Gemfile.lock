@@ -1,15 +1,10 @@
-GIT
-  remote: git://github.com/turboladen/drama_queen.git
-  revision: 60ec1afdbf0f666d56a51c15e417dc4985cc2796
-  specs:
-    drama_queen (0.1.0)
-
 PATH
   remote: .
   specs:
     rosh (0.1.0)
       awesome_print
       colorize
+      drama_queen (~> 0.1.0)
       highline
       log_switch
       net-scp
@@ -35,6 +30,7 @@ GEM
     colorize (0.6.0)
     diff-lcs (1.2.5)
     docile (1.1.1)
+    drama_queen (0.1.0)
     ffi (1.9.3)
     formatador (0.2.4)
     guard (2.2.5)
@@ -104,7 +100,6 @@ PLATFORMS
 
 DEPENDENCIES
   bundler (>= 1.0.1)
-  drama_queen!
   guard-rspec
   guard-yard
   memfs

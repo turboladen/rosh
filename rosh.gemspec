@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'awesome_print'
   s.add_dependency 'colorize'
+  s.add_dependency 'drama_queen', '~> 0.1.0'
   s.add_dependency 'highline'
   s.add_dependency 'log_switch'
   s.add_dependency 'plist'
