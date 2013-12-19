@@ -1,4 +1,5 @@
 require 'etc'
+require 'socket'
 require 'log_switch'
 require 'drama_queen/producer'
 require 'drama_queen/consumer'
@@ -179,7 +180,7 @@ class Rosh
 
     # @return [Boolean]
     def local?
-      @name == 'localhost'
+      %W[localhost #{Socket.gethostname}].include? @name
     end
   end
 end

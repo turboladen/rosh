@@ -52,4 +52,20 @@ describe Rosh::Host do
       publisher.publish 'rosh.file_system'
     end
   end
+
+  describe '#local?' do
+    context 'name is localhost' do
+      it 'returns true' do
+        subject.instance_variable_set(:@name, 'localhost')
+        expect(subject).to be_local
+      end
+    end
+
+    context 'name is the hostname of the localhost' do
+      it 'returns true' do
+        subject.instance_variable_set(:@name, Socket.gethostname)
+        expect(subject).to be_local
+      end
+    end
+  end
 end
