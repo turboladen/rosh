@@ -43,6 +43,38 @@ describe Rosh::Host do
     end
   end
 
+  describe '#users' do
+    it 'subscribes to "rosh.user_manager"' do
+      allow(Rosh::UserManager).to receive(:new)
+      expect(subject).to receive(:subscribe).with('rosh.user_manager', :update)
+      subject.users
+    end
+  end
+
+  describe '#packages' do
+    it 'subscribes to "rosh.package_manager"' do
+      allow(Rosh::PackageManager).to receive(:new)
+      expect(subject).to receive(:subscribe).with('rosh.package_manager', :update)
+      subject.packages
+    end
+  end
+
+  describe '#processes' do
+    it 'subscribes to "rosh.process_manager"' do
+      allow(Rosh::ProcessManager).to receive(:new)
+      expect(subject).to receive(:subscribe).with('rosh.process_manager', :update)
+      subject.processes
+    end
+  end
+
+  describe '#services' do
+    it 'subscribes to "rosh.service_manager"' do
+      allow(Rosh::ServiceManager).to receive(:new)
+      expect(subject).to receive(:subscribe).with('rosh.service_manager', :update)
+      subject.services
+    end
+  end
+
   describe '#update' do
     it 'receives messages on "rosh.file_system"' do
       allow(Rosh::FileSystem).to receive(:new)

@@ -4,7 +4,6 @@ require 'log_switch'
 require 'drama_queen/producer'
 require 'drama_queen/consumer'
 
-require_relative 'observable'
 require_relative 'shell'
 require_relative 'host/attributes'
 require_relative 'file_system'
@@ -128,7 +127,7 @@ class Rosh
       return @user_manager if @user_manager
 
       @user_manager = Rosh::UserManager.new(@name)
-      @user_manager.add_observer(self)
+      subscribe 'rosh.user_manager', :update
 
       @user_manager
     end
@@ -141,7 +140,7 @@ class Rosh
       return @package_manager if @package_manager
 
       @package_manager = Rosh::PackageManager.new(@name)
-      @package_manager.add_observer(self)
+      subscribe 'rosh.package_manager', :update
 
       @package_manager
     end
@@ -154,7 +153,7 @@ class Rosh
       return @process_manager if @process_manager
 
       @process_manager = Rosh::ProcessManager.new(@name)
-      @process_manager.add_observer(self)
+      subscribe 'rosh.process_manager', :update
 
       @process_manager
     end
@@ -167,7 +166,7 @@ class Rosh
       return @service_manager if @service_manager
 
       @service_manager = Rosh::ServiceManager.new(@name)
-      @service_manager.add_observer(self)
+      subscribe 'rosh.service_manager', :update
 
       @service_manager
     end
