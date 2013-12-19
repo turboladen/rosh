@@ -3,7 +3,6 @@ require 'log_switch'
 require 'drama_queen/producer'
 require 'drama_queen/consumer'
 
-require_relative 'observer'
 require_relative 'observable'
 require_relative 'shell'
 require_relative 'host/attributes'
@@ -63,6 +62,10 @@ class Rosh
       @history << command_result
     end
 
+    def update
+      puts 'update called'
+    end
+
     def last_exception
       return nil if @history.empty?
       exception = @history.reverse.find { |event| event[:result].kind_of? Exception }
@@ -111,14 +114,9 @@ class Rosh
       return @file_system if @file_system
 
       @file_system = Rosh::FileSystem.new(@name)
-      #@file_system.add_observer(self)
       subscribe 'rosh.file_system', :update
 
       @file_system
-    end
-
-    def update
-      puts 'update called'
     end
 
     # Access to the UserManager for the Host's OS type.
