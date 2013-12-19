@@ -47,13 +47,17 @@ class Rosh
       subscribe('rosh.command_results', :process_result)
     end
 
-
     # @return [Boolean] Returns if commands are set to check the state of
     #   host objects to determine if the command needs to be run.
     def idempotent_mode?
       !!@idempotent_mode
     end
 
+    # Receives Rosh::Shell::PrivateCommandResults on the 'rosh.command_results'
+    # message queue.  Allows for many classes to publish to and this to get
+    # notifications.
+    #
+    # @param [Rosh::Shell::PrivateCommandResult] command_result
     def process_result(command_result)
       log "#{name} got command result as string: #{command_result.string}"
       @history << command_result
