@@ -9,7 +9,7 @@ require 'colorize'
 
 require_relative '../rosh'
 require_relative 'kernel_refinements'
-require_relative 'completion'
+require_relative 'cli/completion'
 
 
 class Rosh
@@ -59,7 +59,7 @@ class Rosh
         log "Current host is: #{current_host.name}"
         prompt = ENV['PROMPT'] || new_prompt
 
-        Readline.completion_proc = Rosh::Completion.build do
+        Readline.completion_proc = Rosh::CLI::Completion.build do
           [
             current_shell.public_methods(false).map(&:to_s) |
               current_shell.system_commands.map(&:to_s),
