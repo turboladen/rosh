@@ -1,21 +1,21 @@
 require 'spec_helper'
-require 'rosh/shell/command_result'
+require 'rosh/shell/private_command_result'
 
 
-describe Rosh::Shell::CommandResult do
+describe Rosh::Shell::PrivateCommandResult do
   let(:ruby_object) { double 'Object' }
 
   subject do
-    Rosh::Shell::CommandResult.new(ruby_object, 0)
+    described_class.new(ruby_object, 0)
   end
 
-  its(:ruby_object) { should eq ruby_object }
-  its(:exit_status) { should be_zero }
+  specify { expect(subject.ruby_object).to eq ruby_object }
+  specify { expect(subject.exit_status).to be_zero }
 
   describe '#initialize' do
     context 'ruby_object is nil and stdout is not empty' do
       subject do
-        Rosh::Shell::CommandResult.new(nil, 1, 'stuff')
+        described_class.new(nil, 1, 'stuff')
       end
 
       it 'sets ruby_object to stdout' do
@@ -28,12 +28,12 @@ describe Rosh::Shell::CommandResult do
     let(:error) { Exception.new }
 
     context 'an exception was passed in' do
-      subject { Rosh::Shell::CommandResult.new(error, 1) }
+      subject { described_class.new(error, 1) }
       specify { subject.exception?.should be_true }
     end
 
     context 'an exception was not passed in' do
-      subject { Rosh::Shell::CommandResult.new('stuff', 0) }
+      subject { described_class.new('stuff', 0) }
       specify { subject.exception?.should be_false }
     end
   end

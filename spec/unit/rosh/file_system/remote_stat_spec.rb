@@ -190,24 +190,24 @@ describe Rosh::FileSystem::RemoteStat do
       described_class.new(result, 'test_host')
     end
 
-    its(:dev) { should eq '0x16777217' }
-    its(:ino) { should eq 4408160 }
+    specify { expect(subject.dev).to eq '0x16777217' }
+    specify { expect(subject.ino).to eq 4408160 }
 
     context 'darwin' do
       before { allow(host).to receive(:darwin?) { true } }
-      its(:mode) { should eq '100644' }
+      specify { expect(subject.mode).to eq '100644' }
     end
 
-    its(:mode) { should eq '4003104' }
-    its(:nlink) { should eq 1 }
-    its(:uid) { should eq 501 }
-    its(:gid) { should eq 20 }
-    its(:rdev) { should eq '0x0' }
-    its(:size) { should eq 1067 }
-    its(:blksize) { should eq 4096 }
-    its(:blocks) { should eq 8 }
-    its(:atime) { should eq Time.at(1379742799) }
-    its(:mtime) { should eq Time.at(1375936779) }
-    its(:ctime) { should eq Time.at(1375936779) }
+    specify { expect(subject.mode).to eq '4003104' }
+    specify { expect(subject.nlink).to eq 1 }
+    specify { expect(subject.uid).to eq 501 }
+    specify { expect(subject.gid).to eq 20 }
+    specify { expect(subject.rdev).to eq '0x0' }
+    specify { expect(subject.size).to eq 1067 }
+    specify { expect(subject.blksize).to eq 4096 }
+    specify { expect(subject.blocks).to eq 8 }
+    specify { expect(subject.atime).to eq Time.at(1379742799) }
+    specify { expect(subject.mtime).to eq Time.at(1379742799) }
+    specify { expect(subject.ctime).to eq Time.at(1379742799) }
   end
 end

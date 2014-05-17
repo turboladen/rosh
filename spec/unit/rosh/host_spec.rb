@@ -18,7 +18,7 @@ describe Rosh::Host do
       Rosh::Shell.should_receive(:new).with(name, {})
     end
 
-    its(:name) { should eq name }
+    specify { expect(subject.name).to eq name }
   end
 
   describe '#process_result' do

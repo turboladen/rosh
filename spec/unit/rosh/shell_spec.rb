@@ -9,8 +9,8 @@ describe Rosh::Shell do
     described_class.new(host_name)
   end
 
-  its(:history) { should eq [] }
-  its(:sudo) { should be_false }
+  specify { expect(subject.history).to eq [] }
+  specify { expect(subject.sudo).to eq false }
 
   describe '#check_state_first?' do
     it 'defaults to false' do

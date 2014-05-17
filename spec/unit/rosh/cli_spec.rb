@@ -4,7 +4,7 @@ require 'rosh/cli'
 
 describe Rosh::CLI do
   before do
-    Rosh::CLI.stub :log
+    described_class.stub :log
   end
 
   describe '#run' do
@@ -13,7 +13,7 @@ describe Rosh::CLI do
     before do
       subject.stub(:loop).and_yield
       subject.stub(:new_prompt).and_return prompt
-      Rosh::Completion.should_receive(:build)
+      Rosh::CLI::Completion.should_receive(:build)
       Readline.should_receive(:completion_proc=)
     end
 
