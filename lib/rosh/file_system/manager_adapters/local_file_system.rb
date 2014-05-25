@@ -31,7 +31,9 @@ class Rosh
         end
 
         def getwd
-          ::Dir.getwd
+          path = ::Dir.getwd
+
+          FileSystem::Directory.new(path, @host_name)
         end
 
         def home
