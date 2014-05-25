@@ -4,6 +4,7 @@ require 'bundler/gem_tasks'
 require 'rspec/core/rake_task'
 require 'yard'
 
+desc 'Run Rosh in the console'
 task :console do
   require 'irb'
   require 'irb/completion'
