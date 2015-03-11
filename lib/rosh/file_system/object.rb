@@ -1,5 +1,6 @@
 require_relative 'base_methods'
 require_relative 'stat_methods'
+require_relative 'state_machine'
 
 
 class Rosh
@@ -7,6 +8,7 @@ class Rosh
     class Object
       include BaseMethods
       include StatMethods
+      include StateMachine
 
       def initialize(path, host_name)
         @path = path

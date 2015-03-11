@@ -10,18 +10,21 @@ class Rosh
     module StatMethods
       extend Forwardable
 
-      def_delegators :adapter,
-        :exists?, :<=>,
-        :blksize, :blockdev?, :blocks, :chardev?, :dev, :dev_major, :dev_minor,
-        :directory?, :executable?, :executable_real?, :file?, :gid, :grpowned?,
-        :ino, :inspect, :mode, :nlink, :owned?, :pipe?,
-        :rdev, :rdev_major, :rdev_minor,
-        :readable?, :readable_real?,
-        :setgid?, :setuid?,
-        :size,
-        :socket?, :sticky?, :symlink?, :uid,
-        :world_readable?, :world_writable?, :writable?, :writable_real?,
-        :zero?
+      %i[exists? <=>
+        blksize blockdev? blocks chardev? dev dev_major dev_minor
+        directory? executable? executable_real? file? gid grpowned?
+        ino mode nlink owned? pipe?
+        rdev rdev_major rdev_minor
+        readable? readable_real?
+        setgid? setuid?
+        size
+        socket? sticky? symlink? uid
+        world_readable? world_writable? writable? writable_real?
+        zero?].sort.each do |meth|
+        define_method(meth) do
+          Rosh._run_command(method(__method__), &adapter.method(__method__).to_proc)
+        end
+      end
 
       alias_method :block_size, :blksize
       alias_method :block_device?, :blockdev?

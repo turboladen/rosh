@@ -48,10 +48,10 @@ class Rosh
         # Allows setting user/group owner using key/value pairs.  If no value is
         # given for user or group, nothing will be changed.
         #
-        # @param [Fixnum] :uid UID of the user to make owner.
-        # @param [Fixnum] :gid GID of the group to make owner.
+        # @param [Fixnum] uid UID of the user to make owner.
+        # @param [Fixnum] gid GID of the group to make owner.
         # @return [Boolean] +true+ if successful, +false+ if not.
-        def chown(uid: uid, gid: nil)
+        def chown(uid, gid = nil)
           handle_errors_and_return_result do
             result = ::File.chown(uid, gid, @path)
             actual_result = !result.zero?
@@ -211,10 +211,7 @@ class Rosh
 
         def handle_errors_and_return_result(&block)
           result, exit_status = block.call
-
-          unless exit_status
-            exit_status = result ? 0 : 1
-          end
+          exit_status ||= result ? 0 : 1
 
           private_result(result, exit_status)
         rescue Errno::ENOENT

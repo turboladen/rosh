@@ -63,7 +63,11 @@ class Rosh
         @path = path
         @host_name = host_name
 
-        self.state = exists?.ruby_object ? :persisted : :transient
+        self.state = exists? ? :persisted : :transient
+      end
+
+      def updated(*args)
+        puts "YOOOOOOO UPdated: #{args}"
       end
 
       # @return [Rosh::Shell::PrivateCommandResult]

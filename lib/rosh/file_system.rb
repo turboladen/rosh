@@ -4,6 +4,7 @@ require 'simple_states'
 
 require_relative 'kernel_refinements'
 require_relative 'logger'
+require_relative 'command'
 require_relative 'file_system/block_device'
 require_relative 'file_system/character_device'
 require_relative 'file_system/directory'
@@ -19,7 +20,7 @@ class Rosh
   # system.  It behaves somewhat like an ORM for working with file system
   # objects.
   class FileSystem
-    class UnknownResourceType < RuntimeError
+    class UnknownObjectType < RuntimeError
       def initialize(resource_type)
         message = "Resource type '#{resource_type}' does not exist."
         super(message)
@@ -28,18 +29,34 @@ class Rosh
 
     include DramaQueen::Consumer
     include Rosh::Logger
+    include Rosh::FileSystem::StateMachine
+
+    # Create a new file system object at the given +path+.  This is really just
+    # a proxy (Ruby) object that represents the actual file-system object.  The
+    # actual file-system object may or may not exist on-disk; calling this
+    # method simply creates the Ruby object--if you want to persist the object
+    # to disk, you need to tell the object to persist.  See documentation for
+    # each respective FS object type for more info on persisting those objects.
+    #
+    # @param path [String] Path to the file system object on the host given by
+    #   +host_name+.
+    # @todo What if the fs object doesn't exist?  What type is created?
     def self.create(path, host_name)
-      object = new(host_name)
-      object.build(path)
+      @object ||= new(host_name)
+      @object.build(path)
     end
 
+    # This is a call-back for when one of the known file system objects
+    # changes.
     def update(*args)
       puts "file system updated with args: #{args}"
     end
 
+    # @param [String] host_name
     def initialize(host_name)
       @host_name = host_name
       @root_directory = '/'
+      # Subscribe to all file system objects that send an :update event.
       self.subscribe('rosh.file_system.*', :update)
 
       unless Rosh.environment.current_host.local?
@@ -62,12 +79,12 @@ class Rosh
     #   * :character_device => Rosh::FileSystem::CharacterDevice
     #   * :block_device => Rosh::FileSystem::BlockDevice
     #
-    # If given a key that does not map to an object, it raises
-    #
     # @param [Hash,String] path File system path to the object to build.
     # @return [Rosh::FileSystem::*]
+    # @raises [Rosh::FileSystem::UnknownObjectType] If given a key that does
+    #   not map to an object type.
     def [](path)
-      result = if path.is_a? Hash
+      fs_object = if path.is_a? Hash
         if path[:file]
           file(path[:file])
         elsif path[:dir]
@@ -83,16 +100,16 @@ class Rosh
         elsif path[:object]
           object(path[:object])
         else
-          raise UnknownResourceType, path.keys.first
+          raise UnknownObjectType, path.keys.first
         end
       else
         build(path)
       end
 
-      #result.add_observer(self)
-      #result.subscribe('rosh.file_system',)
+      # After creating the object, subscribe to its :update event.
+      subscribe fs_object, :update
 
-      result
+      fs_object
     end
 
     # @param [String] path File system path to the object to build.
@@ -113,20 +130,36 @@ class Rosh
       end
     end
 
+    # Create a proxy object to a block device at the given +path+.
+    #
+    # @param path [String]
+    # @return [Rosh::FileSystem::BlockDevice]
     def block_device(path)
       Rosh::FileSystem::BlockDevice.new(path, @host_name)
     end
 
+    # Checks if the file system object at +path+ is a block device.
+    #
+    # @param path [String]
+    # @return [Boolean]
     def block_device?(path)
       return true if path.is_a? FileSystem::BlockDevice
 
       adapter.blockdev?(path)
     end
 
+    # Create a proxy object to a character device at the given +path+.
+    #
+    # @param path [String]
+    # @return [Rosh::FileSystem::CharacterDevice]
     def character_device(path)
       Rosh::FileSystem::CharacterDevice.new(path, @host_name)
     end
 
+    # Checks if the file system object at +path+ is a character device.
+    #
+    # @param path [String]
+    # @return [Boolean]
     def character_device?(path)
       return true if path.is_a? FileSystem::CharacterDevice
 
@@ -143,44 +176,92 @@ class Rosh
       end
     end
 
+    # Create a proxy object to a directory at the given +path+.
+    #
+    # @param path [String]
+    # @return [Rosh::FileSystem::Directory]
+    def directory(path)
+      Rosh::FileSystem::Directory.new(path, @host_name)
+    end
+
+    # Checks if the file system object at +path+ is a directory.
+    #
+    # @param path [String]
+    # @return [Boolean]
     def directory?(path)
       return true if path.is_a? FileSystem::Directory
 
       adapter.directory?(path)
     end
 
-    def directory(path)
-      Rosh::FileSystem::Directory.new(path, @host_name)
-    end
-
+    # Create a proxy object to a file at the given +path+.
+    #
+    # @param path [String]
+    # @return [Rosh::FileSystem::File]
     def file(path)
-      Rosh::FileSystem::File.new(path, @host_name)
+      f = Rosh::FileSystem::File.new(path, @host_name)
+      subscribe f, :update
+
+      f
     end
 
+    # Checks if the file system object at +path+ is a file.
+    #
+    # @param path [String]
+    # @return [Boolean]
     def file?(path)
       return true if path.is_a? FileSystem::File
 
       adapter.file?(path)
     end
 
+    # The current user's home directory.
+    #
+    # @return [Rosh::FileSystem::Directory]
     def home
       adapter.home
     end
 
+    # Create a proxy object to a generic file system object at the given +path+.
+    #
+    # @param path [String]
+    # @return [Rosh::FileSystem::Object]
     def object(path)
       Rosh::FileSystem::Object.new(path, @host_name)
     end
 
+    # Checks if the file system object at +path+ is a generic file system
+    # object.
+    #
+    # @param path [String]
+    # @return [Boolean]
+    def object?(path)
+      return true if path.is_a? FileSystem::Object
+
+      false
+    end
+
+    # Create a proxy object to a symbolic link at the given +path+.
+    #
+    # @param path [String]
+    # @return [Rosh::FileSystem::SymbolicLink]
     def symbolic_link(path)
       Rosh::FileSystem::SymbolicLink.new(path, @host_name)
     end
 
+    # Checks if the file system object at +path+ is a symbolic link.
+    #
+    # @param path [String]
+    # @return [Boolean]
     def symbolic_link?(path)
       return true if path.is_a? FileSystem::SymbolicLink
 
       adapter.symlink?(path)
     end
 
+    # Returns the umask for the current user.
+    #
+    # @param [String]
     def umask
       adapter.umask
     end
@@ -195,6 +276,9 @@ class Rosh
       end
     end
 
+    # The current working directory.
+    #
+    # @return [Rosh::FileSystem::Directory]
     def working_directory
       adapter.getwd
     end

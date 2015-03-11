@@ -3,26 +3,38 @@ require_relative 'logger'
 
 
 class Rosh
-  module Command
+  # A Command object captures the name of command, arguments for the command,
+  # and the result of the command after it has been executed. After executing,
+  # the instance of the Command is published over the 'rosh.commands' exchange.
+  class Command
     include DramaQueen::Producer
-    include LogSwitch
-    extend LogSwitch::Mixin
+    include Rosh::Logger
 
-    def self.included(base)
-      base.send(:include, LogSwitch)
-      base.extend(LogSwitch::Mixin)
-    end
+    attr_reader :name
 
-    # @param [Array<Proc>, Proc] cmd_block Used for when the Host's
-    #   +idempotent_mode+ is set to true.  If any of the Proc objects given
-    #   evaluate to true, the command will be executed.  If the Host's
-    #   +idempotent_mode+ is set to false, this won't be checked; the command
-    #   will always be executed.
-    def run_command(&cmd_block)
-      cmd_result = cmd_block.call
-      publish 'rosh.command_results', cmd_result
+    attr_reader :method
+    attr_reader :method_arguments
 
-      cmd_result.ruby_object
+    attr_reader :result
+    attr_reader :executed_at
+
+    attr_writer :change_if
+    attr_writer :did_change_succeed
+    attr_writer :after_change
+
+    # @param [Method] command_method
+    # def initialize(name, method, *method_arguments)
+    def initialize(method, *method_arguments, &method_action)
+      # @name = name
+      @method = method
+      @method_arguments = *method_arguments
+      @method_action = method_action
+      @result = nil
+      @executed_at = nil
+
+      @change_if = nil
+      @did_change_succeed = nil
+      @after_change = nil
     end
 
     # @param [Boolean] no_change_needed Only applies to if the Host is in
@@ -33,58 +45,63 @@ class Rosh
     #   then the +cmd_block+ is executed.  If  idempotency mode is disabled,
     #   this parameter is disregarded and the +cmd_block+ is executed.
     # @return [Object]
-    def run_idempotent_command(no_change_needed, &cmd_block)
-      log "Idempotency: No change needed evaluates to: #{no_change_needed}"
-
-      cmd_result = if current_host.idempotent_mode?
-        log "Idempotency: #{current_host.name} is in idempotent mode"
-
-        if no_change_needed
-          private_result(:idempotent_skip, -1, 'Idempotency mode enabled and nothing to do.')
-        else
-          cmd_block.call
-        end
+    def execute!
+      if Rosh.environment.current_host.idempotent_mode? && @change_if
+        log "Idempotency: #{Rosh.environment.current_host.name} is in idempotent mode"
+        run_idempotent
       else
-        cmd_block.call
+        if Rosh.environment.current_host.idempotent_mode?
+          log "Command is static (non-idempotent)"
+        else
+          log "Idempotency: #{Rosh.environment.current_host.name} NOT in idempotent mode"
+        end
+
+        run_static
       end
-
-      publish 'rosh.command_results', cmd_result
-
-      cmd_result.ruby_object
     end
 
     private
 
-    def all_true? idempotency_check
-      if idempotency_check.is_a? Array
-        return idempotency_check.all? do |blk|
-          blk.call
+    def run_idempotent
+      should_change = @change_if.call
+      log "Object should change: #{should_change}"
+
+      if should_change
+        @executed_at = Time.now
+        @result = call_method
+        publish 'rosh.commands', self
+
+        if @did_change_succeed.call
+          log 'Object did change! Calling @after_change...'
+          @after_change.call(@result)
+        else
+          fail 'Tried to change object, but change failed'
         end
+
+        @result.ruby_object
+      else
+        @result = private_result(false, -1, 'Idempotency mode enabled and nothing to do.')
+        @result.ruby_object
       end
-
-      if idempotency_check.kind_of?(Proc)
-        return idempotency_check.call
-      end
-
-      return true if idempotency_check
-
-      false
     end
 
-    def any_true? idempotency_check
-      if idempotency_check.is_a? Array
-        return idempotency_check.any? do |blk|
-          blk.call
-        end
-      end
+    # @param [Array<Proc>, Proc] cmd_block Used for when the Host's
+    #   +idempotent_mode+ is set to true.  If any of the Proc objects given
+    #   evaluate to true, the command will be executed.  If the Host's
+    #   +idempotent_mode+ is set to false, this won't be checked; the command
+    #   will always be executed.
+    def run_static
+      @executed_at = Time.now
+      @result = call_method
+      publish 'rosh.commands', self
 
-      if idempotency_check.kind_of?(Proc)
-        return idempotency_check.call
-      end
+      @result.ruby_object
+    end
 
-      return true if idempotency_check
 
-      false
+    def call_method
+      log "Calling method: #{@method.name}"
+      @method_arguments.empty? ? @method_action.call : @method_action.call(*@method_arguments)
     end
   end
 end

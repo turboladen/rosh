@@ -42,7 +42,7 @@ class Rosh
       end
 
       @host_name = localhost.name
-      subscribe('rosh.command_results', :output)
+      subscribe 'rosh.commands', :output
     end
 
     # Starts the Readline loop for accepting input.  Each iteration through the

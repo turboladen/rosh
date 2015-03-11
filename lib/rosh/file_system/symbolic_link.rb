@@ -1,6 +1,8 @@
 require_relative 'base_methods'
 require_relative 'stat_methods'
 require_relative 'object_adapter'
+require_relative 'state_machine'
+require_relative '../command'
 
 
 class Rosh
@@ -8,6 +10,7 @@ class Rosh
     class SymbolicLink
       include BaseMethods
       include StatMethods
+      include StateMachine
 
       def initialize(path, host_name)
         @path = path
@@ -15,13 +18,13 @@ class Rosh
       end
 
       def destination
-        run_command { adapter.destination }
+        Rosh._run_command(method(__method__), &adapter.method(__method__).to_proc)
       end
 
       def link_to(new_destination)
         echo_rosh_command new_destination
 
-        run_command { adapter.link_to(new_destination) }
+        Rosh._run_command(method(__method__), new_destination, &adapter.method(__method__).to_proc)
       end
 
       private

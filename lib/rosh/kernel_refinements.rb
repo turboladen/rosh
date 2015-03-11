@@ -25,9 +25,9 @@ module Kernel
 
   def echo_rosh_command(*extra)
     if !internal_call?
-      $stdout.puts(call_text(*extra).bold)
+      $stdout.puts(call_text(extra).bold)
     elsif internal_call? #&& self.respond_to?(:log)
-      log call_text(*extra).blue
+      log(call_text(extra).blue)
     end
   end
 

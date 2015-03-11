@@ -10,15 +10,20 @@ class Rosh
         @path = path
         @host_name = host_name
 
-        load_adapter(type)
+        @adapter_class = load_adapter(type)
       end
 
       def path=(new_path)
-        @path
+        @path = new_path
+        private_result(@path, 0)
       end
 
       def to_path
-        @path
+        private_result(@path, 0)
+      end
+
+      def class
+        @adapter_class
       end
 
       private
@@ -28,6 +33,8 @@ class Rosh
         klass =
           Rosh::FileSystem::ObjectAdapters.const_get(type.to_s.classify)
         self.extend klass
+
+        klass
       end
     end
   end

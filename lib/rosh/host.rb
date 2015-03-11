@@ -42,7 +42,7 @@ class Rosh
       @shell = Rosh::Shell.new(@name, ssh_options)
       @idempotent_mode = false
       @history = []
-      subscribe('rosh.command_results', :process_result)
+      subscribe 'rosh.commands', :process_result
     end
 
     # @return [Boolean] Returns if commands are set to check the state of
@@ -55,10 +55,13 @@ class Rosh
     # message queue.  Allows for many classes to publish to and this to get
     # notifications.
     #
-    # @param [Rosh::Shell::PrivateCommandResult] command_result
-    def process_result(command_result)
-      log "#{name} got command result as string: #{command_result.string}"
-      @history << command_result
+    # @param [Rosh::Command] command
+    def process_result(command)
+      log "#{self.class}:#{name} received command on queue: #{command}"
+      log "#{self.class}:#{name} Command name: #{command.method.name}"
+      log "#{self.class}:#{name} Command args: #{command.method_arguments}"
+      log "#{self.class}:#{name} Command result: #{command.result.ruby_object}"
+      @history << command
     end
 
     def update
