@@ -247,7 +247,7 @@ class Rosh
       def adapter
         return @adapter if @adapter
 
-        type = if current_host.local?
+        type = if Rosh.environment.current_host.local?
           :local_file
         else
           :remote_file

@@ -1,5 +1,5 @@
 require 'simple_states'
-require 'log_switch'
+require_relative '../logger'
 
 require_relative '../string_refinements'
 
@@ -29,7 +29,7 @@ class Rosh
           unless: [:failed_command?],
           after: :notify_observers
 
-        base.send :include, LogSwitch
+        base.send :include, Rosh::Logger
       end
 
       attr_accessor :state, :dirtied_at, :persisted_at, :transient_at

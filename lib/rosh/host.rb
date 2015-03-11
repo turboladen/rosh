@@ -1,9 +1,9 @@
 require 'etc'
 require 'socket'
-require 'log_switch'
 require 'drama_queen/producer'
 require 'drama_queen/consumer'
 
+require_relative 'logger'
 require_relative 'shell'
 require_relative 'host/attributes'
 require_relative 'file_system'
@@ -18,8 +18,7 @@ require_relative 'string_refinements'
 
 class Rosh
   class Host
-    extend LogSwitch
-    include LogSwitch::Mixin
+    include Rosh::Logger
     include Host::Attributes
     include DramaQueen::Consumer
     include DramaQueen::Producer

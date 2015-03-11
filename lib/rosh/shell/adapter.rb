@@ -1,6 +1,10 @@
+require_relative '../logger'
+
 class Rosh
   class Shell
     class Adapter
+      include Rosh::Logger
+
       attr_accessor :su_user_name
       attr_reader :workspace
 

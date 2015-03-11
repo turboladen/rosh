@@ -1,18 +1,16 @@
 require 'irb'
 require 'pty'
-require 'log_switch'
 require 'awesome_print'
 require 'sys/proctable'
-
 require_relative '../../kernel_refinements'
+require_relative '../../logger'
 
 
 class Rosh
   class Shell
     module Adapters
       module Local
-        extend LogSwitch
-        include LogSwitch::Mixin
+        include Rosh::Logger
 
         # @param [String] path The absolute or relative path to make the new working
         #   directory.

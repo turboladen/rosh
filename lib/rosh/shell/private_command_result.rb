@@ -1,5 +1,4 @@
-require 'log_switch'
-
+require_relative '../logger'
 
 class Rosh
   class Shell
@@ -7,8 +6,7 @@ class Rosh
     # Used by adapters to convey the output of commands to the public
     # API so the public API can decide how to present the result.
     class PrivateCommandResult
-      extend LogSwitch
-      include LogSwitch::Mixin
+      include Rosh::Logger
 
       attr_reader :ruby_object
       attr_reader :exit_status
@@ -48,5 +46,3 @@ class Rosh
     end
   end
 end
-
-Rosh::Shell::PrivateCommandResult.log_class_name = true

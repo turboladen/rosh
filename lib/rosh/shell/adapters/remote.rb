@@ -34,8 +34,7 @@ class Rosh
 
         DEFAULT_USER = Etc.getlogin
 
-        extend LogSwitch
-        include LogSwitch::Mixin
+        include Rosh::Logger
 
         def user=(new_user)
           @user = new_user
@@ -310,10 +309,7 @@ class Rosh
             cmd
           end
         end
-
-        self.log_class_name = true
       end
     end
   end
 end
-

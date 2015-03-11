@@ -2,6 +2,7 @@ require 'fileutils'
 require_relative 'local_base'
 require_relative '../../errors'
 require_relative '../../shell/private_command_result'
+require_relative '../../logger'
 
 
 class Rosh
@@ -9,6 +10,7 @@ class Rosh
     module ObjectAdapters
       module LocalFile
         include LocalBase
+        include Rosh::Logger
 
         attr_accessor :unwritten_contents
 

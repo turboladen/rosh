@@ -3,6 +3,7 @@ require 'drama_queen/consumer'
 require 'simple_states'
 
 require_relative 'kernel_refinements'
+require_relative 'logger'
 require_relative 'file_system/block_device'
 require_relative 'file_system/character_device'
 require_relative 'file_system/directory'
@@ -13,6 +14,10 @@ require_relative 'file_system/manager_adapter'
 
 
 class Rosh
+
+  # Sub-module of the Rosh system, used for working with a local or remote file
+  # system.  It behaves somewhat like an ORM for working with file system
+  # objects.
   class FileSystem
     class UnknownResourceType < RuntimeError
       def initialize(resource_type)
@@ -22,7 +27,7 @@ class Rosh
     end
 
     include DramaQueen::Consumer
-
+    include Rosh::Logger
     def self.create(path, host_name)
       object = new(host_name)
       object.build(path)
@@ -37,7 +42,7 @@ class Rosh
       @root_directory = '/'
       self.subscribe('rosh.file_system.*', :update)
 
-      unless current_host.local?
+      unless Rosh.environment.current_host.local?
         require_relative 'file_system/remote_stat'
       end
     end
@@ -200,7 +205,7 @@ class Rosh
     def adapter
       return @adapter if @adapter
 
-      type = if current_host.local?
+      type = if Rosh.environment.current_host.local?
         :local_file_system
       else
         :remote_file_system

@@ -1,5 +1,5 @@
-require 'log_switch'
 require 'drama_queen/producer'
+require_relative 'logger'
 
 
 class Rosh

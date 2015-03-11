@@ -1,6 +1,6 @@
 require 'shellwords'
 require 'highline/import'
-require 'log_switch'
+require_relative 'logger'
 require_relative 'kernel_refinements'
 require_relative 'shell/adapter'
 require_relative 'shell/commands'
@@ -8,8 +8,7 @@ require_relative 'shell/commands'
 
 class Rosh
   class Shell
-    extend LogSwitch
-    include LogSwitch::Mixin
+    include Rosh::Logger
     include Rosh::Shell::Commands
 
     # @!attribute sudo

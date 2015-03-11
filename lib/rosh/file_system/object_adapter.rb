@@ -1,9 +1,11 @@
 require_relative '../string_refinements'
-
+require_relative '../logger'
 
 class Rosh
   class FileSystem
     class ObjectAdapter
+      include Rosh::Logger
+
       def initialize(path, type, host_name)
         @path = path
         @host_name = host_name

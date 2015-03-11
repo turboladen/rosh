@@ -5,29 +5,7 @@ require_relative 'shell/private_command_result'
 
 module Kernel
 
-  # Returns the Rosh::Host::Shells::* shell based on the host name.
-  #
-  # @return [Rosh::Host::Shells::*]
-  def current_shell
-    current_host.shell
-  end
 
-  # Returns the Rosh::Host base on the current @host_name.
-  #
-  # @return [Rosh::Host]
-  def current_host
-    host = Rosh.find_by_host_name(@host_name)
-
-    unless host
-      raise "No host found with name '#{@host_name}'"
-    end
-
-    host
-  end
-
-  def current_user
-    current_host.user
-  end
 
   def good_info(text)
     $stdout.puts "[#{current_user}@#{current_host.name}]>> #{text.strip}".light_blue
@@ -66,7 +44,7 @@ module Kernel
     text = meth
     text << " #{extra.compact.map(&:to_s).map(&:strip).join(', ')}" unless extra.empty?
 
-    "[#{current_user}@#{current_host.name}:#{path}]> #{text}"
+    "[#{Rosh.environment.current_user}@#{Rosh.environment.current_host.name}:#{path}]> #{text}"
   end
 
   def internal_call?

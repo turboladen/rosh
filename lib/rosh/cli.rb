@@ -4,21 +4,19 @@ require 'readline'
 require 'shellwords'
 require 'drama_queen/consumer'
 
-require 'log_switch'
 require 'colorize'
 
 require_relative '../rosh'
+require_relative 'logger'
 require_relative 'kernel_refinements'
 require_relative 'cli/completion'
 
 
 class Rosh
   class CLI
-    extend LogSwitch
-
+    include Rosh::Logger
     include Shellwords
     include Readline
-    include LogSwitch::Mixin
     include DramaQueen::Consumer
 
     # Convenience method for calling Rosh::CLI.new.run.
@@ -205,5 +203,3 @@ class Rosh
 
   end
 end
-
-Rosh::CLI.log_class_name = true
