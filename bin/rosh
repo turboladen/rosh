@@ -1,31 +1,37 @@
 #!/usr/bin/env ruby
 
 
+def setup_logging
+  if ARGV.include? '--log'
+    Rosh::Logger.logging_enabled = true
+    Rosh::CLI.logging_enabled = true if Rosh.const_defined?(:CLI)
+    Rosh::Shell.logging_enabled = true
+    Rosh::Host.logging_enabled = true
+    Rosh::FileSystem.logging_enabled = true
+    Rosh::Command.logging_enabled = true
+  else
+    Rosh::Logger.logging_enabled = false
+    Rosh::CLI.logging_enabled = false if Rosh.const_defined?(:CLI)
+    Rosh::Shell.logging_enabled = false
+  end
+end
 
-arg = ARGV.pop
-
-if arg == '--irb'
-  require 'irb'
+if ARGV.include? '--irb'
   require_relative '../lib/rosh'
+  setup_logging
+  ARGV.delete '--irb'
+  ARGV.delete '--log'
+
+  require 'irb'
   IRB.setup '../lib/rosh'
 
-  eval Rosh.config if Rosh.config
+  # eval Rosh.config if Rosh.config
 
   IRB.start
 else
   require_relative '../lib/rosh/cli'
 
-  if ARGV.include? '--log'
-    Rosh::CLI.log = true
-    Rosh::Shell.log = true
-  else
-    Rosh::CLI.log = false
-    Rosh::Shell.log = false
-  end
-
+  setup_logging
   Rosh::CLI.run
 end
-
-
-
 
