@@ -42,7 +42,7 @@ class Rosh
       @shell = Rosh::Shell.new(@name, ssh_options)
       @idempotent_mode = false
       @history = []
-      subscribe 'rosh.commands', :process_result
+      subscribe "rosh.commands.#{host_name}", :process_result
     end
 
     # @return [Boolean] Returns if commands are set to check the state of

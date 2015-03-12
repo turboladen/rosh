@@ -30,7 +30,7 @@ class Rosh
       if Rosh.load_config
         instance_eval Rosh.config
       else
-        Rosh.add_host 'localhost'
+        Rosh.environment.add_host 'localhost'
       end
 
       localhost = if Rosh.hosts['localhost']
@@ -193,7 +193,7 @@ class Rosh
       end
     end
 
-    def output(command_result)
+    def output(_command_name, command_result, *_command_args)
       if command_result.exit_status.zero?
         $stdout.puts(command_result.string)
       else

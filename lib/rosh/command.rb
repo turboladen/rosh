@@ -69,7 +69,7 @@ class Rosh
       if should_change
         @executed_at = Time.now
         @result = call_method
-        publish 'rosh.commands', self
+        publish "rosh.commands.#{@method.receiver.host_name}", self
 
         if @did_change_succeed.call
           log 'Object did change! Calling @after_change...'
@@ -93,7 +93,7 @@ class Rosh
     def run_static
       @executed_at = Time.now
       @result = call_method
-      publish 'rosh.commands', self
+      publish "rosh.commands.#{@method.receiver.host.name}", self
 
       @result.ruby_object
     end
