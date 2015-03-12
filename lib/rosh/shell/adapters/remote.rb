@@ -149,17 +149,7 @@ class Rosh
           if result.exit_status.zero?
             private_result(result.ruby_object, 0)
           else
-            output = if result.stdout.empty? && result.stderr.empty?
-              ''
-            elsif result.stderr.empty?
-              result.stdout
-            elsif result.stdout.empty?
-              result.stderr
-            else
-              result.stdout + "\n\n" + result.stderr
-            end
-
-            private_result(output, 1)
+            private_result(result.string, 1)
           end
         end
 

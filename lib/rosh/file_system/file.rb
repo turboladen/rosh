@@ -79,23 +79,17 @@ class Rosh
       def contents
         echo_rosh_command
 
-        run_command do
-          log "State: #{state}"
+        log "State: #{state}"
 
-          if dirtied? || transient?
-            private_result(adapter.unwritten_contents, 0)
-          else
-            cmd_result = adapter.read
-
-            cmd_result.string = if cmd_result.exit_status.zero?
-              cmd_result.ruby_object
-            else
-              cmd_result.ruby_object.message
-            end
-
-            cmd_result
+        command = if dirtied? || transient?
+          Rosh::Command.new(method(__method__)) do
+            adapter.unwritten_contents
           end
+        else
+          Rosh::Command.new(method(__method__), &adapter.method(:read).to_proc)
         end
+
+        command.execute!
       end
 
       # Stores +new_contents+ in memory until #save is called.
@@ -107,13 +101,18 @@ class Rosh
 
         current_contents = self.contents
 
-        run_idempotent_command(new_contents == current_contents) do
+        command = Rosh::Command.new(method(__method__), new_contents) do
           adapter.unwritten_contents = new_contents
-          cmd_result = private_result(true, 0)
-          update(:contents, cmd_result, current_shell.su?, from: current_contents, to: new_contents)
-
-          cmd_result
+          adapter.save
         end
+
+        command.change_if = -> { !new_contents == current_contents }
+        command.did_change_succeed = -> { new_contents == current_contents }
+        command.after_change = lambda do |result|
+          update(:contents, result, host.shell.su?, from: current_contents, to: new_contents)
+        end
+
+        command.execute!
       end
 
       # Copies this File object to the +destination+.  If the copy was
@@ -127,24 +126,25 @@ class Rosh
 
         the_copy = current_host.fs[file: destination]
 
-        matches = [
-          -> { !the_copy.persisted? },
-          -> { the_copy.size != self.size },
-          -> { the_copy.contents != self.contents }
-        ]
-
-        match_result = matches.none?(&:call)
-        log "copy_to matches result: #{match_result}"
-
-        run_idempotent_command(match_result) do
-          copy_result = adapter.copy(destination)
-
-          if copy_result.exit_status.zero? && block_given?
-            yield copy_result.ruby_object
-          end
-
-          copy_result
+        command = Rosh::Command.new(method(__method__), destination,
+          &adapter.method(:copy).to_proc)
+        command.change_if = proc do
+          !the_copy.persisted? &&
+            the_copy.size != self.size &&
+            the_copy.contents != self.contents
         end
+
+        command.did_change_succeed = proc do
+          the_copy.persisted? &&
+            the_copy.size == self.size &&
+            the_copy.contents == self.contents
+        end
+
+        command.after_change = lambda do |result|
+          update(:exists?, result, host.shell.su?, from: false, to: true)
+        end
+
+        command.execute!
       end
 
       # Hard links this File object to the +new_path+.  If the link creation was
@@ -155,18 +155,22 @@ class Rosh
       # @return [Rosh::Shell::PrivateCommandResult]
       def hard_link_to(new_path)
         echo_rosh_command new_path
+        new_link = host.fs[file: new_path]
 
-        new_link = current_host.fs[file: new_path]
+        command = Rosh::Command.new(method(__method__), new_path,
+          &adapter.method(:link).to_proc)
+        command.change_if = -> { !new_link.exists? }
 
-        run_idempotent_command(new_link.persisted?) do
-          link_result = adapter.link(new_path)
-
-          if link_result.exit_status.zero? && block_given?
-            yield link_result.ruby_object
-          end
-
-          link_result || new_link
+        command.did_change_succeed = proc do
+          new_link.exists? && new_link.persisted? &&
+            new_link.contents == self.contents
         end
+
+        command.after_change = lambda do
+          update(:exists?, new_link, host.shell.su?, from: false, to: true)
+        end
+
+        command.execute!
       end
       alias_method :link, :hard_link_to
 
@@ -176,41 +180,22 @@ class Rosh
       def read(length=nil, offset=nil)
         echo_rosh_command length, offset
 
-        run_command do
-          cmd_result = adapter.read(length, offset)
-          cmd_result.string = cmd_result.ruby_object
-
-          cmd_result
-        end
+        Rosh._run_command(method(__method__), length, offset, &adapter.method(__method__).to_proc)
       end
 
+      # @return [Array<String>]
       def readlines(separator=$/)
         echo_rosh_command separator
 
-        run_command do
-          cmd_result = adapter.readlines(separator)
-          cmd_result.string = cmd_result.ruby_object.join("\n")
-
-          cmd_result
-        end
-      end
-
-      def each_char(&block)
-        echo_rosh_command
-
-        run_command { adapter.each_char(&block) }
-      end
-
-      def each_codepoint(&block)
-        echo_rosh_command
-
-        run_command { contents.each_codepoint(&block) }
+        Rosh._run_command(method(__method__), separator, &adapter.method(__method__).to_proc)
       end
 
       def each_line(separator=$/, &block)
-        echo_rosh_command
+        echo_rosh_command separator
 
-        run_command { contents.each_line(separator, &block) }
+        Rosh._run_command(method(__method__), separator) do
+          contents.each_line(&block)
+        end
       end
 
       def save
@@ -219,24 +204,25 @@ class Rosh
         previous_state = self.state
         log "Previous state: #{previous_state}"
 
-        run_idempotent_command(self.persisted?) do
-          cmd_result = adapter.save
-
-          if cmd_result.exit_status.zero?
+        command = Rosh::Command.new(method(__method__), &adapter.method(:save).to_proc)
+        command.change_if = -> { !self.persisted? }
+        command.did_change_succeed = -> { self.persisted? }
+        command.after_change = lambda do |result|
+          if result.exit_status.zero?
             adapter.unwritten_contents.clear
 
             case previous_state
             when :transient
-              persist(:exists?, cmd_result, current_shell.su?,
+              persist(:exists?, result, host.shell.su?,
                 from: false, to: true)
             when :dirtied
-              persist(:dirtied?, cmd_result, current_shell.su?,
+              persist(:dirtied?, result, host.shell.su?,
                 from: true, to: false)
             end
           end
-
-          cmd_result
         end
+
+        command.execute!
       end
 
       # Called by serializer when dumping.
@@ -251,12 +237,10 @@ class Rosh
         @host_name = coder['host_name']
       end
 
-      private
-
       def adapter
         return @adapter if @adapter
 
-        type = if Rosh.environment.current_host.local?
+        type = if host.local?
           :local_file
         else
           :remote_file

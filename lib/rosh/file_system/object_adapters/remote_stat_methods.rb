@@ -54,11 +54,10 @@ class Rosh
           process { RemoteStat.executable?(@path, @host_name) }
         end
 
-=begin
-          def executable_real?
-
-          end
-=end
+        # TODO: Is this right?
+        def executable_real?
+          process { RemoteStat.executable_real?(@path, @host_name) }
+        end
 
         # @return [Boolean] +true+ if the object is a file; +false+ if not.
         def file?
@@ -113,11 +112,10 @@ class Rosh
           process { RemoteStat.readable?(@path, @host_name) }
         end
 
-=begin
-          def readable_real?
-
-          end
-=end
+        # TODO: Is this right?
+        def readable_real?
+          process { RemoteStat.readable_real?(@path, @host_name) }
+        end
 
         def setgid?
           process { RemoteStat.setgid?(@path, @host_name) }
@@ -152,28 +150,28 @@ class Rosh
         end
 
         def world_readable?
-          cmd = if current_host.darwin?
+          cmd = if host.darwin?
             "stat -f '%Sp' #{@path} | grep 'r\\S\\S$'"
           else
             "stat -c '%A' #{@path} | grep 'r\\S\\S$'"
           end
 
-          current_shell.exec_internal(cmd)
-          result = current_shell.last_exit_status.zero?
+          host.shell.exec_internal(cmd)
+          result = host.shell.last_exit_status.zero?
           exit_status = result ? 0 : 1
 
           private_result(result, exit_status)
         end
 
         def world_writable?
-          cmd = if current_host.darwin?
+          cmd = if host.darwin?
             "stat -f '%Sp' #{@path} | grep 'w\\S$'"
           else
             "stat -c '%A' #{@path} | grep 'w\\S$'"
           end
 
-          current_shell.exec_internal(cmd)
-          result = current_shell.last_exit_status.zero?
+          host.shell.exec_internal(cmd)
+          result = host.shell.last_exit_status.zero?
           exit_status = result ? 0 : 1
 
           private_result(result, exit_status)
@@ -183,10 +181,10 @@ class Rosh
           process { RemoteStat.writable?(@path, @host_name) }
         end
 
-=begin
-          def writable_real?
-          end
-=end
+        # TODO: Is this right?
+        def writable_real?
+          process { RemoteStat.writable_real?(@path, @host_name) }
+        end
 
         def zero?
           process { RemoteStat.zero?(@path, @host_name) }

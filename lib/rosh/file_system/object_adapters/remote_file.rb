@@ -3,6 +3,7 @@ require 'ostruct'
 require 'tempfile'
 
 require_relative 'remote_base'
+require_relative 'remote_stat_methods'
 
 
 class Rosh
@@ -12,14 +13,15 @@ class Rosh
       # Object representing a file on a remote file system.
       module RemoteFile
         include RemoteBase
+        include RemoteStatMethods
 
         attr_accessor :unwritten_contents
 
         # @todo Do something with the block.
         # @return [Boolean]
         def create(&block)
-          current_shell.exec_internal "touch #{@path}"
-          result = current_shell.last_exit_status.zero?
+          host.shell.exec_internal "touch #{@path}"
+          result = host.shell.last_exit_status.zero?
           exit_status = result ? 0 : 1
 
           private_result(result, exit_status)
@@ -27,12 +29,14 @@ class Rosh
 
         # @return [String] The contents of the remote file.
         def read(length=nil, offset=nil)
-          return @unwritten_contents if @unwritten_contents
+          if @unwritten_contents
+            private_result(@unwritten_contents, 0)
+          end
 
           cmd = "dd bs=1 if=#{@path}"
           cmd << " count=#{length}" if length
           cmd << " skip=#{offset}" if offset
-          results = current_shell.exec_internal(cmd)
+          results = host.shell.exec_internal(cmd).string
 
           if results.match /.*No such file.*/m
             bad_info results
@@ -42,7 +46,7 @@ class Rosh
 
           output = results.split /[^\n]+records in\r?\n/
 
-          contents = if current_shell.last_exit_status.zero?
+          contents = if host.shell.last_exit_status.zero?
             output.first
           else
             ''
@@ -59,9 +63,9 @@ class Rosh
 
         def copy(destination)
           cmd = "cp #{@path} #{destination}"
-          result = current_shell.exec_internal(cmd)
+          result = host.shell.exec_internal(cmd)
 
-          if current_shell.last_exit_status.zero? && result.nil?
+          if host.shell.last_exit_status.zero? && result.nil?
             private_result(true, 0)
           end
 
@@ -99,12 +103,12 @@ class Rosh
           tempfile = Tempfile.new('rosh_remote_file')
           tempfile.write(@unwritten_contents)
           tempfile.rewind
-          current_shell.upload(tempfile, @path)
+          host.shell.upload(tempfile, @path)
 
           tempfile.unlink
           @unwritten_contents = nil
 
-          current_shell.last_exit_status.zero?
+          host.shell.last_exit_status.zero?
         end
       end
 

@@ -14,7 +14,7 @@ class Rosh
       # object.
       module RemoteBase
         def absolute_path(dir_string=nil)
-          warn 'Not implemented!'
+          fail NotImplementedError, '#absolute_path Not implemented!'
         end
 
         # @return [Time]
@@ -30,7 +30,7 @@ class Rosh
           cmd = "basename #{@path}"
           cmd << " #{suffix}" if suffix
 
-          private_result(current_shell.exec_internal(cmd).strip, 0)
+          private_result(host.shell.exec_internal(cmd).string.strip, 0)
         end
 
         def blockdev?
@@ -48,8 +48,8 @@ class Rosh
         # @param [String,Integer] mode_int
         # @return [Boolean]
         def chmod(mode_int)
-          current_shell.exec_internal("chmod #{mode_int} #{@path}")
-          result = current_shell.last_exit_status.zero?
+          host.shell.exec_internal("chmod #{mode_int} #{@path}")
+          result = host.shell.last_exit_status.zero?
 
           private_result(result, 0)
         end
@@ -62,8 +62,8 @@ class Rosh
           cmd << ":#{gid}" if gid
           cmd << " #{@path}"
 
-          current_shell.exec_internal cmd
-          result = current_shell.last_exit_status.zero?
+          host.shell.exec_internal cmd
+          result = host.shell.last_exit_status.zero?
           exit_status = result ? 0 : 1
 
           private_result(result, exit_status)
@@ -78,8 +78,8 @@ class Rosh
 
         # @return [Boolean]
         def delete
-          current_shell.exec_internal "rm #{@path}"
-          result = current_shell.last_exit_status.zero?
+          host.shell.exec_internal "rm #{@path}"
+          result = host.shell.last_exit_status.zero?
           exit_status = result ? 0 : 1
 
           private_result(result, exit_status)
@@ -102,8 +102,8 @@ class Rosh
         #   +false+ if not.
         def exists?
           cmd = "test -e #{@path}"
-          current_shell.exec_internal(cmd)
-          result = current_shell.last_exit_status.zero?
+          host.shell.exec_internal(cmd)
+          result = host.shell.last_exit_status.zero?
           exit_status = result ? 0 : 1
 
           private_result(result, exit_status)
@@ -112,11 +112,11 @@ class Rosh
         # @param [String] dir_string
         # @return [String]
         def expand_path(dir_string=nil)
-          result = if current_host.darwin?
+          result = if host.darwin?
             warn 'Not implemented'
           else
             cmd = "readlink -f #{@path}"
-            current_shell.exec_internal(cmd).strip
+            host.shell.exec_internal(cmd).string.strip
           end
 
           private_result(result, 0)
@@ -124,7 +124,7 @@ class Rosh
 
         # @return [String]
         def extname
-          ext = ::File.extname(basename)
+          ext = ::File.extname(basename.string)
 
           private_result(ext, 0)
         end
@@ -142,13 +142,13 @@ class Rosh
 
         # @return [Symbol]
         def ftype
-          cmd = if current_host.darwin?
+          cmd = if host.darwin?
             "stat -n -f '%HT' #{@path}"
           else
             "stat -c '%F' #{@path}"
           end
 
-          output_string = current_shell.exec_internal(cmd).strip.downcase
+          output_string = host.shell.exec_internal(cmd).string.strip.downcase
           result = output_string.gsub(/ /, '_').to_sym
 
           private_result(result, 0)
@@ -157,8 +157,8 @@ class Rosh
         # @param [String] new_path
         # @return [Boolean]
         def link(new_path)
-          current_shell.exec_internal "ln #{@path} #{new_path}"
-          result = current_shell.last_exit_status.zero?
+          host.shell.exec_internal "ln #{@path} #{new_path}"
+          result = host.shell.last_exit_status.zero?
           exit_status = result ? 0 : 1
 
           private_result(result, exit_status)
@@ -177,20 +177,21 @@ class Rosh
 
         # @return [String]
         def readlink
-          result = current_shell.exec_internal("readlink #{@path}").strip
+          result = host.shell.exec_internal("readlink #{@path}").string.strip
 
           private_result(result, 0)
         end
 
         # @todo Use +dir_path+
         def realdirpath(dir_path=nil)
-          result = current_shell.exec_internal("readlink -f #{dirname}").strip
+          result = host.shell.exec_internal("readlink -f #{dirname.string}").string.strip
 
           private_result(result, 0)
         end
 
-        def realpath
-          result = current_shell.exec_internal("readlink -f #{@path}").strip
+        # @todo Use +dir_path+
+        def realpath(dir_path=nil)
+          result = host.shell.exec_internal("readlink -f #{@path}").string.strip
 
           private_result(result, 0)
         end
@@ -198,19 +199,21 @@ class Rosh
         # @param [String] new_name
         # @return [Boolean]
         def rename(new_name)
-          current_shell.exec_internal("mv #{@path} #{new_name}")
-          result = current_shell.last_exit_status.zero?
+          host.shell.exec_internal("mv #{@path} #{new_name}")
+          result = host.shell.last_exit_status.zero?
           exit_status = result ? 0 : 1
 
           private_result(result, exit_status)
         end
 
+        # @return [Array<String>]
         def split
           result = ::File.split(@path)
 
           private_result(result, 0)
         end
 
+        # @return [File::Stat, Rosh::FileSystem::RemoteStat]
         def stat
           s = RemoteStat.stat(@path, @host_name)
 
@@ -220,8 +223,8 @@ class Rosh
         # @param [String] new_name
         # @return [Boolean]
         def symlink(new_name)
-          current_shell.exec_internal("ln -s #{@path} #{new_name}")
-          result = current_shell.last_exit_status.zero?
+          host.shell.exec_internal("ln -s #{@path} #{new_name}")
+          result = host.shell.last_exit_status.zero?
 
           private_result(result, 0)
         end
@@ -235,8 +238,8 @@ class Rosh
         # @param [Integer] len
         # @return [Boolean]
         def truncate(len)
-          current_shell.exec_internal("head --bytes=#{len} --silent #{@path} > #{@path}")
-          result = current_shell.last_exit_status.zero?
+          host.shell.exec_internal("head --bytes=#{len} --silent #{@path} > #{@path}")
+          result = host.shell.last_exit_status.zero?
 
           private_result(result, 0)
         end
@@ -245,11 +248,11 @@ class Rosh
           atime_cmd = "touch -a --no-create --date=#{access_time}"
           mtime_cmd = "touch -m --no-create --date=#{modification_time}"
 
-          current_shell.exec_internal(atime_cmd)
-          atime_ok = current_shell.last_exit_status.zero?
+          host.shell.exec_internal(atime_cmd)
+          atime_ok = host.shell.last_exit_status.zero?
 
-          current_shell.exec_internal(mtime_cmd)
-          mtime_ok = current_shell.last_exit_status.zero?
+          host.shell.exec_internal(mtime_cmd)
+          mtime_ok = host.shell.last_exit_status.zero?
 
           result = atime_ok && mtime_ok
           exit_status = result ? 0 : 1

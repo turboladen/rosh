@@ -4,189 +4,203 @@ class Rosh
 
       LINUX_CMD = %q[stat -L -c ] +
         %['dev: %D ino: %i mode: %f nlink: %h uid: %u gid: %g rdev: %t ] +
-        %[size: %S blksize: %B blocks: %b atime: %X mtime: %Y ctime: %Z']
+        %[size: %s blksize: %B blocks: %b atime: %X mtime: %Y ctime: %Z']
 
       OSX_CMD = %q[stat -n -f ] +
         %['dev: %d ino: %i mode: %p nlink: %l uid: %u gid: %g rdev: %r ] +
         %[size: %z blksize: %k blocks: %b atime: %a mtime: %m ctime: %c']
 
       def self.stat(path, host_name)
-        run(path, host_name) do
-          result = if current_host.darwin?
-            current_shell.exec_internal("#{OSX_CMD} #{path}")
+        run(host_name) do |host|
+          result = if host.darwin?
+            host.shell.exec_internal("#{OSX_CMD} #{path}")
           else
-            current_shell.exec_internal("#{LINUX_CMD} #{path}")
+            host.shell.exec_internal("#{LINUX_CMD} #{path}")
           end
 
-          new(result, host_name)
+          new(result.string, host.name)
         end
       end
 
       def self.blockdev?(path, host_name)
-        run(path, host_name) do
+        run(host_name) do |host|
           cmd = "test -b #{path}"
-          current_shell.exec_internal(cmd)
+          host.shell.exec_internal(cmd)
 
-          current_shell.last_exit_status.zero?
+          host.shell.last_exit_status.zero?
         end
       end
 
       def self.chardev?(path, host_name)
-        run(path, host_name) do
+        run(host_name) do |host|
           cmd = "test -c #{path}"
-          current_shell.exec_internal(cmd)
+          host.shell.exec_internal(cmd)
 
-          current_shell.last_exit_status.zero?
+          host.shell.last_exit_status.zero?
         end
       end
 
       def self.dev_major(path, host_name)
-        run(path, host_name) do
-          cmd = if current_host.darwin?
+        run(host_name) do |host|
+          cmd = if host.darwin?
             "stat -n -f '%Hr' #{path}"
           else
             "stat -c '%t' #{path}"
           end
 
-          current_shell.exec_internal(cmd).strip.to_i
+          host.shell.exec_internal(cmd).string.strip.to_i
         end
       end
 
       def self.dev_minor(path, host_name)
-        run(path, host_name) do
-          cmd = if current_host.darwin?
+        run(host_name) do |host|
+          cmd = if host.darwin?
             "stat -n -f '%Lr' #{path}"
           else
             "stat -c '%T' #{path}"
           end
 
-          current_shell.exec_internal(cmd).strip.to_i
+          host.shell.exec_internal(cmd).string.strip.to_i
         end
       end
 
       def self.directory?(path, host_name)
-        run(path, host_name) do
+        run(host_name) do |host|
           cmd = "test -d #{path}"
-          current_shell.exec_internal(cmd)
+          host.shell.exec_internal(cmd)
 
-          current_shell.last_exit_status.zero?
+          host.shell.last_exit_status.zero?
         end
       end
 
       def self.executable?(path, host_name)
-        run(path, host_name) do
+        run(host_name) do |host|
           cmd = "test -x #{path}"
-          current_shell.exec_internal(cmd)
+          host.shell.exec_internal(cmd)
 
-          current_shell.last_exit_status.zero?
+          host.shell.last_exit_status.zero?
         end
       end
 
-      def self.file?(path, host_name)
-        run(path, host_name) do
-          cmd = "test -f #{path}"
-          current_shell.exec_internal(cmd)
+      # TODO: Is this right?
+      def self.executable_real?(path, host_name)
+        executable?(path, host_name)
+      end
 
-          current_shell.last_exit_status.zero?
+      def self.file?(path, host_name)
+        run(host_name) do |host|
+          cmd = "test -f #{path}"
+          host.shell.exec_internal(cmd)
+
+          host.shell.last_exit_status.zero?
         end
       end
 
       def self.grpowned?(path, host_name)
-        run(path, host_name) do
+        run(host_name) do |host|
           cmd = "test -G #{path}"
-          current_shell.exec_internal(cmd)
+          host.shell.exec_internal(cmd)
 
-          current_shell.last_exit_status.zero?
+          host.shell.last_exit_status.zero?
         end
       end
 
       def self.owned?(path, host_name)
-        run(path, host_name) do
+        run(host_name) do |host|
           cmd = "test -O #{path}"
-          current_shell.exec_internal(cmd)
+          host.shell.exec_internal(cmd)
 
-          current_shell.last_exit_status.zero?
+          host.shell.last_exit_status.zero?
         end
       end
 
       def self.pipe?(path, host_name)
-        run(path, host_name) do
+        run(host_name) do |host|
           cmd = "test -p #{path}"
-          current_shell.exec_internal(cmd)
+          host.shell.exec_internal(cmd)
 
-          current_shell.last_exit_status.zero?
+          host.shell.last_exit_status.zero?
         end
       end
 
       def self.readable?(path, host_name)
-        run(path, host_name) do
+        run(host_name) do |host|
           cmd = "test -r #{path}"
-          current_shell.exec_internal(cmd)
+          host.shell.exec_internal(cmd)
 
-          current_shell.last_exit_status.zero?
+          host.shell.last_exit_status.zero?
         end
       end
 
-      def self.setgid?(path, host_name)
-        run(path, host_name) do
-          cmd = "test -g #{path}"
-          current_shell.exec_internal(cmd)
+      # TODO: Is this right?
+      def self.readable_real?(path, host_name)
+        readable?(path, host_name)
+      end
 
-          current_shell.last_exit_status.zero?
+      def self.setgid?(path, host_name)
+        run(host_name) do |host|
+          cmd = "test -g #{path}"
+          host.shell.exec_internal(cmd)
+
+          host.shell.last_exit_status.zero?
         end
       end
 
       def self.setuid?(path, host_name)
-        run(path, host_name) do
+        run(host_name) do |host|
           cmd = "test -u #{path}"
-          current_shell.exec_internal(cmd)
+          host.shell.exec_internal(cmd)
 
-          current_shell.last_exit_status.zero?
+          host.shell.last_exit_status.zero?
         end
       end
 
       def self.socket?(path, host_name)
-        run(path, host_name) do
+        run(host_name) do |host|
           cmd = "test -S #{path}"
-          current_shell.exec_internal(cmd)
+          host.shell.exec_internal(cmd)
 
-          current_shell.last_exit_status.zero?
+          host.shell.last_exit_status.zero?
         end
       end
 
       def self.sticky?(path, host_name)
-        run(path, host_name) do
+        run(host_name) do |host|
           cmd = "test -k #{path}"
-          current_shell.exec_internal(cmd)
+          host.shell.exec_internal(cmd)
 
-          current_shell.last_exit_status.zero?
+          host.shell.last_exit_status.zero?
         end
       end
 
       def self.symlink?(path, host_name)
-        run(path, host_name) do
+        run(host_name) do |host|
           cmd = "test -L #{path}"
-          current_shell.exec_internal(cmd)
+          host.shell.exec_internal(cmd)
 
-          current_shell.last_exit_status.zero?
+          host.shell.last_exit_status.zero?
         end
       end
 
       def self.writable?(path, host_name)
-        run(path, host_name) do
+        run(host_name) do |host|
           cmd = "test -w #{path}"
-          current_shell.exec_internal(cmd)
+          host.shell.exec_internal(cmd)
 
-          current_shell.last_exit_status.zero?
+          host.shell.last_exit_status.zero?
         end
       end
 
-      def self.zero?(path, host_name)
-        run(path, host_name) do
-          cmd = "test -s #{path}"
-          current_shell.exec_internal(cmd)
+      def self.writable_real?(path, host_name)
+        writable?(path, host_name)
+      end
 
-          !current_shell.last_exit_status.zero?
+      def self.zero?(path, host_name)
+        run(host_name) do |host|
+          cmd = "test -s #{path}"
+          host.shell.exec_internal(cmd)
+
+          !host.shell.last_exit_status.zero?
         end
       end
 
@@ -195,10 +209,10 @@ class Rosh
       #------------------------------------------------------------------------
       private
 
-      def self.run(path, host_name, &block)
-        @host_name = host_name
+      def self.run(host_name, &block)
+        host = Rosh.find_by_host_name(host_name)
 
-        block.call(path)
+        yield host
       end
 
       #------------------------------------------------------------------------
@@ -212,6 +226,10 @@ class Rosh
       def initialize(result, host_name)
         @host_name = host_name
         parse_result(result)
+      end
+
+      def host
+        Rosh.find_by_host_name(@host_name)
       end
 
       #------------------------------------------------------------------------
@@ -236,7 +254,7 @@ class Rosh
 
         @dev = "0x#{dev}"
         @ino = ino.to_i
-        @mode = current_host.darwin? ? mode : sprintf('%o', mode.to_i(16))
+        @mode = host.darwin? ? mode : sprintf('%o', mode.to_i(16))
         @nlink = nlink.to_i
         @uid = uid.to_i
         @gid = gid.to_i

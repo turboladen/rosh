@@ -4,19 +4,16 @@ require_relative 'shell/private_command_result'
 
 
 module Kernel
-
-
-
   def good_info(text)
-    $stdout.puts "[#{current_user}@#{current_host.name}]>> #{text.strip}".light_blue
+    $stdout.puts "[#{Rosh.environment.current_user}@#{Rosh.environment.current_host.name}]>> #{text.strip}".light_blue
   end
 
   def bad_info(text)
-    $stderr.puts "[#{current_user}@#{current_host.name}]!> #{text.strip}".light_red
+    $stderr.puts "[#{Rosh.environment.current_user}@#{Rosh.environment.current_host.name}]!> #{text.strip}".light_red
   end
 
   def run_info(text)
-    $stdout.puts "[#{current_user}@#{current_host.name}]<< #{text.strip}".yellow
+    $stdout.puts "[#{Rosh.environment.current_user}@#{Rosh.environment.current_host.name}]<< #{text.strip}".yellow
   end
 
   def private_result(ruby_object, exit_status, as_string=nil)

@@ -87,7 +87,11 @@ class Rosh
       # @param [String] command
       # @return [Rosh::Shell::PrivateCommandResult]
       def exec_internal(command)
-        @history << adapter.exec(command, @internal_pwd)
+        # TODO: Do I want to add this to the history??
+        result = adapter.exec(command, @internal_pwd)
+        @history << result
+
+        result
       end
 
       def lh

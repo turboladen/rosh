@@ -35,6 +35,7 @@ class Rosh
       alias_method :group_id, :gid
       alias_method :group_owned?, :grpowned?
       alias_method :inode, :ino
+      alias_method :hard_link_count, :nlink
       alias_method :set_group_id?, :setgid?
       alias_method :set_user_id?, :setuid?
       alias_method :symbolic_link?, :symlink?

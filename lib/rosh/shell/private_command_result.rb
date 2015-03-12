@@ -40,6 +40,11 @@ class Rosh
         @ruby_object.kind_of?(Exception)
       end
 
+      # return [Boolean]
+      def success?
+        @exit_status.zero?
+      end
+
       def failed?
         !@exit_status.zero?
       end
