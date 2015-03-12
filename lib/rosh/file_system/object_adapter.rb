@@ -13,6 +13,11 @@ class Rosh
         @adapter_class = load_adapter(type)
       end
 
+      # @return [Rosh::Host]
+      def host
+        Rosh.find_by_host_name(@host_name)
+      end
+
       def path=(new_path)
         @path = new_path
         private_result(@path, 0)

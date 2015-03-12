@@ -30,6 +30,11 @@ class Rosh
       @workspace = nil
     end
 
+    # @return [Rosh::Host]
+    def host
+      Rosh.find_by_host_name(@host_name)
+    end
+
     # @param [Integer] status Exit status code.
     def exit(status=0)
       echo_rosh_command status
@@ -48,7 +53,7 @@ class Rosh
 
     # @return [Integer] the exit status code of the last command executed.
     def last_exit_status
-      @history.empty? ? nil : @history.last[:exit_status]
+      @history.empty? ? nil : @history.last.exit_status
     end
     alias :_? :last_exit_status
 
@@ -69,7 +74,7 @@ class Rosh
       current_pwd = @internal_pwd
 
       su_user = if user
-        u = current_host.users[user]
+        u = host.users[user]
         adapter.su_user_name = u.name
         @internal_pwd = adapter.exec('pwd')[2].strip
         u
@@ -137,7 +142,7 @@ class Rosh
     def adapter
       return @adapter if @adapter
 
-      if current_host.local?
+      if host.local?
         @adapter = Shell::Adapter.new(:local, @host_name)
       else
         @adapter = Shell::Adapter.new(:remote, @host_name)
@@ -145,10 +150,10 @@ class Rosh
         @adapter.user = @user
       end
 
-      @internal_pwd = if current_host.local?
+      @internal_pwd = if host.local?
         Dir.pwd
       else
-        @adapter.exec('pwd')[2].strip
+        @adapter.exec('pwd').string.strip
       end
 
       @adapter
@@ -158,13 +163,14 @@ class Rosh
       cmd_result = yield
 
       @history << cmd_result
-      current_host.update_history(cmd, cmd_result.ruby_object,
+      # TODO: Host#update_history now takes 1 param: Command.
+      host.update_history(cmd, cmd_result.ruby_object,
         cmd_result.exit_status, args, options)
 
       if cmd_result.exit_status.zero?
-        current_host.update_stdout(cmd_result.string)
+        host.update_stdout(cmd_result.string)
       else
-        current_host.update_stderr(cmd_result.string)
+        host.update_stderr(cmd_result.string)
       end
 
       cmd_result.ruby_object

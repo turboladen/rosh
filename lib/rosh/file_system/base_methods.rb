@@ -24,8 +24,9 @@ class Rosh
         echo_rosh_command new_time
 
         current_mtime = self.modification_time
-        command = Rosh::Command.new(method(__method__), new_time, current_mtime,
-          &adapter.method(:utime).to_proc)
+        command = Rosh::Command.new(method(__method__), new_time) do
+          adapter.utime(new_time, current_mtime)
+        end
 
         command.change_if = -> { self.access_time != new_time }
         command.did_change_succeed = -> { self.access_time == new_time }
@@ -144,7 +145,7 @@ class Rosh
         # command.did_change = -> { self.group == current_group }
         command.did_change_succeed = -> { true }
         command.after_change = lambda do |result|
-          update(:group, result, Rosh.environment.current_shell.su?, from: current_group, to: new_group)
+          update(:group, result, host.shell.su?, from: current_group, to: new_group)
         end
 
         command.execute!
@@ -170,7 +171,7 @@ class Rosh
         command.change_if = -> { old_mtime != new_time }
         command.did_change_succeed = -> { self.modification_time == new_time }
         command.after_change = lambda do |result|
-          update(:modification_time, result, Rosh.environment.current_shell.su?, from: old_mtime, to: new_time)
+          update(:modification_time, result, host.shell.su?, from: old_mtime, to: new_time)
         end
 
         command.execute!
@@ -193,7 +194,7 @@ class Rosh
         # command.did_change = -> { self.owner == new_owner }
         command.did_change_succeed = -> { true }
         command.after_change = lambda do |result|
-          update(:owner, result, Rosh.environment.current_shell.su?, from: current_owner, to: new_owner)
+          update(:owner, result, host.shell.su?, from: current_owner, to: new_owner)
         end
 
         command.execute!
@@ -242,7 +243,7 @@ class Rosh
         end
 
         command.after_change = lambda do |result|
-          update(:path, result, Rosh.environment.current_shell.su?, from: current_path, to: new_name)
+          update(:path, result, host.shell.su?, from: current_path, to: new_name)
         end
 
         command.execute!
@@ -278,8 +279,8 @@ class Rosh
           new_link.exists? && new_link.destination == self.path
         end
 
-        command.after_change = lambda do |result|
-          update(:symbolic_link_from, self, Rosh.environment.current_shell.su?, from: nil, to: new_path)
+        command.after_change = proc do
+          update(:symbolic_link_from, self, host.shell.su?, from: nil, to: new_path)
         end
 
         command.execute!
@@ -301,7 +302,7 @@ class Rosh
         command.change_if = -> { new_size < current_size }
         command.did_change_succeed = -> { self.size == new_size }
         command.after_change = lambda do |result|
-          update(:size, result, Rosh.environment.current_shell.su?, from: current_size, to: new_size)
+          update(:size, result, host.shell.su?, from: current_size, to: new_size)
         end
 
         command.execute!
@@ -329,7 +330,7 @@ class Rosh
         end
 
         command.after_change = lambda do |result|
-          update(:file_times, result, Rosh.environment.current_shell.su?,
+          update(:file_times, result, host.shell.su?,
             from: { access_time: old_access_time, modification_time: old_modification_time },
             to: { access_time: self.access_time, modification_time: self.modification_time })
         end

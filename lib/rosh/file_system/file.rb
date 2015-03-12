@@ -66,6 +66,11 @@ class Rosh
         self.state = exists? ? :persisted : :transient
       end
 
+      # @return [Rosh::Host]
+      def host
+        Rosh.find_by_host_name(@host_name)
+      end
+
       def updated(*args)
         puts "YOOOOOOO UPdated: #{args}"
       end
