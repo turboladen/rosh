@@ -25,11 +25,15 @@ class Rosh
     #     user: 'robby', password: 'stuff'
     #   Rosh.hosts[:super'].name      # => 'super-duper-server.example.com'
     def add_host(host_name, host_label: nil, **ssh_options)
-      @current_host ||= if host_label.nil?
+      new_host = if host_label.nil?
         @hosts[host_name] = Rosh::Host.new(host_name, ssh_options)
       else
         @hosts[host_label] = Rosh::Host.new(host_name, ssh_options)
       end
+
+      @current_host ||= new_host
+
+      new_host
     end
 
     # Returns the Rosh::Host base on the current @host_name.
