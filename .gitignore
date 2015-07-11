@@ -26,3 +26,5 @@ atlassian-ide-plugin.xml
 
 # guard
 tmp/
+
+tags

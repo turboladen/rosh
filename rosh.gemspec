@@ -29,7 +29,7 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'bundler', '>= 1.0.1'
   s.add_development_dependency 'memfs'
-  s.add_development_dependency 'rspec', '>= 2.12.0'
+  s.add_development_dependency 'rspec', '~> 3.3.0'
   s.add_development_dependency 'simplecov'
   s.add_development_dependency 'yard', '>= 0.7.2'
 end

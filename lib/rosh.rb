@@ -3,40 +3,38 @@ require_relative 'rosh/host'
 require_relative 'rosh/internal_helpers'
 require_relative 'rosh/environment'
 
+# Contains methods for configuring and checking config.
 class Rosh
-  DEFAULT_RC_FILE = Dir.home + '/.roshrc'
-  @@environment ||= Rosh::Environment.new
+  DEFAULT_RC_FILE = ::File.join(Dir.home, '.roshrc')
 
-  def self.environment
-    @@environment
-  end
+  @environment ||= Rosh::Environment.new
 
-  # The currently managed Rosh::Hosts.
-  #
-  # @return [Hash{String,Object => Rosh::Host}]
-  def self.hosts
-    @@environment.hosts
-  end
+  class << self
+    extend Forwardable
 
-  # Finds the registered Rosh::Host with the given +host_name+.
-  #
-  # @param [String] host_name
-  # @return [Rosh::Host] +nil+ if host_name not registered.
-  def self.find_by_host_name(host_name)
-    key_value_pair = @@environment.hosts.find do |_, host|
-      host.name == host_name
+    # @!attribute [r] environment
+    #   @return [Rosh::Environment]
+    attr_reader :environment
+
+    attr_reader :config
+
+    # @!attribute [r] hosts
+    #   The currently managed Rosh::Hosts.
+    #   @return [Hash{String,Object => Rosh::Host}]
+    def_delegator :@environment, :hosts
+
+    # Reads the configuration from .roshrc.yml.
+    #
+    # @return [Hash]
+    def load_config
+      @config = ::File.read(DEFAULT_RC_FILE) if ::File.exist?(DEFAULT_RC_FILE)
     end
 
-    key_value_pair.last rescue nil
-  end
-
-  # Reads the configuration from .roshrc.yml.
-  #
-  # @return [Hash]
-  def self.load_config
-    @config = if File.exists? DEFAULT_RC_FILE
-      File.read(DEFAULT_RC_FILE)
+    def reset!
+      @environment = Rosh::Environment.new
     end
+
+    private
   end
 
   include InternalHelpers
