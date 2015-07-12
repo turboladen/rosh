@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/file_system/remote_stat'
 
-
-describe Rosh::FileSystem::RemoteStat do
+RSpec.describe Rosh::FileSystem::RemoteStat do
   let(:host) { double 'Rosh::Host' }
   let(:shell) { double 'Rosh::Shell' }
   let(:path) { 'fake path' }

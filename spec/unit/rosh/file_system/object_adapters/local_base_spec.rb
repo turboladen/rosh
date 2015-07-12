@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/file_system/object_adapters/local_base'
 
-
-describe Rosh::FileSystem::ObjectAdapters::LocalBase do
+RSpec.describe Rosh::FileSystem::ObjectAdapters::LocalBase do
   subject do
     Class.new { include(described_class) }
   end

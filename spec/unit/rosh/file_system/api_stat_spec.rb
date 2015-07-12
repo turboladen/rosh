@@ -1,8 +1,7 @@
-require 'spec_helper'
 require 'rosh/file_system/stat_methods'
 
 
-describe Rosh::FileSystem::StatMethods do
+RSpec.describe Rosh::FileSystem::StatMethods do
   subject do
     Object.new.extend Rosh::FileSystem::StatMethods
   end

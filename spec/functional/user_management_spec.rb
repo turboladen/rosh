@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh'
 
-
-shared_examples_for 'a user manager' do
+RSpec.shared_examples_for 'a user manager' do
   it 'can list users' do
     list = host.users.list_users
 
@@ -40,7 +38,7 @@ shared_examples_for 'a user manager' do
   end
 end
 
-describe 'User Management' do
+RSpec.describe 'User Management' do
   include_context 'hosts'
   let(:user) { 'bobo' }
 

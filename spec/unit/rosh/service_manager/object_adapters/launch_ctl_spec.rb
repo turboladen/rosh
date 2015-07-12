@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/service_manager/object_adapters/launch_ctl'
 
-
-describe Rosh::ServiceManager::ObjectAdapters::LaunchCtl do
+RSpec.describe Rosh::ServiceManager::ObjectAdapters::LaunchCtl do
   let(:shell) { double 'Rosh::Shell' }
 
   before do

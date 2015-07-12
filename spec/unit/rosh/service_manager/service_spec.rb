@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/service_manager/service'
 
-
-describe Rosh::ServiceManager::Service do
+RSpec.describe Rosh::ServiceManager::Service do
   let(:shell) { double 'Rosh::Host::Shell' }
 
   before do

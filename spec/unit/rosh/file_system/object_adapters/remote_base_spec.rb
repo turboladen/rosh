@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/file_system/object_adapters/remote_base'
 
-
-describe Rosh::FileSystem::ObjectAdapters::RemoteBase do
+RSpec.describe Rosh::FileSystem::ObjectAdapters::RemoteBase do
   subject do
     k = Class.new { include(described_class) }
     k.instance_variable_set(:@path, path)

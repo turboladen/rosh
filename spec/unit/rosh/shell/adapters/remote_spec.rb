@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/shell/adapters/remote'
 
-
-describe Rosh::Shell::Adapters::Remote do
+RSpec.describe Rosh::Shell::Adapters::Remote do
   let(:ssh) do
     double 'Net::SSH::Connection', close: true, :closed? => true
   end

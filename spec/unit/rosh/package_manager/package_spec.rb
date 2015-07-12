@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/package_manager/package'
 
-
-describe Rosh::PackageManager::Package do
+RSpec.describe Rosh::PackageManager::Package do
   before do
     described_class.any_instance.stub(:adapter)
     allow(package).to receive(:adapter) { adapter }

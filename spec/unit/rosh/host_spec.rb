@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/host'
 
-
-describe Rosh::Host do
+RSpec.describe Rosh::Host do
   let(:name) { 'test' }
 
   let(:publisher) do

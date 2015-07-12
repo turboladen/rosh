@@ -1,9 +1,8 @@
 =begin
-require 'spec_helper'
 require 'rosh/host/package_managers/dpkg'
 
 
-describe Rosh::Host::PackageManagers::Dpkg do
+RSpec.describe Rosh::Host::PackageManagers::Dpkg do
   let(:shell) { double 'Rosh::Host::Shell' }
   before { allow(subject).to receive(:current_shell) { shell } }
   subject { Object.new.extend(Rosh::Host::PackageManagers::Dpkg) }

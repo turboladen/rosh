@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/shell/private_command_result'
 
-
-describe Rosh::Shell::PrivateCommandResult do
+RSpec.describe Rosh::Shell::PrivateCommandResult do
   let(:ruby_object) { double 'Object' }
 
   subject do

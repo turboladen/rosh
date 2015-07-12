@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/file_system'
 
-
-describe Rosh::FileSystem do
+RSpec.describe Rosh::FileSystem do
   subject(:file_system) { Rosh::FileSystem.new('test_host') }
 
   let(:current_host) do

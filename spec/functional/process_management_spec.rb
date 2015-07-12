@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh'
 
-
-shared_examples_for 'a process manager' do
+RSpec.shared_examples_for 'a process manager' do
   it 'can list processes' do
     list = host.processes.list
 
@@ -28,7 +26,7 @@ shared_examples_for 'a process manager' do
   end
 end
 
-describe 'Process Management' do
+RSpec.describe 'Process Management' do
   include_context 'hosts'
 
   context 'centos' do

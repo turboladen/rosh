@@ -1,9 +1,7 @@
-require 'spec_helper'
 require 'rosh/file_system/object_adapters/local_dir'
 require 'tmpdir'
 
-
-describe Rosh::FileSystem::ObjectAdapters::LocalDir do
+RSpec.describe Rosh::FileSystem::ObjectAdapters::LocalDir do
   subject do
     k = described_class
     k.instance_variable_set(:@path, '/dir')

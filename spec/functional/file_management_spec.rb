@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh'
 
-
-shared_examples_for 'a file manager' do
+RSpec.shared_examples_for 'a file manager' do
   it 'can get the home directory' do
     expect(host.fs.home.to_s).to eq home_directory
     expect(host.fs.home).to be_a Rosh::FileSystem::Directory
@@ -35,9 +33,7 @@ shared_examples_for 'a file manager' do
 
   describe 'directories' do
     it 'can create and delete a directory' do
-      if host.fs[dir: dir].exists?
-        expect(host.fs[dir: dir].delete).to eq true
-      end
+      expect(host.fs[dir: dir].delete).to eq true if host.fs[dir: dir].exists?
 
       expect(host.fs[dir: dir].exists?).to eq false
 
@@ -88,8 +84,7 @@ shared_examples_for 'a file manager' do
   end
 end
 
-
-describe 'File Management' do
+RSpec.describe 'File Management' do
   include_context 'hosts'
   let(:file) { '/tmp/rosh_test' }
   let(:dir) { '/tmp/rosh_test_dir' }

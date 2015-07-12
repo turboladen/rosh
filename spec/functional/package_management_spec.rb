@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh'
 
-
-shared_examples_for 'a package manager' do
+RSpec.shared_examples_for 'a package manager' do
   before do
     if host.packages[package_name].installed?
       host.su do
@@ -51,7 +49,7 @@ shared_examples_for 'a package manager' do
 end
 
 
-describe 'Package Management' do
+RSpec.describe 'Package Management' do
   include_context 'hosts'
 
   let(:package_name) { 'curl' }

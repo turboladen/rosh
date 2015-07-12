@@ -1,8 +1,7 @@
-require 'spec_helper'
 require 'rosh/package_manager/manager_adapters/apt'
 
 
-describe Rosh::PackageManager::ManagerAdapters::Apt do
+RSpec.describe Rosh::PackageManager::ManagerAdapters::Apt do
   subject { Object.new.extend(described_class) }
 
   describe '#installed_packages' do

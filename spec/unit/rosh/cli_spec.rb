@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/cli'
 
-
-describe Rosh::CLI do
+RSpec.describe Rosh::CLI do
   before do
     described_class.stub :log
   end

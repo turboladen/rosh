@@ -1,9 +1,7 @@
-require 'spec_helper'
 require 'memfs'
 require 'rosh/shell/adapters/local'
 
-
-describe Rosh::Shell::Adapters::Local do
+RSpec.describe Rosh::Shell::Adapters::Local do
   subject(:shell) do
     Object.new.extend(described_class)
   end

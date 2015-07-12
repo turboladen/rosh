@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/package_manager/manager_adapters/yum'
 
-
-describe Rosh::PackageManager::ManagerAdapters::Yum do
+RSpec.describe Rosh::PackageManager::ManagerAdapters::Yum do
   let(:shell) { double 'Rosh::Host::Shell' }
   before { allow(subject).to receive(:current_shell) { shell } }
 

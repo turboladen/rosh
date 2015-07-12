@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/package_manager'
 
-
-describe Rosh::PackageManager do
+RSpec.describe Rosh::PackageManager do
   let(:shell) { double 'Rosh::Shell' }
   let(:adapter) { double 'Rosh::PackageManager::ManagerAdapters::Test' }
 

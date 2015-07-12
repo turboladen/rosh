@@ -27,6 +27,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'sys-proctable'
 
   s.add_development_dependency 'bundler', '>= 1.0.1'
+  s.add_development_dependency 'byebug'
   s.add_development_dependency 'memfs'
   s.add_development_dependency 'rspec', '~> 3.3.0'
   s.add_development_dependency 'simplecov'

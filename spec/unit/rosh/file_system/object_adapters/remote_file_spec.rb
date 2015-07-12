@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/file_system/object_adapters/remote_file'
 
-
-describe Rosh::FileSystem::ObjectAdapters::RemoteFile do
+RSpec.describe Rosh::FileSystem::ObjectAdapters::RemoteFile do
   subject do
     described_class.new(path, 'test_host')
   end

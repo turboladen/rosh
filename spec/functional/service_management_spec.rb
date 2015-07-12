@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh'
 
-
-shared_examples_for 'a service manager' do
+RSpec.shared_examples_for 'a service manager' do
   before do
     unless host.services[service].exists?
       host.su do
@@ -40,7 +38,7 @@ shared_examples_for 'a service manager' do
   end
 end
 
-describe 'Service Management' do
+RSpec.describe 'Service Management' do
   include_context 'hosts'
 
   context 'centos' do

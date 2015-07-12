@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/service_manager/object_adapters/init'
 
-
-describe Rosh::ServiceManager::ObjectAdapters::Init do
+RSpec.describe Rosh::ServiceManager::ObjectAdapters::Init do
   let(:shell) { double 'Rosh::Shell' }
   before { allow(subject).to receive(:current_shell) { shell } }
   subject { Object.new.extend(described_class) }

@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/package_manager/object_adapters/rpm'
 
-
-describe Rosh::PackageManager::ObjectAdapters::Rpm do
+RSpec.describe Rosh::PackageManager::ObjectAdapters::Rpm do
   let(:shell) { double 'Rosh::Host::Shell', :su? => false }
   subject { Object.new.extend Rosh::Host::PackageTypes::Rpm }
 

@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/host/attributes'
 
-
-describe Rosh::Host::Attributes do
+RSpec.describe Rosh::Host::Attributes do
   let(:host_name) { 'test' }
   let(:shell) { double 'Rosh::Shell' }
 

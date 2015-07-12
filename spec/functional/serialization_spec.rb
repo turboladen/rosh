@@ -1,9 +1,7 @@
-require 'spec_helper'
 require 'rosh/shell'
 require 'rosh/file_system/object_adapters/remote_base'
 
-
-describe 'Serialization' do
+RSpec.describe 'Serialization' do
   describe Rosh::Shell do
     subject do
       Rosh::Shell.new('example.com', user: 'bobo',

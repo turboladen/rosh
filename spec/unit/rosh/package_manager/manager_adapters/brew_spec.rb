@@ -1,8 +1,6 @@
-require 'spec_helper'
 require 'rosh/package_manager/manager_adapters/brew'
 
-
-describe Rosh::PackageManager::ManagerAdapters::Brew do
+RSpec.describe Rosh::PackageManager::ManagerAdapters::Brew do
   let(:shell) { double 'Rosh::Host::Shell' }
   before { allow(subject).to receive(:current_shell) { shell } }
 
