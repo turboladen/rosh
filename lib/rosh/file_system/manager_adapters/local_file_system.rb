@@ -1,6 +1,7 @@
 class Rosh
   class FileSystem
     module ManagerAdapters
+      # Methods that mimic Ruby's File API.
       module LocalFileSystem
         def blockdev?(path)
           return true if path.is_a? FileSystem::BlockDevice
@@ -48,11 +49,11 @@ class Rosh
           ::File.symlink?(path)
         end
 
-        def umask(new_umask=nil)
+        def umask(new_umask = nil)
           if new_umask
-            sprintf('%o', ::File.umask(new_umask))
+            format('%o', ::File.umask(new_umask))
           else
-            sprintf('%o', ::File.umask)
+            format('%o', ::File.umask)
           end
         end
       end

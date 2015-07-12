@@ -15,7 +15,6 @@ require_relative 'user_manager'
 require_relative 'kernel_refinements'
 require_relative 'string_refinements'
 
-
 class Rosh
   class Host
     include Rosh::Logger

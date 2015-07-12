@@ -1,5 +1,4 @@
-require './lib/rosh/version'
-
+require_relative 'lib/rosh/version'
 
 Gem::Specification.new do |s|
   s.name = 'rosh'
@@ -7,12 +6,12 @@ Gem::Specification.new do |s|
   s.author = 'Steve Loveless'
   s.homepage = 'http://github.com/turboladen/rosh'
   s.email = 'steve.loveless@gmail.com'
-  s.summary = "FIX"
-  s.description = %q(FIX)
+  s.summary = 'FIX'
+  s.description = 'FIX'
 
   s.required_rubygems_version = '>=1.8.0'
   s.files = Dir.glob('{lib,spec}/**/*') + Dir.glob('*.rdoc') +
-    %w(.gemtest Gemfile rosh.gemspec Rakefile)
+    %w[.gemtest Gemfile rosh.gemspec Rakefile]
   s.test_files = Dir.glob('{spec}/**/*')
   s.require_paths = %w[lib]
 

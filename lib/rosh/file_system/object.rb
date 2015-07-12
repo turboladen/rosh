@@ -2,7 +2,6 @@ require_relative 'base_methods'
 require_relative 'stat_methods'
 require_relative 'state_machine'
 
-
 class Rosh
   class FileSystem
     class Object

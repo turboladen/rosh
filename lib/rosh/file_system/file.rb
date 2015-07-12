@@ -240,11 +240,7 @@ class Rosh
       def adapter
         return @adapter if @adapter
 
-        type = if host.local?
-          :local_file
-        else
-          :remote_file
-        end
+        type = host.local? ? :local_file : :remote_file
 
         @adapter = FileSystem::ObjectAdapter.new(@path, type, @host_name)
       end

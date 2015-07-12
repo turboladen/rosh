@@ -13,9 +13,7 @@ require_relative 'file_system/object'
 require_relative 'file_system/symbolic_link'
 require_relative 'file_system/manager_adapter'
 
-
 class Rosh
-
   # Sub-module of the Rosh system, used for working with a local or remote file
   # system.  It behaves somewhat like an ORM for working with file system
   # objects.

@@ -1,0 +1,21 @@
+Style/AlignParameters:
+  EnforcedStyle: with_fixed_indentation
+
+Style/DotPosition:
+  EnforcedStyle: trailing
+
+Style/FormatString:
+  EnforcedStyle: percent
+
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    '%i': '[]'
+    '%w': '[]'
+    '%W': '[]'
+
+Style/SymbolArray:
+  Enabled: true
+
+AllCops:
+  Include:
+    - Gemfile
