@@ -20,8 +20,13 @@ class Rosh
 
     # @!attribute [r] hosts
     #   The currently managed Rosh::Hosts.
-    #   @return [Hash{String,Object => Rosh::Host}]
+    #   @see Rosh::Environment#hosts
     def_delegator :@environment, :hosts
+
+    # @!method add_host
+    #   Adds a {{Rosh::Host}} to the +environment+.
+    #   @see Rosh::Environment#add_host
+    def_delegator :@environment, :add_host
 
     # Reads the configuration from .roshrc.yml.
     #

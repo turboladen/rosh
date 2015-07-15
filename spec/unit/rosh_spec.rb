@@ -2,7 +2,19 @@ require 'rosh'
 
 RSpec.describe Rosh do
   subject(:rosh_class) { described_class }
-  before { subject.reset! }
+  before { described_class.reset! }
+
+  describe '.environment' do
+    it { is_expected.to respond_to :environment }
+  end
+
+  describe '.hosts' do
+    it { is_expected.to respond_to :hosts }
+  end
+
+  describe '.add_host' do
+    it { is_expected.to respond_to :add_host }
+  end
 
   describe '.config' do
     around do |example|
