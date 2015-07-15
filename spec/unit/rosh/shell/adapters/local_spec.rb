@@ -73,7 +73,7 @@ RSpec.describe Rosh::Shell::Adapters::Local do
       end
 
       specify { @r.should eq 'command output' }
-      specify { pending; shell.last_exit_status.should eq $?.exitstatus }
+      specify { pending; shell.last_exit_status.should eq $CHILD_STATUS.exitstatus }
       specify { shell.last_result.should eq @r }
     end
   end

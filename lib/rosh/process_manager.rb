@@ -39,9 +39,9 @@ class Rosh
       return @process_adapter if @process_adapter
 
       type = if current_host.local?
-        :local
-      else
-        :remote
+               :local
+             else
+               :remote
       end
 
       @process_adapter = ProcessManager::ManagerAdapter.new(type, @host_name)
@@ -51,11 +51,11 @@ class Rosh
       return @signal_adapter if @signal_adapter
 
       @signal_adapter = if current_host.local?
-        require_relative 'process_manager/manager_adapters/local_signal'
-        ProcessManager::ManagerAdapters::LocalSignal
-      else
-        require_relative 'process_manager/manager_adapters/remote_signal'
-        ProcessManager::ManagerAdapters::RemoteSignal
+                          require_relative 'process_manager/manager_adapters/local_signal'
+                          ProcessManager::ManagerAdapters::LocalSignal
+                        else
+                          require_relative 'process_manager/manager_adapters/remote_signal'
+                          ProcessManager::ManagerAdapters::RemoteSignal
       end
 
       @signal_adapter.host_name = @host_name

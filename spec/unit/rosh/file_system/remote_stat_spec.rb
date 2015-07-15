@@ -20,7 +20,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.blockdev?' do
       before do
-        expect(shell).to receive(:exec) { '[ -b fake path ]'}
+        expect(shell).to receive(:exec) { '[ -b fake path ]' }
         expect(shell).to receive(:last_exit_status) { 0 }
       end
 
@@ -29,7 +29,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.chardev?' do
       before do
-        expect(shell).to receive(:exec) { '[ -c fake path ]'}
+        expect(shell).to receive(:exec) { '[ -c fake path ]' }
         expect(shell).to receive(:last_exit_status) { 0 }
       end
 
@@ -38,7 +38,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.dev_major' do
       before do
-        expect(shell).to receive(:exec) { "0\r\n"}
+        expect(shell).to receive(:exec) { "0\r\n" }
         expect(host).to receive(:darwin?)
       end
 
@@ -47,7 +47,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.dev_minor' do
       before do
-        expect(shell).to receive(:exec) { "0\r\n"}
+        expect(shell).to receive(:exec) { "0\r\n" }
         expect(host).to receive(:darwin?)
       end
 
@@ -56,7 +56,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.directory?' do
       before do
-        expect(shell).to receive(:exec) { '[ -d fake path ]'}
+        expect(shell).to receive(:exec) { '[ -d fake path ]' }
         expect(shell).to receive(:last_exit_status) { 0 }
       end
 
@@ -65,7 +65,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.executable?' do
       before do
-        expect(shell).to receive(:exec) { '[ -x fake path ]'}
+        expect(shell).to receive(:exec) { '[ -x fake path ]' }
         expect(shell).to receive(:last_exit_status) { 0 }
       end
 
@@ -74,7 +74,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.file?' do
       before do
-        expect(shell).to receive(:exec) { '[ -f fake path ]'}
+        expect(shell).to receive(:exec) { '[ -f fake path ]' }
         expect(shell).to receive(:last_exit_status) { 0 }
       end
 
@@ -83,7 +83,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.grpowned?' do
       before do
-        expect(shell).to receive(:exec) { '[ -G fake path ]'}
+        expect(shell).to receive(:exec) { '[ -G fake path ]' }
         expect(shell).to receive(:last_exit_status) { 0 }
       end
 
@@ -92,7 +92,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.owned?' do
       before do
-        expect(shell).to receive(:exec) { '[ -O fake path ]'}
+        expect(shell).to receive(:exec) { '[ -O fake path ]' }
         expect(shell).to receive(:last_exit_status) { 0 }
       end
 
@@ -101,7 +101,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.pipe?' do
       before do
-        expect(shell).to receive(:exec) { '[ -p fake path ]'}
+        expect(shell).to receive(:exec) { '[ -p fake path ]' }
         expect(shell).to receive(:last_exit_status) { 0 }
       end
 
@@ -110,7 +110,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.readable?' do
       before do
-        expect(shell).to receive(:exec) { '[ -r fake path ]'}
+        expect(shell).to receive(:exec) { '[ -r fake path ]' }
         expect(shell).to receive(:last_exit_status) { 0 }
       end
 
@@ -119,7 +119,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.setgid?' do
       before do
-        expect(shell).to receive(:exec) { '[ -g fake path ]'}
+        expect(shell).to receive(:exec) { '[ -g fake path ]' }
         expect(shell).to receive(:last_exit_status) { 0 }
       end
 
@@ -128,7 +128,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.socket?' do
       before do
-        expect(shell).to receive(:exec) { '[ -S fake path ]'}
+        expect(shell).to receive(:exec) { '[ -S fake path ]' }
         expect(shell).to receive(:last_exit_status) { 0 }
       end
 
@@ -137,7 +137,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.sticky?' do
       before do
-        expect(shell).to receive(:exec) { '[ -k fake path ]'}
+        expect(shell).to receive(:exec) { '[ -k fake path ]' }
         expect(shell).to receive(:last_exit_status) { 0 }
       end
 
@@ -146,7 +146,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.symlink?' do
       before do
-        expect(shell).to receive(:exec) { '[ -L fake path ]'}
+        expect(shell).to receive(:exec) { '[ -L fake path ]' }
         expect(shell).to receive(:last_exit_status) { 0 }
       end
 
@@ -155,7 +155,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.writable?' do
       before do
-        expect(shell).to receive(:exec) { '[ -w fake path ]'}
+        expect(shell).to receive(:exec) { '[ -w fake path ]' }
         expect(shell).to receive(:last_exit_status) { 0 }
       end
 
@@ -164,7 +164,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
     describe '.zero?' do
       before do
-        expect(shell).to receive(:exec) { '[ -s fake path ]'}
+        expect(shell).to receive(:exec) { '[ -s fake path ]' }
         expect(shell).to receive(:last_exit_status) { 1 }
       end
 
@@ -174,8 +174,8 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
 
   describe 'instance methods' do
     let(:result) do
-      'dev: 16777217 ino: 4408160 mode: 100644 nlink: 1 uid: 501 gid: 20 ' +
-        'rdev: 0 size: 1067 blksize: 4096 blocks: 8 atime: 1379742799 ' +
+      'dev: 16777217 ino: 4408160 mode: 100644 nlink: 1 uid: 501 gid: 20 ' \
+        'rdev: 0 size: 1067 blksize: 4096 blocks: 8 atime: 1379742799 ' \
         'mtime: 1375936779 ctime: 1375936779'
     end
 
@@ -189,7 +189,7 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
     end
 
     specify { expect(subject.dev).to eq '0x16777217' }
-    specify { expect(subject.ino).to eq 4408160 }
+    specify { expect(subject.ino).to eq 4_408_160 }
 
     context 'darwin' do
       before { allow(host).to receive(:darwin?) { true } }
@@ -204,8 +204,8 @@ RSpec.describe Rosh::FileSystem::RemoteStat do
     specify { expect(subject.size).to eq 1067 }
     specify { expect(subject.blksize).to eq 4096 }
     specify { expect(subject.blocks).to eq 8 }
-    specify { expect(subject.atime).to eq Time.at(1379742799) }
-    specify { expect(subject.mtime).to eq Time.at(1379742799) }
-    specify { expect(subject.ctime).to eq Time.at(1379742799) }
+    specify { expect(subject.atime).to eq Time.at(1_379_742_799) }
+    specify { expect(subject.mtime).to eq Time.at(1_379_742_799) }
+    specify { expect(subject.ctime).to eq Time.at(1_379_742_799) }
   end
 end

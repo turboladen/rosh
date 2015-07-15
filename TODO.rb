@@ -2,7 +2,6 @@
 #   * Make adding shell commands more API-like.
 #   * Handle wrong number of args by printing out usage
 
-
 # TODO: Specs & Docs
 #   * remote dir
 #   * remote file

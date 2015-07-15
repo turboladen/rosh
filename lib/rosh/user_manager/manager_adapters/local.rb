@@ -2,7 +2,6 @@ require 'etc'
 require_relative '../user'
 require_relative '../group'
 
-
 class Rosh
   class UserManager
     module ManagerAdapters

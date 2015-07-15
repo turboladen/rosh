@@ -24,7 +24,7 @@ class Rosh
     end
 
     def initialize
-      ENV['SHELL'] = ::File.expand_path($0)
+      ENV['SHELL'] = ::File.expand_path($PROGRAM_NAME)
 
       if Rosh.load_config
         instance_eval Rosh.config
@@ -33,11 +33,11 @@ class Rosh
       end
 
       localhost = if Rosh.hosts['localhost']
-        Rosh.hosts['localhost']
-      elsif Rosh.hosts[:localhost]
-        Rosh.hosts[:localhost]
-      else
-        Rosh.hosts.values.find { |host| host.name == 'localhost' }
+                    Rosh.hosts['localhost']
+                  elsif Rosh.hosts[:localhost]
+                    Rosh.hosts[:localhost]
+                  else
+                    Rosh.hosts.values.find { |host| host.name == 'localhost' }
       end
 
       @host_name = localhost.name
@@ -76,12 +76,11 @@ class Rosh
         end
 
         result = execute(argv)
-        #puts result
+        # puts result
 
         result
       end
     end
-
 
     # @param [String] argv The command given at the prompt.
     # @return [Rosh::Shell::PublicCommandResult]
@@ -94,29 +93,29 @@ class Rosh
       log "new argv: #{new_argv}"
 
       result = if %i[ch].include? command
-        self.send(command, *args)
-      elsif current_shell.shell_methods.include? command
-        if !args.empty?
-          if args.first.match /\w+:/
-            h = Hash[*args].inject({}) do |result, k_and_v|
-              result[k_and_v.first.chop.to_sym] = k_and_v.last
-              result
-            end
+                 send(command, *args)
+               elsif current_shell.shell_methods.include? command
+                 if !args.empty?
+                   if args.first.match /\w+:/
+                     h = Hash[*args].inject({}) do |result, k_and_v|
+                       result[k_and_v.first.chop.to_sym] = k_and_v.last
+                       result
+                     end
 
-            current_shell.send(command, **h)
-          else
-            current_shell.send(command, *args)
-          end
-        else
-          current_shell.send(command)
-        end
-      elsif current_shell.system_commands.include? command.to_s
-        current_shell.exec_internal(argv)
-      elsif current_shell.system_commands.include? command.to_s.split('/').last
-        current_shell.exec_internal(argv)
-      else
-        $stdout.puts "Running Ruby: #{argv}"
-        current_shell.ruby(argv)
+                     current_shell.send(command, **h)
+                   else
+                     current_shell.send(command, *args)
+                   end
+                 else
+                   current_shell.send(command)
+                 end
+               elsif current_shell.system_commands.include? command.to_s
+                 current_shell.exec_internal(argv)
+               elsif current_shell.system_commands.include? command.to_s.split('/').last
+                 current_shell.exec_internal(argv)
+               else
+                 $stdout.puts "Running Ruby: #{argv}"
+                 current_shell.ruby(argv)
       end
 
       result
@@ -129,18 +128,14 @@ class Rosh
       user_and_host << ":#{current_shell.env_internal[:pwd].split('/').last}".red
       user_and_host << ']'.blue
 
-=begin
-      _, width = Readline.get_screen_size
-      git = %x[git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/']
-=end
+      #       _, width = Readline.get_screen_size
+      #       git = %x[git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/']
 
       prompt = user_and_host
 
-=begin
-      unless git.empty?
-        prompt << ("%#{width + 70 - user_and_host.size}s".yellow % "[git(#{git.strip})]")
-      end
-=end
+      #       unless git.empty?
+      #         prompt << ("%#{width + 70 - user_and_host.size}s".yellow % "[git(#{git.strip})]")
+      #       end
 
       prompt << '$ '.red
 
@@ -150,9 +145,7 @@ class Rosh
     def multiline_ruby?(argv)
       found = argv.scan(/(\S*\.\.\S*)/).flatten
 
-      unless found.empty?
-        argv.sub!(found.first, %['#{found.first}'])
-      end
+      argv.sub!(found.first, %('#{found.first}')) unless found.empty?
 
       sexp = Ripper.sexp argv
 
@@ -176,6 +169,7 @@ class Rosh
     #---------------------------------------------------------------------------
     # Privates!
     #---------------------------------------------------------------------------
+
     private
 
     def ch(host_name)
@@ -199,6 +193,5 @@ class Rosh
         $stderr.puts(command_result.string.red)
       end
     end
-
   end
 end

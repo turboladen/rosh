@@ -2,7 +2,6 @@ require 'time'
 require 'digest/md5'
 require_relative '../../errors'
 
-
 class Rosh
   class UserManager
     module ObjectAdapters
@@ -36,8 +35,8 @@ class Rosh
           if current_shell.last_exit_status.zero?
             true
           elsif current_shell.last_exit_status == 127 ||
-            result.match(/command not found/)
-            raise Rosh::Shell::CommandNotFound, cmd
+                result.match(/command not found/)
+            fail Rosh::Shell::CommandNotFound, cmd
           end
         end
 
@@ -89,7 +88,7 @@ class Rosh
         end
 
         def real_name
-          self.gecos.split(',').first
+          gecos.split(',').first
         end
 
         def shell
@@ -109,7 +108,7 @@ class Rosh
           result = current_shell.exec_internal cmd
 
           if result.match /Permission denied/
-            raise Rosh::PermissionDenied, "Command: #{cmd}"
+            fail Rosh::PermissionDenied, "Command: #{cmd}"
           end
 
           result_split = result.split(':')
@@ -132,12 +131,12 @@ class Rosh
           {
             name: result_split[0],
             passwd: result_split[1],
-            last_changed: Time.at(result_split[2].to_i * 86400),
+            last_changed: Time.at(result_split[2].to_i * 86_400),
             days_before_can_change: result_split[3].to_i,
             days_before_must_change: result_split[4].to_i,
             days_before_change_warning: result_split[5].to_i,
             days_before_disabled: result_split[6].strip.to_i,
-            days_since_disabled: result_split[7].empty? ? nil :Time.at(result_split[7].to_i * 86400),
+            days_since_disabled: result_split[7].empty? ? nil : Time.at(result_split[7].to_i * 86_400),
             encrypted_with: password_encryption_type(result_split[1]),
             salt: password_salt(result_split[1]),
             encrypted_passwd: password_encrypted(result_split[1])
@@ -145,13 +144,13 @@ class Rosh
         end
 
         def dir=(new_dir)
-          current_shell.exec_internal %[usermod --home "#{new_dir}" --move-home #{@name}]
+          current_shell.exec_internal %(usermod --home "#{new_dir}" --move-home #{@name})
 
           current_shell.last_exit_status.zero?
         end
 
         def gid=(new_gid)
-          current_shell.exec_internal %[usermod --gid #{new_gid} #{@name}]
+          current_shell.exec_internal %(usermod --gid #{new_gid} #{@name})
 
           current_shell.last_exit_status.zero?
         end
@@ -163,26 +162,26 @@ class Rosh
         end
 
         def passwd=(new_password)
-          cmd = %[echo "#{@name}:#{new_password}" | chpasswd]
+          cmd = %(echo "#{@name}:#{new_password}" | chpasswd)
           current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?
         end
 
         def real_name=(new_name)
-          current_shell.exec_internal %[chfn --full-name "#{new_name}" #{@name}]
+          current_shell.exec_internal %(chfn --full-name "#{new_name}" #{@name})
 
           current_shell.last_exit_status.zero?
         end
 
         def shell=(new_shell)
-          current_shell.exec_internal %[usermod --shell "#{new_shell}" #{@name}]
+          current_shell.exec_internal %(usermod --shell "#{new_shell}" #{@name})
 
           current_shell.last_exit_status.zero?
         end
 
         def uid=(new_uid)
-          current_shell.exec_internal %[usermod --uid #{new_uid} #{@name}]
+          current_shell.exec_internal %(usermod --uid #{new_uid} #{@name})
 
           current_shell.last_exit_status.zero?
         end

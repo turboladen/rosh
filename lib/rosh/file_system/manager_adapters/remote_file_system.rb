@@ -4,7 +4,6 @@ require_relative '../block_device'
 require_relative '../character_device'
 require_relative '../symbolic_link'
 
-
 class Rosh
   class FileSystem
     module ManagerAdapters
@@ -55,7 +54,7 @@ class Rosh
           RemoteStat.symlink?(path, @host_name)
         end
 
-        def umask(new_umask=nil)
+        def umask(new_umask = nil)
           if new_umask
             current_shell.exec_internal("umask #{new_umask}").strip
           else

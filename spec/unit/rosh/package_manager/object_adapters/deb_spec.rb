@@ -1,7 +1,7 @@
 require 'rosh/package_manager/object_adapters/deb'
 
 RSpec.describe Rosh::PackageManager::ObjectAdapters::Deb do
-  let(:shell) { double 'Rosh::Host::Shell', :su? => false }
+  let(:shell) { double 'Rosh::Host::Shell', su?: false }
   subject { Object.new.extend described_class }
 
   before do

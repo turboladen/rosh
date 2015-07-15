@@ -18,16 +18,16 @@ RSpec.describe Rosh::Shell do
 
   describe '#check_state_first=' do
     it 'toggles the setting' do
-      expect {
+      expect do
         shell.check_state_first = true
-      }.to change { shell.check_state_first? }.
+      end.to change { shell.check_state_first? }.
         from(false).to(true)
     end
   end
 
   describe '#last_result' do
     before do
-      shell.instance_variable_set(:@history, [1, { output: 'hi' } ])
+      shell.instance_variable_set(:@history, [1, { output: 'hi' }])
     end
 
     context 'as #last_result' do
@@ -50,7 +50,7 @@ RSpec.describe Rosh::Shell do
 
   describe '#last_exit_status' do
     before do
-      shell.instance_variable_set(:@history, [1, { exit_status: 123 } ])
+      shell.instance_variable_set(:@history, [1, { exit_status: 123 }])
     end
 
     context 'as #last_exit_status' do
@@ -75,7 +75,7 @@ RSpec.describe Rosh::Shell do
     let(:exception) { Exception.new('hi') }
 
     before do
-      shell.instance_variable_set(:@history, [1, { output: exception } ])
+      shell.instance_variable_set(:@history, [1, { output: exception }])
     end
 
     context 'as #last_exception' do
@@ -134,9 +134,9 @@ RSpec.describe Rosh::Shell do
     it 'adds info about the executed command to @history' do
       Time.stub(:now).and_return today
 
-      expect {
+      expect do
         shell.send(:process, 'the command', **args, &blk)
-      }.to change { shell.history.size }.from(0).to(1)
+      end.to change { shell.history.size }.from(0).to(1)
 
       shell.history.last.should == {
         time: today,

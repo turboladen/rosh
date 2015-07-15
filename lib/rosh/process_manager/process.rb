@@ -31,9 +31,9 @@ class Rosh
         return @adapter if @adapter
 
         type = if current_host.local?
-          :local
-        else
-          :remote
+                 :local
+               else
+                 :remote
         end
 
         @adapter = ProcessManager::ObjectAdapter.new(@pid, type, @host_name)

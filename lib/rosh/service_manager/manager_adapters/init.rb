@@ -1,6 +1,5 @@
 require_relative '../service'
 
-
 class Rosh
   class ServiceManager
     module ManagerAdapters

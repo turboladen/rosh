@@ -8,9 +8,7 @@ class Rosh
         load_adapter(type)
       end
 
-      def pid=(new_pid)
-        @pid = new_pid
-      end
+      attr_writer :pid
 
       private
 
@@ -18,7 +16,7 @@ class Rosh
         require_relative "object_adapters/#{type}"
         klass =
           Rosh::ProcessManager::ObjectAdapters.const_get(type.to_s.classify)
-        self.extend klass
+        extend klass
       end
     end
   end

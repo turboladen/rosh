@@ -1,11 +1,9 @@
 require_relative '../remote_stat'
 require_relative 'remote_stat_methods'
 
-
 class Rosh
   class FileSystem
     module ObjectAdapters
-
       # This is a generic base class for representing file system objects: files,
       # directories, and links.  It implements what's pretty close to Ruby's
       # +File+ class.
@@ -13,7 +11,7 @@ class Rosh
       # When serializing (i.e. dumping to YAML), it maintains only the path to the
       # object.
       module RemoteBase
-        def absolute_path(dir_string=nil)
+        def absolute_path(_dir_string = nil)
           fail NotImplementedError, '#absolute_path Not implemented!'
         end
 
@@ -26,7 +24,7 @@ class Rosh
 
         # @param [String] suffix
         # @return [String]
-        def basename(suffix=nil)
+        def basename(suffix = nil)
           cmd = "basename #{@path}"
           cmd << " #{suffix}" if suffix
 
@@ -57,7 +55,7 @@ class Rosh
         # @param [String,Integer] uid
         # @param [String,Integer] gid
         # @return [Boolean]
-        def chown(uid, gid=nil)
+        def chown(uid, gid = nil)
           cmd = "chown #{uid}"
           cmd << ":#{gid}" if gid
           cmd << " #{@path}"
@@ -111,12 +109,12 @@ class Rosh
 
         # @param [String] dir_string
         # @return [String]
-        def expand_path(dir_string=nil)
+        def expand_path(_dir_string = nil)
           result = if host.darwin?
-            warn 'Not implemented'
-          else
-            cmd = "readlink -f #{@path}"
-            host.shell.exec_internal(cmd).string.strip
+                     warn 'Not implemented'
+                   else
+                     cmd = "readlink -f #{@path}"
+                     host.shell.exec_internal(cmd).string.strip
           end
 
           private_result(result, 0)
@@ -136,16 +134,16 @@ class Rosh
         end
 
         # @todo Implement.
-        def fnmatch(pattern, *flags)
+        def fnmatch(_pattern, *_flags)
           warn 'Not implemented'
         end
 
         # @return [Symbol]
         def ftype
           cmd = if host.darwin?
-            "stat -n -f '%HT' #{@path}"
-          else
-            "stat -c '%F' #{@path}"
+                  "stat -n -f '%HT' #{@path}"
+                else
+                  "stat -c '%F' #{@path}"
           end
 
           output_string = host.shell.exec_internal(cmd).string.strip.downcase
@@ -183,14 +181,14 @@ class Rosh
         end
 
         # @todo Use +dir_path+
-        def realdirpath(dir_path=nil)
+        def realdirpath(_dir_path = nil)
           result = host.shell.exec_internal("readlink -f #{dirname.string}").string.strip
 
           private_result(result, 0)
         end
 
         # @todo Use +dir_path+
-        def realpath(dir_path=nil)
+        def realpath(_dir_path = nil)
           result = host.shell.exec_internal("readlink -f #{@path}").string.strip
 
           private_result(result, 0)

@@ -5,11 +5,9 @@ require 'tempfile'
 require_relative 'remote_base'
 require_relative 'remote_stat_methods'
 
-
 class Rosh
   class FileSystem
     module ObjectAdapters
-
       # Object representing a file on a remote file system.
       module RemoteFile
         include RemoteBase
@@ -19,7 +17,7 @@ class Rosh
 
         # @todo Do something with the block.
         # @return [Boolean]
-        def create(&block)
+        def create(&_block)
           host.shell.exec_internal "touch #{@path}"
           result = host.shell.last_exit_status.zero?
           exit_status = result ? 0 : 1
@@ -28,10 +26,8 @@ class Rosh
         end
 
         # @return [String] The contents of the remote file.
-        def read(length=nil, offset=nil)
-          if @unwritten_contents
-            private_result(@unwritten_contents, 0)
-          end
+        def read(length = nil, offset = nil)
+          private_result(@unwritten_contents, 0) if @unwritten_contents
 
           cmd = "dd bs=1 if=#{@path}"
           cmd << " count=#{length}" if length
@@ -47,16 +43,16 @@ class Rosh
           output = results.split /[^\n]+records in\r?\n/
 
           contents = if host.shell.last_exit_status.zero?
-            output.first
-          else
-            ''
+                       output.first
+                     else
+                       ''
           end
 
           private_result(contents, 0)
         end
 
         def readlines(separator)
-          contents = self.read
+          contents = read
 
           private_result contents.lines(separator), 0
         end
@@ -69,11 +65,11 @@ class Rosh
             private_result(true, 0)
           end
 
-          ex = if result.match %r[No such file or directory]
-            bad_info result
-            Rosh::ErrorENOENT.new(@path)
-          elsif result.match %r[omitting directory]
-            Rosh::ErrorEISDIR.new(@path)
+          ex = if result.match /No such file or directory/
+                 bad_info result
+                 Rosh::ErrorENOENT.new(@path)
+               elsif result.match /omitting directory/
+                 Rosh::ErrorEISDIR.new(@path)
           end
 
           private_result(ex, 1)

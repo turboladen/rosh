@@ -48,7 +48,6 @@ RSpec.shared_examples_for 'a package manager' do
   end
 end
 
-
 RSpec.describe 'Package Management' do
   include_context 'hosts'
 

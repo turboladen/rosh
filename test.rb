@@ -1,5 +1,5 @@
 require 'bundler/setup'
-#Bundler.setup
+# Bundler.setup
 require './lib/rosh'
 require 'securerandom'
 
@@ -19,13 +19,11 @@ puts "state: #{f.state} (should be 'persisted')"
 puts "contents: #{f.contents} (should be '#{contents_after}')"
 puts "persisted? #{f.persisted?} (should be true)"
 
-=begin
-puts "copying..."
-new_file = f.copy_to 'tuv'
-puts "new file: #{new_file}"
-exit if new_file.is_a? Symbol
-=end
-puts "copying..."
+# puts "copying..."
+# new_file = f.copy_to 'tuv'
+# puts "new file: #{new_file}"
+# exit if new_file.is_a? Symbol
+puts 'copying...'
 f.copy_to 'tuv' do |new_file|
   puts "new file: #{new_file}"
   puts "new file is a: #{new_file.class}"
@@ -41,4 +39,3 @@ f.copy_to 'tuv' do |new_file|
     p linked_file.readlines
   end
 end
-

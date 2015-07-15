@@ -1,7 +1,6 @@
 class Rosh
   class PackageManager
     module ObjectAdapters
-
       # Represents a package in the {http://brew.sh homebrew} package manager.
       module Brew
         DEFAULT_BIN_PATH = '/usr/local/bin'
@@ -29,14 +28,14 @@ class Rosh
 (?<home>https?:\/\/[^\n]*)/ =~ output
 
           info_hash[:package] = @package_name
-          info_hash[:spec] = $~[:spec]
-          info_hash[:version] = $~[:version].strip
-          info_hash[:homepage] = $~[:home].strip
+          info_hash[:spec] = $LAST_MATCH_INFO[:spec]
+          info_hash[:version] = $LAST_MATCH_INFO[:version].strip
+          info_hash[:homepage] = $LAST_MATCH_INFO[:home].strip
 
           info_hash[:status] = if output.match(/Not installed/m)
-            :not_installed
-          else
-            :installed
+                                 :not_installed
+                               else
+                                 :installed
           end
 
           info_hash
@@ -49,7 +48,7 @@ class Rosh
         # @param [String] version Version of the package to install.
         # @return [Boolean] +true+ if install was successful, +false+ if not,
         #   +nil+ if no action was required.
-        def install(version=nil)
+        def install(version = nil)
           if version
             install_and_switch_version(version)
           else
@@ -67,7 +66,7 @@ class Rosh
           result = current_shell.exec_internal "#{@bin_path}/brew info #{@package_name}"
 
           if current_shell.last_exit_status.zero?
-            !result.match %r[Not installed]
+            !result.match /Not installed/
           else
             false
           end
@@ -80,8 +79,8 @@ class Rosh
           result = current_shell.exec_internal "#{@bin_path}/brew info #{@package_name}"
 
           result.each_line.map do |line|
-            %r[.*Cellar/#{@package_name}/(?<version>\S+)] =~ line.strip
-            $~ ? $~[:version] : nil
+            %r{.*Cellar/#{@package_name}/(?<version>\S+)} =~ line.strip
+            $LAST_MATCH_INFO ? $LAST_MATCH_INFO[:version] : nil
           end.compact
         end
 
@@ -118,10 +117,10 @@ class Rosh
         # @return [Boolean] +true+ if install was successful; +false+ if not.
         def install_and_switch_version(version)
           version_line = current_shell.exec_internal("#{@bin_path}/brew versions #{@package_name} | grep #{version}").
-            split("\n").last
+                         split("\n").last
           return false unless version_line
 
-          %r[git checkout (?<hash>\w+)] =~ version_line
+          /git checkout (?<hash>\w+)/ =~ version_line
 
           prefix = current_shell.exec_internal "#{@bin_path}/brew --prefix"
           current_shell.cd(prefix)

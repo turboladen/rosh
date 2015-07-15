@@ -9,7 +9,7 @@ class Rosh
       end
 
       def update_attribute(key, value)
-        self.send("#{key}=", value)
+        send("#{key}=", value)
       end
 
       private
@@ -18,7 +18,7 @@ class Rosh
         require_relative "object_adapters/#{type}"
         klass =
           Rosh::UserManager::ObjectAdapters.const_get(type.to_s.classify)
-        self.extend klass
+        extend klass
       end
     end
   end

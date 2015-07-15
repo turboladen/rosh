@@ -1,6 +1,5 @@
 require 'plist'
 
-
 class Rosh
   class ServiceManager
     module ObjectAdapters
@@ -45,7 +44,7 @@ class Rosh
           result = current_shell.exec_internal("launchctl load #{@service_name}")
 
           if result =~ /nothing found to load/m
-            raise Rosh::UnrecognizedService, result
+            fail Rosh::UnrecognizedService, result
           else
             nil
           end

@@ -1,7 +1,6 @@
 require 'etc'
 require_relative '../user'
 
-
 class Rosh
   class UserManager
     module ObjectAdapters
@@ -31,11 +30,9 @@ class Rosh
         end
 
         def exists?
-          begin
-            info_by_name
-          rescue
-            return false
-          end
+          info_by_name
+        rescue
+          return false
         end
 
         def gid

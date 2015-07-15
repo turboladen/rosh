@@ -1,10 +1,8 @@
 require_relative '../package'
 
-
 class Rosh
   class PackageManager
     module ManagerAdapters
-
       # It's not quite safe to call this the 'Apt' adapter, as some commands
       # make use of +dpkg+...
       module Apt
@@ -15,7 +13,7 @@ class Rosh
 
           result.split("\n").map do |pkg|
             if pkg.match(/^[A-za-z]{1,3}\s+/)
-              %r[(?<status>[\w]{1,3})\s+(?<name>\S+)\s+(?<version>\S+)\s+(?<description>[^\n]+)] =~
+              /(?<status>[\w]{1,3})\s+(?<name>\S+)\s+(?<version>\S+)\s+(?<description>[^\n]+)/ =~
                 pkg
 
               Rosh::PackageManager::Package.new(name, @host_name)
@@ -56,7 +54,7 @@ class Rosh
           output.each_line do |line|
             next unless line.start_with?('Get:')
 
-            %r(Get:\d\s+(?<get_source>\S+)\s(?<distro>\S+)\s(?<components>[^\[]+)\s\[(?<size>[^\]]+)) =~ line
+            /Get:\d\s+(?<get_source>\S+)\s(?<distro>\S+)\s(?<components>[^\[]+)\s\[(?<size>[^\]]+)/ =~ line
 
             updated << {
               source: get_source,

@@ -21,7 +21,7 @@ class Rosh
       end
 
       def group_id=(new_gid)
-        current_gid = self.group_id
+        current_gid = group_id
 
         change_if(current_gid != new_gid) do
           notify_about(self, :group_id, from: current_gid, to: new_gid) do
@@ -37,7 +37,7 @@ class Rosh
       alias_method :dir, :home_directory
 
       def home_directory=(new_home)
-        current_home = self.home_directory
+        current_home = home_directory
 
         change_if(current_home != new_home) do
           notify_about(self, :home_directory, from: current_home, to: new_home) do
@@ -68,7 +68,7 @@ class Rosh
       #
       # @param [String] new_password
       def password=(new_password)
-        current_hash = self.password
+        current_hash = password
 
         change_if(current_hash != new_password) do
           notify_about(self, :password, from: current_hash, to: new_password) do
@@ -116,7 +116,7 @@ class Rosh
       end
 
       def real_name=(new_name)
-        current_name = self.real_name
+        current_name = real_name
 
         change_if(current_name != new_name) do
           notify_about(self, :shell, from: current_name, to: new_name) do
@@ -130,7 +130,7 @@ class Rosh
       end
 
       def shell=(new_shell)
-        current_shell = self.shell
+        current_shell = shell
 
         change_if(current_shell != new_shell) do
           notify_about(self, :shell, from: current_shell, to: new_shell) do
@@ -145,7 +145,7 @@ class Rosh
       alias_method :uid, :user_id
 
       def user_id=(new_uid)
-        current_uid = self.user_id
+        current_uid = user_id
         new_uid = new_uid.to_i
 
         change_if(current_uid != new_uid) do
@@ -161,14 +161,14 @@ class Rosh
         return @adapter if @adapter
 
         type = if current_host.local?
-          :local_user
-        else
-          case current_host.operating_system
-          when :darwin
-            :open_directory_user
-          else
-            :unix_user
-          end
+                 :local_user
+               else
+                 case current_host.operating_system
+                 when :darwin
+                   :open_directory_user
+                 else
+                   :unix_user
+                 end
         end
 
         @adapter = Rosh::UserManager::ObjectAdapter.new(@name, type, @host_name)

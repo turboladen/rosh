@@ -34,7 +34,7 @@ class Rosh
       def start
         echo_rosh_command
 
-        current_status = self.status
+        current_status = status
 
         change_if(current_status != :running) do
           adapter.start
@@ -48,7 +48,7 @@ class Rosh
       def start!
         echo_rosh_command
 
-        current_status = self.status
+        current_status = status
 
         change_if(current_status != :running) do
           adapter.start!
@@ -68,14 +68,14 @@ class Rosh
       def running?
         echo_rosh_command
 
-        self.status == :running
+        status == :running
       end
       alias_method :started?, :running?
 
       def stop
         echo_rosh_command
 
-        current_status = self.status
+        current_status = status
 
         change_if(current_status != :stopped) do
           adapter.stop
@@ -89,7 +89,7 @@ class Rosh
       def stop!
         echo_rosh_command
 
-        current_status = self.status
+        current_status = status
 
         change_if(current_status != :stopped) do
           adapter.stop!
@@ -103,7 +103,7 @@ class Rosh
       def stopped?
         echo_rosh_command
 
-        self.status == :stopped
+        status == :stopped
       end
 
       def status
@@ -117,19 +117,17 @@ class Rosh
       def adapter
         return @adapter if @adapter
 
-=begin
-        @adapter = case current_host.operating_system
-        when :darwin
-          require_relative 'object_adapters/launch_ctl'
-          ServiceManager::ObjectAdapters::LaunchCtl
-        when :linux, :freebsd
-          require_relative 'object_adapters/init'
-          ServiceManager::ObjectAdapters::Init
-        end
-
-        @adapter.service_name = @name
-        @adapter.host_name = @host_name
-=end
+        #         @adapter = case current_host.operating_system
+        #         when :darwin
+        #           require_relative 'object_adapters/launch_ctl'
+        #           ServiceManager::ObjectAdapters::LaunchCtl
+        #         when :linux, :freebsd
+        #           require_relative 'object_adapters/init'
+        #           ServiceManager::ObjectAdapters::Init
+        #         end
+        #
+        #         @adapter.service_name = @name
+        #         @adapter.host_name = @host_name
         type = case current_host.operating_system
         when :darwin
           :launch_ctl

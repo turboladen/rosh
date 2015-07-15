@@ -23,9 +23,9 @@ class Rosh
           pid = fetch_pid
 
           info = if pid.is_a? Array
-            build_info(state, process_info: pid)
-          else
-            build_info(state, pid: pid)
+                   build_info(state, process_info: pid)
+                 else
+                   build_info(state, pid: pid)
           end
 
           info
@@ -72,13 +72,11 @@ class Rosh
           result = current_shell.exec_internal("#{script_dir}/#{@service_name} start")
 
           if current_shell.last_exit_status.zero?
-            if permission_denied? result
-              raise Rosh::PermissionDenied, result
-            end
+            fail Rosh::PermissionDenied, result if permission_denied? result
           elsif current_shell.last_exit_status == 127
-            raise Rosh::UnrecognizedService, result
+            fail Rosh::UnrecognizedService, result
           elsif permission_denied? result
-            raise Rosh::PermissionDenied, result
+            fail Rosh::PermissionDenied, result
           end
         end
 
@@ -105,13 +103,11 @@ class Rosh
           result = current_shell.exec_internal("#{script_dir}/#{@service_name} stop")
 
           if current_shell.last_exit_status.zero?
-            if permission_denied? result
-              raise Rosh::PermissionDenied, result
-            end
+            fail Rosh::PermissionDenied, result if permission_denied? result
           elsif current_shell.last_exit_status == 127
-            raise Rosh::UnrecognizedService, result
+            fail Rosh::UnrecognizedService, result
           elsif permission_denied? result
-            raise Rosh::PermissionDenied, result
+            fail Rosh::PermissionDenied, result
           end
         end
 
@@ -124,7 +120,7 @@ class Rosh
         # @return [Boolean]
         def permission_denied?(output)
           if output.match(/superuser access required/) ||
-            output.match(/permission denied/i)
+             output.match(/permission denied/i)
             true
           else
             false
@@ -150,7 +146,7 @@ class Rosh
             pid = fetch_pid
             pid.empty? ? :stopped : :running
           elsif current_shell.last_exit_status == 127
-            raise Rosh::UnrecognizedService, current_shell.last_result
+            fail Rosh::UnrecognizedService, current_shell.last_result
           else
             if result =~ / stopped/
               :stopped
@@ -164,7 +160,7 @@ class Rosh
         #   service.
         def fetch_pid
           process_list = current_shell.ps(name: @service_name)
-          pids = process_list.map { |process| process.pid }
+          pids = process_list.map(&:pid)
 
           pids
         end

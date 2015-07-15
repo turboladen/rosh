@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-
 def setup_logging
   if ARGV.include? '--log'
     Rosh::Logger.logging_enabled = true
@@ -34,4 +33,3 @@ else
   setup_logging
   Rosh::CLI.run
 end
-

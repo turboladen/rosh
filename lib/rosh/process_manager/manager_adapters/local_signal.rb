@@ -1,6 +1,5 @@
 require_relative 'base_signal'
 
-
 class Rosh
   class ProcessManager
     module ManagerAdapters

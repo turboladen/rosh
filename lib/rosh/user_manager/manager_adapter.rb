@@ -17,7 +17,7 @@ class Rosh
         require_relative "manager_adapters/#{type}"
         klass =
           Rosh::UserManager::ManagerAdapters.const_get(type.to_s.classify)
-        self.extend klass
+        extend klass
       end
     end
   end

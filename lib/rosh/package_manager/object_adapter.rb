@@ -8,12 +8,10 @@ class Rosh
         load_adapter(type)
       end
 
-      def bin_path=(new_bin_path)
-        @bin_path = new_bin_path
-      end
+      attr_writer :bin_path
 
       def update_attribute(key, value)
-        self.send("#{key}=", value)
+        send("#{key}=", value)
       end
 
       private
@@ -22,7 +20,7 @@ class Rosh
         require_relative "object_adapters/#{type}"
         klass =
           Rosh::PackageManager::ObjectAdapters.const_get(type.to_s.classify)
-        self.extend klass
+        extend klass
         @bin_path = klass::DEFAULT_BIN_PATH
       end
     end

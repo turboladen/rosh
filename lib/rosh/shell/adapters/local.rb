@@ -5,7 +5,6 @@ require 'sys/proctable'
 require_relative '../../kernel_refinements'
 require_relative '../../logger'
 
-
 class Rosh
   class Shell
     module Adapters
@@ -19,18 +18,16 @@ class Rosh
         #   #last_exit_status is set to 1 and returns the Exception that was
         #   raised.
         def cd(path)
-          begin
-            Dir.chdir(path)
-            @internal_pwd = Dir.pwd
+          Dir.chdir(path)
+          @internal_pwd = Dir.pwd
 
-            private_result(true, 0)
-          rescue Errno::ENOENT
-            ex = Rosh::ErrorENOENT.new(path)
-            private_result(ex, 1, ex.message)
-          rescue Errno::ENOTDIR
-            ex = Rosh::ErrorENOTDIR.new(path)
-            private_result(ex, 1, ex.message)
-          end
+          private_result(true, 0)
+        rescue Errno::ENOENT
+          ex = Rosh::ErrorENOENT.new(path)
+          private_result(ex, 1, ex.message)
+        rescue Errno::ENOTDIR
+          ex = Rosh::ErrorENOTDIR.new(path)
+          private_result(ex, 1, ex.message)
         end
 
         # @param [String] command The system command to execute.
@@ -38,13 +35,13 @@ class Rosh
         # @return [String] On success, returns the output of the command.  On
         #   fail, #last_exit_status is whatever was set by the command and returns
         #   the exception that was raised.
-        def exec(command, _=nil)
-          run_info(command)# if @output_commands
+        def exec(command, _ = nil)
+          run_info(command) # if @output_commands
 
           begin
             output = ''
 
-            #PTY.spawn(cmd, *args) do |reader, writer, pid|
+            # PTY.spawn(cmd, *args) do |reader, writer, pid|
             PTY.spawn(command) do |reader, writer, pid|
               log "Spawned pid: #{pid}"
 
@@ -72,7 +69,7 @@ class Rosh
               Process.wait(pid)
             end
 
-            private_result(output, $?.exitstatus)
+            private_result(output, $CHILD_STATUS.exitstatus)
           rescue => ex
             private_result(ex, 1, ex.message)
           end
@@ -91,9 +88,7 @@ class Rosh
           code.gsub!(/puts/, '$stdout.puts')
           path_info = code.scan(/\s(?<fs_path>\/[^\n]*\/?)$/).flatten
 
-          if $~
-            code.gsub!(/#{$~[:fs_path]}/, %["#{path_info.first}"])
-          end
+          code.gsub!(/#{$LAST_MATCH_INFO[:fs_path]}/, %("#{path_info.first}")) if $LAST_MATCH_INFO
 
           retried = false
 
@@ -105,7 +100,7 @@ class Rosh
 
             private_result(r, 0, r.to_s)
           rescue NoMethodError => ex
-            %r[undefined method `(?<meth>[^']+)] =~ ex.message
+            /undefined method `(?<meth>[^']+)/ =~ ex.message
             log "NoMethodError for: #{meth}"
 
             if retried
@@ -127,15 +122,15 @@ class Rosh
         #   path.
         #
         # @return [String] Fully expanded path of the given path.
-        def preprocess_path(path, internal_pwd)
+        def preprocess_path(path, _internal_pwd)
           path = '' unless path
           path.strip!
 
-          path = unless File.exists? path
-            begin
-              instance_eval(path)
-            rescue NameError, SyntaxError
-            end
+          path = unless File.exist? path
+                   begin
+                     instance_eval(path)
+                   rescue NameError, SyntaxError
+                   end
           end || path
 
           File.expand_path(path)
@@ -144,24 +139,25 @@ class Rosh
         #-----------------------------------------------------------------------
         # PRIVATES
         #-----------------------------------------------------------------------
+
         private
 
-        def fix_no_method(meth, code, arg=nil)
-          exec_matcher = %r[#{meth} (?<args>.*)]
+        def fix_no_method(meth, code, arg = nil)
+          exec_matcher = /#{meth} (?<args>.*)/
           code =~ exec_matcher
-          args = $~[:args]
+          args = $LAST_MATCH_INFO[:args]
 
           output = if args.nil? || args.empty?
-            if arg
-              exec("#{meth} #{arg}")
-            else
-              exec("#{meth}")
-            end
-          else
-            exec("#{meth} #{args}")
+                     if arg
+                       exec("#{meth} #{arg}")
+                     else
+                       exec("#{meth}")
+                     end
+                   else
+                     exec("#{meth} #{args}")
           end
 
-          code.sub(exec_matcher, %["#{output}"])
+          code.sub(exec_matcher, %("#{output}"))
         end
       end
     end

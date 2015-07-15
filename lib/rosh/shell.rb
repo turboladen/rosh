@@ -19,7 +19,6 @@ class Rosh
     #   throughout its life.
     attr_reader :history
 
-
     def initialize(host_name, **ssh_options)
       @host_name = host_name
       @ssh_options = ssh_options
@@ -35,7 +34,7 @@ class Rosh
     end
 
     # @param [Integer] status Exit status code.
-    def exit(status=0)
+    def exit(status = 0)
       echo_rosh_command status
 
       Kernel.exit(status)
@@ -44,39 +43,39 @@ class Rosh
     # @return [Exception] the last exception that was raised.
     def last_exception
       return nil if @history.empty?
-      exception = @history.reverse.find { |result| result[:output].kind_of? Exception }
+      exception = @history.reverse.find { |result| result[:output].is_a? Exception }
 
       exception[:output]
     end
-    alias :_! :last_exception
+    alias_method :_!, :last_exception
 
     # @return [Integer] the exit status code of the last command executed.
     def last_exit_status
       @history.empty? ? nil : @history.last.exit_status
     end
-    alias :_? :last_exit_status
+    alias_method :_?, :last_exit_status
 
     # @return [String] the output of the last command.
     def last_result
       @history.empty? ? nil : @history.last[:output]
     end
-    alias :__ :last_result
+    alias_method :__, :last_result
 
     # Run commands in the +block+ as sudo.
     #
     # @return Returns whatever the +block+ returns.
     # @yields [Rosh::Host::Shells::*] the current Rosh shell.
-    def su(user=nil, &block)
+    def su(user = nil, &block)
       @sudo = true
       adapter.sudo = true
       log 'sudo enabled'
       current_pwd = @internal_pwd
 
       su_user = if user
-        u = host.users[user]
-        adapter.su_user_name = u.name
-        @internal_pwd = adapter.exec('pwd')[2].strip
-        u
+                  u = host.users[user]
+                  adapter.su_user_name = u.name
+                  @internal_pwd = adapter.exec('pwd')[2].strip
+                  u
       end
 
       result = block.call(su_user)
@@ -91,7 +90,7 @@ class Rosh
     end
 
     def shell_methods
-      self.public_methods(false) | Commands.instance_methods
+      public_methods(false) | Commands.instance_methods
     end
 
     # Are commands being run as sudo?
@@ -150,9 +149,9 @@ class Rosh
       end
 
       @internal_pwd = if host.local?
-        Dir.pwd
-      else
-        @adapter.exec('pwd').string.strip
+                        Dir.pwd
+                      else
+                        @adapter.exec('pwd').string.strip
       end
 
       @adapter

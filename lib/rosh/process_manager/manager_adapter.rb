@@ -14,7 +14,7 @@ class Rosh
         require_relative "manager_adapters/#{class_name}"
         klass =
           Rosh::ProcessManager::ManagerAdapters.const_get(class_name.classify)
-        self.extend klass
+        extend klass
       end
     end
   end

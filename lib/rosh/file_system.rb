@@ -54,7 +54,7 @@ class Rosh
       @host_name = host_name
       @root_directory = '/'
       # Subscribe to all file system objects that send an :update event.
-      self.subscribe('rosh.file_system.*', :update)
+      subscribe('rosh.file_system.*', :update)
 
       unless Rosh.environment.current_host.local?
         require_relative 'file_system/remote_stat'
@@ -82,25 +82,25 @@ class Rosh
     #   not map to an object type.
     def [](path)
       fs_object = if path.is_a? Hash
-        if path[:file]
-          file(path[:file])
-        elsif path[:dir]
-          directory(path[:dir])
-        elsif path[:directory]
-          directory(path[:directory])
-        elsif path[:symbolic_link]
-          symbolic_link(path[:symbolic_link])
-        elsif path[:character_device]
-          character_device(path[:character_device])
-        elsif path[:block_device]
-          block_device(path[:block_device])
-        elsif path[:object]
-          object(path[:object])
-        else
-          raise UnknownObjectType, path.keys.first
-        end
-      else
-        build(path)
+                    if path[:file]
+                      file(path[:file])
+                    elsif path[:dir]
+                      directory(path[:dir])
+                    elsif path[:directory]
+                      directory(path[:directory])
+                    elsif path[:symbolic_link]
+                      symbolic_link(path[:symbolic_link])
+                    elsif path[:character_device]
+                      character_device(path[:character_device])
+                    elsif path[:block_device]
+                      block_device(path[:block_device])
+                    elsif path[:object]
+                      object(path[:object])
+                    else
+                      fail UnknownObjectType, path.keys.first
+                    end
+                  else
+                    build(path)
       end
 
       # After creating the object, subscribe to its :update event.
@@ -287,9 +287,9 @@ class Rosh
       return @adapter if @adapter
 
       type = if Rosh.environment.current_host.local?
-        :local_file_system
-      else
-        :remote_file_system
+               :local_file_system
+             else
+               :remote_file_system
       end
 
       @adapter = FileSystem::ManagerAdapter.new(type, @host_name)

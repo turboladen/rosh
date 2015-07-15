@@ -1,6 +1,5 @@
 require 'plist'
 
-
 class Rosh
   class UserManager
     module ObjectAdapters
@@ -100,49 +99,49 @@ class Rosh
         end
 
         def dir=(new_dir)
-          cmd = %[dscl -plist . -change /Users/#{@name} NFSHomeDirectory "#{dir}" "#{new_dir}"]
+          cmd = %(dscl -plist . -change /Users/#{@name} NFSHomeDirectory "#{dir}" "#{new_dir}")
           current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?
         end
 
         def gid=(new_gid)
-          cmd = %[dscl -plist . -change /Users/#{@name} PrimaryGroupID #{gid} #{new_gid}]
+          cmd = %(dscl -plist . -change /Users/#{@name} PrimaryGroupID #{gid} #{new_gid})
           current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?
         end
 
         def name=(new_name)
-          cmd = %[dscl -plist . -change /Users/#{@name} RecordName #{name} #{new_name}]
+          cmd = %(dscl -plist . -change /Users/#{@name} RecordName #{name} #{new_name})
           current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?
         end
 
         def passwd=(new_password)
-          cmd = %[dscl -plist . -change /Users/#{@name} Password "#{passwd}" "#{new_password}"]
+          cmd = %(dscl -plist . -change /Users/#{@name} Password "#{passwd}" "#{new_password}")
           current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?
         end
 
         def real_name=(new_name)
-          cmd = %[dscl -plist . -change /Users/#{@name} RealName "#{real_name}" "#{new_name}"]
+          cmd = %(dscl -plist . -change /Users/#{@name} RealName "#{real_name}" "#{new_name}")
           current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?
         end
 
         def shell=(new_shell)
-          cmd = %[dscl -plist . -change /Users/#{@name} UserShell "#{shell}" "#{new_shell}"]
+          cmd = %(dscl -plist . -change /Users/#{@name} UserShell "#{shell}" "#{new_shell}")
           current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?
         end
 
         def uid=(new_uid)
-          cmd = %[dscl -plist . -change /Users/#{@name} UniqueID #{uid} #{new_uid}]
+          cmd = %(dscl -plist . -change /Users/#{@name} UniqueID #{uid} #{new_uid})
           current_shell.exec_internal cmd
 
           current_shell.last_exit_status.zero?

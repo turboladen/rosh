@@ -17,9 +17,7 @@ class Rosh
         @sudo ||= false
       end
 
-      def sudo=(new_value)
-        @sudo = new_value
-      end
+      attr_writer :sudo
 
       private
 
@@ -27,10 +25,10 @@ class Rosh
         case type
         when :local
           require_relative 'adapters/local'
-          self.extend Rosh::Shell::Adapters::Local
+          extend Rosh::Shell::Adapters::Local
         else
           require_relative 'adapters/remote'
-          self.extend Rosh::Shell::Adapters::Remote
+          extend Rosh::Shell::Adapters::Remote
         end
       end
     end

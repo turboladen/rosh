@@ -1,11 +1,9 @@
 require_relative '../remote_proc_table'
 
-
 class Rosh
   class ProcessManager
     module ManagerAdapters
       module RemoteProcessManager
-
         # Runs `ps auxe` on the remote host and converts each line of process info
         # to a Rosh::ProcessManager::RemoteProcTable.
         #
@@ -15,17 +13,17 @@ class Rosh
         # @return [Array<Rosh::ProcessManager::RemoteProcTable>, Rosh::ProcessManager::RemoteProcTable] When :name
         #   or no options are given, returns an Array of Rosh::ProcessManager::RemoteProcTable
         #   objects; when :pid is given, a single Rosh::ProcessManager::RemoteProcTable is returned.
-        def list_running(name=nil, pid=nil)
+        def list_running(name = nil, pid = nil)
           result = if pid
-            current_shell.exec_internal "ps uxe -p #{pid}"
-          else
-            current_shell.exec_internal 'ps auxe'
+                     current_shell.exec_internal "ps uxe -p #{pid}"
+                   else
+                     current_shell.exec_internal 'ps auxe'
           end
 
           list = []
 
           result.each_line do |line|
-            match_data = %r[(?<user>\S+)\s+(?<pid>\S+)\s+(?<cpu>\S+)\s+(?<mem>\S+)\s+(?<vsz>\S+)\s+(?<rss>\S+)\s+(?<tty>\S+)\s+(?<stat>\S+)\s+(?<start>\S+)\s+(?<time>\S+)\s+(?<cmd>[^\n]+)].match(line)
+            match_data = /(?<user>\S+)\s+(?<pid>\S+)\s+(?<cpu>\S+)\s+(?<mem>\S+)\s+(?<vsz>\S+)\s+(?<rss>\S+)\s+(?<tty>\S+)\s+(?<stat>\S+)\s+(?<start>\S+)\s+(?<time>\S+)\s+(?<cmd>[^\n]+)/.match(line)
 
             next if match_data[:user] == 'USER'
             list << Rosh::ProcessManager::RemoteProcTable.new(
@@ -44,11 +42,11 @@ class Rosh
           end
 
           filtered_list = if name
-            list.find_all { |i| i.command =~ /\b#{name}\b/ }
-          elsif pid
-            list.find_all { |i| i.pid == pid }
-          else
-            list
+                            list.find_all { |i| i.command =~ /\b#{name}\b/ }
+                          elsif pid
+                            list.find_all { |i| i.pid == pid }
+                          else
+                            list
           end
 
           filtered_list.map do |process_struct|

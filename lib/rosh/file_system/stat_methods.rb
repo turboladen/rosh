@@ -1,9 +1,7 @@
 require 'forwardable'
 
-
 class Rosh
   class FileSystem
-
     # Defines File::Stat methods on including objects.  The includer must define
     # `#controller`, as all methods will delegate to the object returned by
     # that method.
@@ -11,16 +9,16 @@ class Rosh
       extend Forwardable
 
       %i[exists? <=>
-        blksize blockdev? blocks chardev? dev dev_major dev_minor
-        directory? executable? executable_real? file? gid grpowned?
-        ino mode nlink owned? pipe?
-        rdev rdev_major rdev_minor
-        readable? readable_real?
-        setgid? setuid?
-        size
-        socket? sticky? symlink? uid
-        world_readable? world_writable? writable? writable_real?
-        zero?].sort.each do |meth|
+         blksize blockdev? blocks chardev? dev dev_major dev_minor
+         directory? executable? executable_real? file? gid grpowned?
+         ino mode nlink owned? pipe?
+         rdev rdev_major rdev_minor
+         readable? readable_real?
+         setgid? setuid?
+         size
+         socket? sticky? symlink? uid
+         world_readable? world_writable? writable? writable_real?
+         zero?].sort.each do |meth|
         define_method(meth) do
           Rosh._run_command(method(__method__), &adapter.method(__method__).to_proc)
         end

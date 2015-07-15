@@ -17,9 +17,9 @@ class Rosh
       result = block.call
 
       criteria_met = if criteria
-        criteria.kind_of?(Proc) ? criteria.call : criteria
-      else
-        true
+                       criteria.is_a?(Proc) ? criteria.call : criteria
+                     else
+                       true
       end
 
       if criteria_met && result
@@ -29,7 +29,7 @@ class Rosh
           from,
           to,
           current_shell.su?
-        )
+                                       )
       end
 
       result

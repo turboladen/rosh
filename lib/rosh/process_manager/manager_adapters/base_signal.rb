@@ -7,9 +7,7 @@ class Rosh
         end
 
         module ClassMethods
-          def host_name=(host_name)
-            @host_name = host_name
-          end
+          attr_writer :host_name
         end
       end
     end

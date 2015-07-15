@@ -1,16 +1,13 @@
 require_relative '../errors'
 require_relative 'private_command_result'
 
-
 class Rosh
   class Shell
-
     # Commands are all processed within a #process block.  Each command is
     # expected to return an Array of three values: [return_value, exit_status,
     # ssh_output].
     #
     module Commands
-
       # @param [String] file The path of the file to cat.
       #
       # @return [String, Rosh::ErrorENOENT, Rosh::ErrorEISDIR] On success, returns the contents of
@@ -30,7 +27,7 @@ class Rosh
 
         process(:cd, path) do
           full_path = adapter.preprocess_path(path, @internal_pwd)
-          log %[cd full path '#{full_path}']
+          log %(cd full path '#{full_path}')
 
           cmd_result = adapter.cd(full_path)
           @internal_pwd = full_path if last_exit_status.zero?
@@ -69,7 +66,7 @@ class Rosh
 
         {
           path: @path,
-          shell: ::File.expand_path(::File.basename($0), ::File.dirname($0)),
+          shell: ::File.expand_path(::File.basename($PROGRAM_NAME), ::File.dirname($PROGRAM_NAME)),
           pwd: @internal_pwd
         }
       end
@@ -111,7 +108,7 @@ class Rosh
       #   success, returns an Array of Rosh::RemoteFileSystemObjects.  On fail,
       #   #last_exit_status is set to the status given by the remote host's
       #   failed 'ls' command, returns a Rosh::ErrorENOENT.
-      def ls(path=nil, color: false)
+      def ls(path = nil, color: false)
         echo_rosh_command path
 
         process(:ls, path, color: color) do
@@ -119,9 +116,7 @@ class Rosh
           full_path = adapter.preprocess_path(path, @internal_pwd)
           cmd_result = current_host.fs[full_path].list
 
-          if color
-            cmd_result.string = cmd_result.string.yellow
-          end
+          cmd_result.string = cmd_result.string.yellow if color
 
           cmd_result
         end
@@ -157,46 +152,44 @@ class Rosh
         end
       end
 
-=begin
-      private
-
-      # Saves the result of the block given to #last_result and exit code to
-      # #last_exit_status.
+      #       private
       #
-      # @param [Array<String>, String] args Arguments given to the method.
+      #       # Saves the result of the block given to #last_result and exit code to
+      #       # #last_exit_status.
+      #       #
+      #       # @param [Array<String>, String] args Arguments given to the method.
+      #       #
+      #       # @return The result of the block that was given.
+      #       def process(cmd, **args, &block)
       #
-      # @return The result of the block that was given.
-      def process(cmd, **args, &block)
-
-        result_object, exit_status, ssh_output = block.call
-
-        @history << {
-          time: Time.now.to_s,
-          command: cmd,
-          arguments: args,
-          output: result,
-          exit_status: exit_status,
-          ssh_output: ssh_output
-        }
-        #@history << CommandResult.new(cmd, args, result_object, exit_status,
-        #  ssh_output: ssh_output)
-
-
-        @history.last[:output]
-
-        private_result = block.call
-
-        @history << {
-          time: private_result.executed_at,
-          command: cmd,
-          arguments: args,
-          output: private_result.ruby_object,
-          exit_status: private_result.exit_status
-        }
-
-        @history.last[:output]
-      end
-=end
+      #         result_object, exit_status, ssh_output = block.call
+      #
+      #         @history << {
+      #           time: Time.now.to_s,
+      #           command: cmd,
+      #           arguments: args,
+      #           output: result,
+      #           exit_status: exit_status,
+      #           ssh_output: ssh_output
+      #         }
+      #         #@history << CommandResult.new(cmd, args, result_object, exit_status,
+      #         #  ssh_output: ssh_output)
+      #
+      #
+      #         @history.last[:output]
+      #
+      #         private_result = block.call
+      #
+      #         @history << {
+      #           time: private_result.executed_at,
+      #           command: cmd,
+      #           arguments: args,
+      #           output: private_result.ruby_object,
+      #           exit_status: private_result.exit_status
+      #         }
+      #
+      #         @history.last[:output]
+      #       end
     end
   end
 end

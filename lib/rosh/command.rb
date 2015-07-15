@@ -1,7 +1,6 @@
 require 'drama_queen/producer'
 require_relative 'logger'
 
-
 class Rosh
   # A Command object captures the name of command, arguments for the command,
   # and the result of the command after it has been executed. After executing,
@@ -51,7 +50,7 @@ class Rosh
         run_idempotent
       else
         if Rosh.environment.current_host.idempotent_mode?
-          log "Command is static (non-idempotent)"
+          log 'Command is static (non-idempotent)'
         else
           log "Idempotency: #{Rosh.environment.current_host.name} NOT in idempotent mode"
         end
@@ -97,7 +96,6 @@ class Rosh
 
       @result.ruby_object
     end
-
 
     def call_method
       log "Calling method: #{@method.name}"

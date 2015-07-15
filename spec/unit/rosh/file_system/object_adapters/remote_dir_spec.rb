@@ -6,7 +6,7 @@ RSpec.describe Rosh::FileSystem::ObjectAdapters::RemoteDir do
   end
 
   let(:path) { '/dir' }
-  let(:shell) { double 'Rosh::Shell', :su? => false }
+  let(:shell) { double 'Rosh::Shell', su?: false }
   before { allow(subject).to receive(:current_shell) { shell } }
 
   describe '#owner' do
@@ -91,7 +91,7 @@ RSpec.describe Rosh::FileSystem::ObjectAdapters::RemoteDir do
           subject.should_receive(:changed)
           subject.should_receive(:notify_observers).
             with(subject, attribute: :path, old: nil, new: '/dir',
-            as_sudo: false)
+                          as_sudo: false)
 
           subject.save.should == true
         end

@@ -1,6 +1,5 @@
 require_relative '../user'
 
-
 class Rosh
   class UserManager
     module ObjectAdapters

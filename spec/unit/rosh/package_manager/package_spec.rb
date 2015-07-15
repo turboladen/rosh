@@ -39,7 +39,7 @@ RSpec.describe Rosh::PackageManager::Package do
         expect(package).to receive(:changed)
         expect(package).to receive(:notify_observers).with(package,
           attribute: :version, old: '1', new: '2', as_sudo: false
-        )
+                                                          )
 
         package.upgrade
       end
@@ -117,7 +117,7 @@ RSpec.describe Rosh::PackageManager::Package do
             expect(package).to receive(:changed)
             expect(package).to receive(:notify_observers).with(package,
               attribute: :version, old: '1', new: nil, as_sudo: false
-            )
+                                                              )
 
             expect(package.remove).to be_true
           end
@@ -147,7 +147,7 @@ RSpec.describe Rosh::PackageManager::Package do
             expect(package).to receive(:changed)
             expect(package).to receive(:notify_observers).with(package,
               attribute: :version, old: '1', new: nil, as_sudo: false
-            )
+                                                              )
 
             expect(package.remove).to be_true
           end

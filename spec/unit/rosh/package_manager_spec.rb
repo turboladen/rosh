@@ -63,7 +63,7 @@ RSpec.describe Rosh::PackageManager do
             from: '?',
             to: [updated_definition],
             criteria: false
-          )
+                                                                )
 
           package_manager.update_definitions
         end
@@ -81,7 +81,7 @@ RSpec.describe Rosh::PackageManager do
             from: '?',
             to: [updated_definition],
             criteria: true
-          )
+                                                                )
 
           package_manager.update_definitions
         end
@@ -144,7 +144,7 @@ RSpec.describe Rosh::PackageManager do
             from: 1,
             to: 2,
             criteria: false
-          )
+                                                                )
 
           package_manager.upgrade_packages
         end
@@ -159,7 +159,7 @@ RSpec.describe Rosh::PackageManager do
             from: 1,
             to: 2,
             criteria: true
-          )
+                                                                )
 
           package_manager.upgrade_packages
         end

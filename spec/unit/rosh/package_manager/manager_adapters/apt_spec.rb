@@ -1,6 +1,5 @@
 require 'rosh/package_manager/manager_adapters/apt'
 
-
 RSpec.describe Rosh::PackageManager::ManagerAdapters::Apt do
   subject { Object.new.extend(described_class) }
 
@@ -107,7 +106,7 @@ Reading package lists... Done
 
   describe '#extract_upgraded_packages' do
     let(:output) do
-       <<-EOF
+      <<-EOF
 The following packages will be upgraded:
   accountsservice apparmor
   base-files bash

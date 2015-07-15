@@ -8,7 +8,6 @@ require 'awesome_print'
 
 require_relative '../private_command_result'
 
-
 class Rosh
   class Shell
     module Adapters
@@ -36,17 +35,13 @@ class Rosh
 
         include Rosh::Logger
 
-        def user=(new_user)
-          @user = new_user
-        end
+        attr_writer :user
 
         def ssh_options
           @ssh_options ||= {}
         end
 
-        def ssh_options=(new_options)
-          @ssh_options = new_options
-        end
+        attr_writer :ssh_options
 
         # Uploads +source+ file to the +destination+ path on the remote box.
         #
@@ -54,7 +49,7 @@ class Rosh
         # @param [String] destination The destination path to upload to.
         #
         # @return [Rosh::Shell::PrivateCommandResult]
-        def upload(source, destination, doing_sudo_upload=false, original_dest=nil)
+        def upload(source, destination, doing_sudo_upload = false, original_dest = nil)
           retried = false
 
           result = begin
@@ -117,12 +112,12 @@ class Rosh
         #   command, Rosh::ErrorNOENT error.
         def cd(path)
           cmd = sudoize("cd #{path} && pwd")
-          log %[CD: #{cmd}]
+          log %(CD: #{cmd})
           result = run(cmd)
 
           if result.exit_status.zero?
             private_result(true, 0)
-          elsif result.stderr.match %r[No such file or directory]
+          elsif result.stderr.match /No such file or directory/
             bad_info result.stderr
             error = Rosh::ErrorENOENT.new(path)
 
@@ -140,10 +135,10 @@ class Rosh
         #   returns the output of the failed command as a String.  If STDOUT and
         #   STDERR were both written to during a non-0 resulting command, those
         #   strings will be concatenated and separated by 2 \n's.
-        def exec(command, internal_pwd='')
+        def exec(command, internal_pwd = '')
           command = sudoize("cd #{internal_pwd} && #{command}")
 
-          log %[EXEC: #{command}]
+          log %(EXEC: #{command})
           result = run(command)
 
           if result.exit_status.zero?
@@ -153,7 +148,7 @@ class Rosh
           end
         end
 
-        def ruby(code)
+        def ruby(_code)
           private_result('Not implemented!', 1)
         end
 
@@ -168,6 +163,7 @@ class Rosh
         #-----------------------------------------------------------------------
         # Privates
         #-----------------------------------------------------------------------
+
         private
 
         def ssh
@@ -235,7 +231,7 @@ class Rosh
 
           ssh.open_channel do |channel|
             channel.request_pty do |ch, success|
-              raise 'Could not obtain pty' unless success
+              fail 'Could not obtain pty' unless success
 
               ch.on_data do |ch, data|
                 good_info data
@@ -281,7 +277,7 @@ class Rosh
         #
         # @return [Lambda]
         def scp(source, destination)
-          ssh.scp.upload!(source, destination) do |ch, name, rec, total|
+          ssh.scp.upload!(source, destination) do |_ch, name, rec, total|
             percentage = format('%.2f', rec.to_f / total.to_f * 100) + '%'
             print "Saving to #{name}: Received #{rec} of #{total} bytes" + " (#{percentage})               \r"
             $stdout.flush
@@ -289,11 +285,11 @@ class Rosh
         end
 
         def sudoize(cmd)
-          #if sudo && su_user_name && su_user_name != 'root'
+          # if sudo && su_user_name && su_user_name != 'root'
           if sudo
             name = su_user_name || 'root'
-            %[sudo su #{name} -c "#{cmd}"]
-            #elsif sudo
+            %(sudo su #{name} -c "#{cmd}")
+            # elsif sudo
             #  %[sudo -s -- "#{cmd}"]
           else
             cmd

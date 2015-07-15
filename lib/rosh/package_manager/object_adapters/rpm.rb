@@ -1,7 +1,6 @@
 class Rosh
   class PackageManager
     module ObjectAdapters
-
       # Represents a {http://www.rpm.org RPM package}.  Managed here using
       # {http://yum.baseurl.org Yum} and RPM commands.
       module Rpm
@@ -21,15 +20,13 @@ class Rosh
 
             if result =~ /Available Packages/m
               false
-            elsif result =~ %r[Installed Packages]
+            elsif result =~ /Installed Packages/
               true
             else
               nil
             end
           else
-            if result =~ /updates/m
-              false
-            end
+            false if result =~ /updates/m
           end
         end
 
@@ -42,9 +39,9 @@ class Rosh
           if result.nil? || result.empty?
             nil
           else
-            %r[#{@package_name}-(?<version>\d\S*)] =~ result
+            /#{@package_name}-(?<version>\d\S*)/ =~ result
 
-            $~[:version] if $~
+            $LAST_MATCH_INFO[:version] if $LAST_MATCH_INFO
           end
         end
 
@@ -56,7 +53,7 @@ class Rosh
           info_hash = {}
 
           output.each_line do |line|
-            %r[^(?<key>.*)\s*: (?<value>[^\n]*)\n$] =~ line
+            /^(?<key>.*)\s*: (?<value>[^\n]*)\n$/ =~ line
 
             if key && !key.strip.empty?
               info_hash[key.strip.to_safe_down_sym] = value.strip
@@ -74,7 +71,7 @@ class Rosh
         #
         # @param [String] version
         # @return [Boolean] +true+ if successful, +false+ if not.
-        def install(version=nil)
+        def install(version = nil)
           cmd = "yum install -y #{@package_name}"
           cmd << "-#{version}" if version
           current_shell.exec_internal(cmd)

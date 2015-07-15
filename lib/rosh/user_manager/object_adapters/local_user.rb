@@ -1,6 +1,5 @@
 require 'etc'
 
-
 class Rosh
   class UserManager
     module ObjectAdapters
@@ -73,7 +72,7 @@ class Rosh
         end
 
         def info
-          self.gecos
+          gecos
         end
 
         def name
@@ -98,31 +97,31 @@ class Rosh
           ::Etc.getpwnam(@name)
         end
 
-        def dir=(new_dir)
+        def dir=(_new_dir)
           warn 'Not implemented!'
         end
 
-        def gid=(new_gid)
+        def gid=(_new_gid)
           warn 'Not implemented!'
         end
 
-        def name=(new_name)
+        def name=(_new_name)
           warn 'Not implemented!'
         end
 
-        def passwd=(new_password)
+        def passwd=(_new_password)
           warn 'Not implemented!'
         end
 
-        def real_name=(new_name)
+        def real_name=(_new_name)
           warn 'Not implemented!'
         end
 
-        def shell=(new_shell)
+        def shell=(_new_shell)
           warn 'Not implemented!'
         end
 
-        def uid=(new_uid)
+        def uid=(_new_uid)
           warn 'Not implemented!'
         end
       end

@@ -64,21 +64,17 @@ class Rosh
         end
 
         # @todo Implement.
-=begin
-          def initialize_copy
-            # Implement
-          end
-=end
+        #           def initialize_copy
+        #             # Implement
+        #           end
 
         def ino
           handle_errors_and_return_result { ::File.stat(@path).ino }
         end
 
-=begin
-        def inspect
-          ::File.stat(@path).inspect
-        end
-=end
+        #         def inspect
+        #           ::File.stat(@path).inspect
+        #         end
 
         def mode
           handle_errors_and_return_result do

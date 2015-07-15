@@ -31,14 +31,14 @@ class Rosh
 
       attr_accessor :state, :dirtied_at, :persisted_at, :transient_at
 
-      def failed_command?(event, attrib, cmd_result, as_sudo, changed)
+      def failed_command?(_event, _attrib, cmd_result, _as_sudo, _changed)
         result = !cmd_result.exit_status.zero?
         log "State Machine: failed_command? #{result}"
 
         result
       end
 
-      def old_equal_to_new(event, attrib, cmd_result, as_sudo, changed)
+      def old_equal_to_new(_event, _attrib, _cmd_result, _as_sudo, changed)
         result = changed[:from] == changed[:to]
         log "State Machine: old_equal_to_new #{result}"
 
@@ -53,17 +53,15 @@ class Rosh
         log "State Machine: Uncommitted event: #{self}, #{args}"
         @uncommitted_events ||= []
 
-=begin
-        @uncommitted_events << {
-          object: self,
-          attribute: args[1],
-          result: args[2],
-          as_sudo: args[3],
-          from: args[4][:from],
-          to: args[4][:to]
-        }
-=end
-        @uncommitted_events << Event.new(*args)
+        #         @uncommitted_events << {
+        #           object: self,
+        #           attribute: args[1],
+        #           result: args[2],
+        #           as_sudo: args[3],
+        #           from: args[4][:from],
+        #           to: args[4][:to]
+        #         }
+        @uncommitted_events << Rosh::Event.new(*args)
       end
 
       def notify_observers(*args)

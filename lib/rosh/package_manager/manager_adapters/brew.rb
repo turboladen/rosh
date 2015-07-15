@@ -1,6 +1,5 @@
 require_relative '../package'
 
-
 class Rosh
   class PackageManager
     module ManagerAdapters

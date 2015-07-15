@@ -1,7 +1,6 @@
 class Rosh
   class PackageManager
     module ObjectAdapters
-
       # Represents a {https://wiki.debian.org/DebianPackage Debian package}.
       # Managed using {https://wiki.debian.org/Apt Apt} and
       # {https://wiki.debian.org/dpkg dpkg}.
@@ -13,11 +12,9 @@ class Rosh
         def at_latest_version?
           cmd = "apt-cache policy #{@package_name}"
           result = current_shell.exec_internal(cmd)
-          %r[Installed: (?<current>\S+)\r\n\s*Candidate: (?<candidate>\S+)] =~ result
+          /Installed: (?<current>\S+)\r\n\s*Candidate: (?<candidate>\S+)/ =~ result
 
-          if $~
-            $~[:current] == $~[:candidate]
-          end
+          $LAST_MATCH_INFO[:current] == $LAST_MATCH_INFO[:candidate] if $LAST_MATCH_INFO
         end
 
         # @return [String] The currently installed version of the package. +nil+
@@ -25,10 +22,10 @@ class Rosh
         def current_version
           cmd = "apt-cache policy #{@package_name}"
           result = current_shell.exec_internal(cmd)
-          %r[Installed: (?<version>\S*)] =~ result
+          /Installed: (?<version>\S*)/ =~ result
 
-          if $~
-            $~[:version] == '(none)' ? nil : $~[:version]
+          if $LAST_MATCH_INFO
+            $LAST_MATCH_INFO[:version] == '(none)' ? nil : $LAST_MATCH_INFO[:version]
           else
             nil
           end
@@ -42,7 +39,7 @@ class Rosh
           info_hash = {}
 
           output.each_line do |line|
-            %r[(?<key>.+): (?<value>[^\r\n]*)] =~ line
+            /(?<key>.+): (?<value>[^\r\n]*)/ =~ line
 
             if key
               info_hash[key.to_safe_down_sym] = value
@@ -60,8 +57,8 @@ class Rosh
         #
         # @param [String] version
         # @return [Boolean] +true+ if successful, +false+ if not.
-        def install(version=nil)
-          #cmd = "DEBIAN_FRONTEND=noninteractive apt-get install #{@package_name}"
+        def install(version = nil)
+          # cmd = "DEBIAN_FRONTEND=noninteractive apt-get install #{@package_name}"
           cmd = "apt-get install #{@package_name}"
           cmd << "=#{version}" if version
           cmd << ' -y'

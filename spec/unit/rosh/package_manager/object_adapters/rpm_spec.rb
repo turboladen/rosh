@@ -1,7 +1,7 @@
 require 'rosh/package_manager/object_adapters/rpm'
 
 RSpec.describe Rosh::PackageManager::ObjectAdapters::Rpm do
-  let(:shell) { double 'Rosh::Host::Shell', :su? => false }
+  let(:shell) { double 'Rosh::Host::Shell', su?: false }
   subject { Object.new.extend Rosh::Host::PackageTypes::Rpm }
 
   before do
@@ -46,11 +46,11 @@ Description: The zsh shell is a command interpreter usable as an interactive log
         summary: 'A powerful interactive shell',
         url: 'http://zsh.sunsite.dk/',
         license: 'BSD',
-        description: 'The zsh shell is a command interpreter usable as an interactive login ' +
-          'shell and as a shell script command processor.  Zsh resembles the ksh ' +
-          'shell (the Korn shell), but includes many enhancements.  Zsh supports ' +
-          'command line editing, built-in spelling correction, programmable ' +
-          'command completion, shell functions (with autoloading), a history ' +
+        description: 'The zsh shell is a command interpreter usable as an interactive login ' \
+          'shell and as a shell script command processor.  Zsh resembles the ksh ' \
+          'shell (the Korn shell), but includes many enhancements.  Zsh supports ' \
+          'command line editing, built-in spelling correction, programmable ' \
+          'command completion, shell functions (with autoloading), a history ' \
           'mechanism, and more.'
       }
     end

@@ -2,7 +2,7 @@ require 'rosh/shell/adapters/remote'
 
 RSpec.describe Rosh::Shell::Adapters::Remote do
   let(:ssh) do
-    double 'Net::SSH::Connection', close: true, :closed? => true
+    double 'Net::SSH::Connection', close: true, closed?: true
   end
 
   let(:host_name) { 'testhost' }
@@ -24,7 +24,7 @@ RSpec.describe Rosh::Shell::Adapters::Remote do
 
   before do
     Net::SSH.stub(:start).and_return(ssh)
-    #Rosh::Host::Shells::Remote.log = false
+    # Rosh::Host::Shells::Remote.log = false
     subject.instance_variable_set(:@internal_pwd, internal_pwd)
     allow(subject).to receive(:log)
   end
@@ -101,7 +101,7 @@ RSpec.describe Rosh::Shell::Adapters::Remote do
         subject.should_receive(:upload).with('tmp file', '/tmp/rosh_upload',
           true, '/destination').and_call_original
         subject.should_receive(:scp).with('tmp file', '/tmp/rosh_upload')
-        #subject.should_receive(:exec).
+        # subject.should_receive(:exec).
         #  with('cp /tmp/rosh_upload /destination && rm /tmp/rosh_upload')
 
         subject.upload('tmp file', '/destination')
@@ -207,7 +207,7 @@ RSpec.describe Rosh::Shell::Adapters::Remote do
           @r = subject.cd('path')
         end
 
-        specify { @r.should be_true}
+        specify { @r.should be_true }
         specify { subject.last_exit_status.should eq 0 }
         specify { subject.last_result.should eq @r }
       end
@@ -329,7 +329,6 @@ RSpec.describe Rosh::Shell::Adapters::Remote do
       o.should == outcome
     end
   end
-
 
   describe '#cp' do
     let(:source) { '/home/path' }

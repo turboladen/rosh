@@ -2,20 +2,20 @@ class Rosh
   class FileSystem
     class RemoteStat
 
-      LINUX_CMD = %q[stat -L -c ] +
-        %['dev: %D ino: %i mode: %f nlink: %h uid: %u gid: %g rdev: %t ] +
-        %[size: %s blksize: %B blocks: %b atime: %X mtime: %Y ctime: %Z']
+      LINUX_CMD = 'stat -L -c ' +
+                  %('dev: %D ino: %i mode: %f nlink: %h uid: %u gid: %g rdev: %t ) +
+                  %(size: %s blksize: %B blocks: %b atime: %X mtime: %Y ctime: %Z')
 
-      OSX_CMD = %q[stat -n -f ] +
-        %['dev: %d ino: %i mode: %p nlink: %l uid: %u gid: %g rdev: %r ] +
-        %[size: %z blksize: %k blocks: %b atime: %a mtime: %m ctime: %c']
+      OSX_CMD = 'stat -n -f ' +
+                %('dev: %d ino: %i mode: %p nlink: %l uid: %u gid: %g rdev: %r ) +
+                %(size: %z blksize: %k blocks: %b atime: %a mtime: %m ctime: %c')
 
       def self.stat(path, host_name)
         run(host_name) do |host|
           result = if host.darwin?
-            host.shell.exec_internal("#{OSX_CMD} #{path}")
-          else
-            host.shell.exec_internal("#{LINUX_CMD} #{path}")
+                     host.shell.exec_internal("#{OSX_CMD} #{path}")
+                   else
+                     host.shell.exec_internal("#{LINUX_CMD} #{path}")
           end
 
           new(result.string, host.name)
@@ -43,9 +43,9 @@ class Rosh
       def self.dev_major(path, host_name)
         run(host_name) do |host|
           cmd = if host.darwin?
-            "stat -n -f '%Hr' #{path}"
-          else
-            "stat -c '%t' #{path}"
+                  "stat -n -f '%Hr' #{path}"
+                else
+                  "stat -c '%t' #{path}"
           end
 
           host.shell.exec_internal(cmd).string.strip.to_i
@@ -55,9 +55,9 @@ class Rosh
       def self.dev_minor(path, host_name)
         run(host_name) do |host|
           cmd = if host.darwin?
-            "stat -n -f '%Lr' #{path}"
-          else
-            "stat -c '%T' #{path}"
+                  "stat -n -f '%Lr' #{path}"
+                else
+                  "stat -c '%T' #{path}"
           end
 
           host.shell.exec_internal(cmd).string.strip.to_i
@@ -218,6 +218,7 @@ class Rosh
       #------------------------------------------------------------------------
       # Instance Publics
       #------------------------------------------------------------------------
+
       public
 
       attr_reader :dev, :ino, :mode, :nlink, :uid, :gid, :rdev, :size, :blksize,
@@ -235,22 +236,23 @@ class Rosh
       #------------------------------------------------------------------------
       # Instance Privates
       #------------------------------------------------------------------------
+
       private
 
       def parse_result(result)
-        %r[dev: (?<dev>\S+)] =~ result
-        %r[ino: (?<ino>\S+)] =~ result
-        %r[mode: (?<mode>\S+)] =~ result
-        %r[nlink: (?<nlink>\S+)] =~ result
-        %r[uid: (?<uid>\S+)] =~ result
-        %r[gid: (?<gid>\S+)] =~ result
-        %r[rdev: (?<rdev>\S+)] =~ result
-        %r[size: (?<size>\S+)] =~ result
-        %r[blksize: (?<blksize>\S+)] =~ result
-        %r[blocks: (?<blocks>\S+)] =~ result
-        %r[atime: (?<atime>\S+)] =~ result
-        %r[mtime: (?<mtime>\S+)] =~ result
-        %r[ctime: (?<ctime>\S+)] =~ result
+        /dev: (?<dev>\S+)/ =~ result
+        /ino: (?<ino>\S+)/ =~ result
+        /mode: (?<mode>\S+)/ =~ result
+        /nlink: (?<nlink>\S+)/ =~ result
+        /uid: (?<uid>\S+)/ =~ result
+        /gid: (?<gid>\S+)/ =~ result
+        /rdev: (?<rdev>\S+)/ =~ result
+        /size: (?<size>\S+)/ =~ result
+        /blksize: (?<blksize>\S+)/ =~ result
+        /blocks: (?<blocks>\S+)/ =~ result
+        /atime: (?<atime>\S+)/ =~ result
+        /mtime: (?<mtime>\S+)/ =~ result
+        /ctime: (?<ctime>\S+)/ =~ result
 
         @dev = "0x#{dev}"
         @ino = ino.to_i

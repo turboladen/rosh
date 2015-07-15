@@ -7,9 +7,7 @@ class Rosh
         load_adapter(type)
       end
 
-      def bin_path=(new_bin_path)
-        @bin_path = new_bin_path
-      end
+      attr_writer :bin_path
 
       private
 
@@ -17,7 +15,7 @@ class Rosh
         require_relative "manager_adapters/#{type}"
         klass =
           Rosh::PackageManager::ManagerAdapters.const_get(type.to_s.classify)
-        self.extend klass
+        extend klass
         @bin_path = klass::DEFAULT_BIN_PATH
       end
     end

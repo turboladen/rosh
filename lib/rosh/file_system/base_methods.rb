@@ -1,14 +1,13 @@
 require_relative '../command'
 require_relative 'state_machine'
 
-
 class Rosh
   class FileSystem
     module BaseMethods
       include Rosh::FileSystem::StateMachine
 
       # @param [String] dir_string
-      def absolute_path(dir_string=nil)
+      def absolute_path(dir_string = nil)
         Rosh::Command.new(method(__method__), dir_string,
           &adapter.method(__method__).to_proc).execute!
       end
@@ -23,13 +22,13 @@ class Rosh
       def access_time=(new_time)
         echo_rosh_command new_time
 
-        current_mtime = self.modification_time
+        current_mtime = modification_time
         command = Rosh::Command.new(method(__method__), new_time) do
           adapter.utime(new_time, current_mtime)
         end
 
-        command.change_if = -> { self.access_time != new_time }
-        command.did_change_succeed = -> { self.access_time == new_time }
+        command.change_if = -> { access_time != new_time }
+        command.did_change_succeed = -> { access_time == new_time }
 
         command.after_change = proc do
           updated(:access_time, cmd_result, Rosh.environment.current_shell.su?, from: current_atime, to: new_time)
@@ -42,7 +41,7 @@ class Rosh
       #
       # @param [String] suffix
       # @return [String]
-      def base_name(suffix=nil)
+      def base_name(suffix = nil)
         Rosh._run_command(method(__method__), suffix, &adapter.method(:basename).to_proc)
       end
       alias_method :basename, :base_name
@@ -50,12 +49,12 @@ class Rosh
       def change_mode_to(new_mode)
         echo_rosh_command new_mode
 
-        current_mode = self.mode
+        current_mode = mode
 
         command = Rosh::Command.new(method(__method__), new_mode, &adapter.method(:chmod).to_proc)
         # TODO: this check isn't correct
         command.change_if = -> { !current_mode.to_s.end_with?(new_mode.to_s) }
-        command.did_change_succeed = -> { current_mode == self.mode }
+        command.did_change_succeed = -> { current_mode == mode }
 
         command.after_change = proc do |result|
           updated(:mode, result, Rosh.environment.current_shell.su?, from: current_mode, to: new_mode)
@@ -72,15 +71,13 @@ class Rosh
       end
       alias_method :ctime, :change_time
 
-=begin
-      def create
-        change_if(!exists?) do
-          notify_about(self, :exists?, from: false, to: true) do
-            adapter.create
-          end
-        end
-      end
-=end
+      #       def create
+      #         change_if(!exists?) do
+      #           notify_about(self, :exists?, from: false, to: true) do
+      #             adapter.create
+      #           end
+      #         end
+      #       end
 
       def delete
         echo_rosh_command
@@ -103,7 +100,7 @@ class Rosh
       alias_method :dirname, :directory_name
 
       # @return [String]
-      def expand_path(dir_string=nil)
+      def expand_path(dir_string = nil)
         Rosh._run_command(method(__method__), dir_string, &adapter.method(:expand_path).to_proc)
       end
 
@@ -133,7 +130,7 @@ class Rosh
       def group=(new_group)
         echo_rosh_command new_group
 
-        current_group = self.gid
+        current_group = gid
         new_group = new_group.to_i
 
         command = Rosh::Command.new(method(__method__), new_group) do
@@ -161,15 +158,15 @@ class Rosh
       # @param [Time] new_time
       def modification_time=(new_time)
         echo_rosh_command new_time
-        old_mtime = self.modification_time
+        old_mtime = modification_time
 
         command = Rosh::Command.new(method(__method__), new_time) do
-          old_atime = self.access_time
+          old_atime = access_time
           adapter.utime(old_atime, new_time)
         end
 
         command.change_if = -> { old_mtime != new_time }
-        command.did_change_succeed = -> { self.modification_time == new_time }
+        command.did_change_succeed = -> { modification_time == new_time }
         command.after_change = lambda do |result|
           update(:modification_time, result, host.shell.su?, from: old_mtime, to: new_time)
         end
@@ -185,7 +182,7 @@ class Rosh
       def owner=(new_owner)
         echo_rosh_command new_owner
 
-        current_owner = self.uid
+        current_owner = uid
         new_owner = new_owner.to_i
 
         command = Rosh::Command.new(method(__method__), new_owner, &adapter.method(:chown).to_proc)
@@ -215,14 +212,14 @@ class Rosh
 
       # @param [String] dir_path
       # @return [String]
-      def real_dir_path(dir_path=nil)
+      def real_dir_path(dir_path = nil)
         Rosh._run_command(method(__method__), dir_path, &adapter.method(:realdirpath).to_proc)
       end
       alias_method :realdirpath, :real_dir_path
 
       # @param [String] dir_path
       # @return [String]
-      def real_path(dir_path=nil)
+      def real_path(dir_path = nil)
         Rosh._run_command(method(__method__), dir_path, &adapter.method(:realpath).to_proc)
       end
       alias_method :realpath, :real_path
@@ -233,12 +230,12 @@ class Rosh
         echo_rosh_command new_name
 
         new_object = Rosh.environment.current_host.fs[object: new_name]
-        current_path = self.expand_path
+        current_path = expand_path
 
         command = Rosh::Command.new(method(__method__), new_name, &adapter.method(:rename).to_proc)
         command.change_if = -> { !new_object.exists? }
         command.did_change_succeed = proc do
-          new_object.exists? && !File.exists?(current_path) &&
+          new_object.exists? && !File.exist?(current_path) &&
             FileUtils.compare_file(current_path, new_name)
         end
 
@@ -276,7 +273,7 @@ class Rosh
         command = Rosh::Command.new(method(__method__), new_path, &adapter.method(:symlink).to_proc)
         command.change_if = -> { !new_link.exists? }
         command.did_change_succeed = proc do
-          new_link.exists? && new_link.destination == self.path
+          new_link.exists? && new_link.destination == path
         end
 
         command.after_change = proc do
@@ -297,10 +294,10 @@ class Rosh
       def truncate(new_size)
         echo_rosh_command new_size
 
-        current_size = self.size
+        current_size = size
         command = Rosh::Command.new(method(__method__), new_size, &adapter.method(:truncate).to_proc)
         command.change_if = -> { new_size < current_size }
-        command.did_change_succeed = -> { self.size == new_size }
+        command.did_change_succeed = -> { size == new_size }
         command.after_change = lambda do |result|
           update(:size, result, host.shell.su?, from: current_size, to: new_size)
         end
@@ -313,8 +310,8 @@ class Rosh
       def set_file_times(new_access_time, new_modification_time)
         echo_rosh_command new_access_time, new_modification_time
 
-        old_access_time = self.access_time
-        old_modification_time = self.modification_time
+        old_access_time = access_time
+        old_modification_time = modification_time
 
         command = Rosh::Command.new(method(__method__), new_access_time, new_modification_time,
           &adapter.method(:utime).to_proc)
@@ -325,14 +322,14 @@ class Rosh
         end
 
         command.did_change_succeed = proc do
-          self.access_time.to_i == new_access_time.to_i &&
-            self.modification_time.to_i == new_modification_time.to_i
+          access_time.to_i == new_access_time.to_i &&
+            modification_time.to_i == new_modification_time.to_i
         end
 
         command.after_change = lambda do |result|
           update(:file_times, result, host.shell.su?,
             from: { access_time: old_access_time, modification_time: old_modification_time },
-            to: { access_time: self.access_time, modification_time: self.modification_time })
+            to: { access_time: access_time, modification_time: modification_time })
         end
 
         command.execute!

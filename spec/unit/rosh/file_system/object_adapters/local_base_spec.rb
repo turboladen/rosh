@@ -42,9 +42,9 @@ RSpec.describe Rosh::FileSystem::ObjectAdapters::LocalBase do
         it 'raises with a message' do
           subject.should_receive(:chown).with(123, 234).and_return 100
 
-          expect {
+          expect do
             subject.owner(user_name: 'user')
-          }.to raise_error(RuntimeError, "Unable to chown using uid '123' and gid '234'.")
+          end.to raise_error(RuntimeError, "Unable to chown using uid '123' and gid '234'.")
         end
       end
     end
@@ -55,33 +55,31 @@ RSpec.describe Rosh::FileSystem::ObjectAdapters::LocalBase do
     specify { subject.to_path.should == '/tmp' }
   end
 
-=begin
-  describe '#group' do
-    let(:stat) { double 'File::Stat', gid: 123 }
-
-    before do
-      subject.stub(:stat).and_return stat
-    end
-
-    context 'group exists' do
-      it 'returns the related Struct::Group' do
-        Etc.should_receive(:getgrgid).with(123)
-
-        subject.group
-      end
-    end
-
-    context 'group does not exist' do
-      it 'raises an ArgumentError' do
-        expect { subject.group }.to raise_error(ArgumentError)
-      end
-    end
-  end
-
-  describe '#to_s' do
-    specify { subject.to_s.should == 'tmp' }
-  end
-=end
+  #   describe '#group' do
+  #     let(:stat) { double 'File::Stat', gid: 123 }
+  #
+  #     before do
+  #       subject.stub(:stat).and_return stat
+  #     end
+  #
+  #     context 'group exists' do
+  #       it 'returns the related Struct::Group' do
+  #         Etc.should_receive(:getgrgid).with(123)
+  #
+  #         subject.group
+  #       end
+  #     end
+  #
+  #     context 'group does not exist' do
+  #       it 'raises an ArgumentError' do
+  #         expect { subject.group }.to raise_error(ArgumentError)
+  #       end
+  #     end
+  #   end
+  #
+  #   describe '#to_s' do
+  #     specify { subject.to_s.should == 'tmp' }
+  #   end
 
   describe '#extract_uid' do
     context ':user_name given' do
@@ -98,9 +96,9 @@ RSpec.describe Rosh::FileSystem::ObjectAdapters::LocalBase do
 
       context ':user_name does not exist' do
         it 'raises an ArgumentError' do
-          expect {
+          expect do
             subject.send(:extract_uid, user_name: user_name)
-          }.to raise_error(ArgumentError)
+          end.to raise_error(ArgumentError)
         end
       end
     end
@@ -135,9 +133,9 @@ RSpec.describe Rosh::FileSystem::ObjectAdapters::LocalBase do
 
       context ':group_name does not exist' do
         it 'raises an ArgumentError' do
-          expect {
+          expect do
             subject.send(:extract_gid, group_name: group_name)
-          }.to raise_error(ArgumentError)
+          end.to raise_error(ArgumentError)
         end
       end
     end

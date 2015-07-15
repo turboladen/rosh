@@ -11,7 +11,7 @@ RSpec.describe Rosh::FileSystem::ObjectAdapters::RemoteBase do
 
   let(:path) { '/file' }
   let(:host_name) { 'hostname' }
-  let(:shell) { double 'Rosh::Shell', :su? => false }
+  let(:shell) { double 'Rosh::Shell', su?: false }
   before { allow(subject).to receive(:current_shell) { shell } }
 
   describe '#create' do
@@ -191,21 +191,21 @@ RSpec.describe Rosh::FileSystem::ObjectAdapters::RemoteBase do
 
       context 'file' do
         it 'returns :regular_file' do
-          expect(shell).to receive(:exec).with("stat -n -f '%HT' /file") { "Regular File\r\n"}
+          expect(shell).to receive(:exec).with("stat -n -f '%HT' /file") { "Regular File\r\n" }
           expect(subject.ftype).to eq :regular_file
         end
       end
 
       context 'directory' do
         it 'returns :directory' do
-          expect(shell).to receive(:exec).with("stat -n -f '%HT' /file") { "Directory\r\n"}
+          expect(shell).to receive(:exec).with("stat -n -f '%HT' /file") { "Directory\r\n" }
           expect(subject.ftype).to eq :directory
         end
       end
 
       context 'symbolic link' do
         it 'returns :symbolic_link' do
-          expect(shell).to receive(:exec).with("stat -n -f '%HT' /file") { "Symbolic Link\r\n"}
+          expect(shell).to receive(:exec).with("stat -n -f '%HT' /file") { "Symbolic Link\r\n" }
           expect(subject.ftype).to eq :symbolic_link
         end
       end
@@ -216,21 +216,21 @@ RSpec.describe Rosh::FileSystem::ObjectAdapters::RemoteBase do
 
       context 'file' do
         it 'returns :regular_file' do
-          expect(shell).to receive(:exec).with("stat -c '%F' /file") { "regular file\r\n"}
+          expect(shell).to receive(:exec).with("stat -c '%F' /file") { "regular file\r\n" }
           expect(subject.ftype).to eq :regular_file
         end
       end
 
       context 'directory' do
         it 'returns :directory' do
-          expect(shell).to receive(:exec).with("stat -c '%F' /file") { "directory\r\n"}
+          expect(shell).to receive(:exec).with("stat -c '%F' /file") { "directory\r\n" }
           expect(subject.ftype).to eq :directory
         end
       end
 
       context 'symbolic link' do
         it 'returns :symbolic_link' do
-          expect(shell).to receive(:exec).with("stat -c '%F' /file") { "symbolic link\r\n"}
+          expect(shell).to receive(:exec).with("stat -c '%F' /file") { "symbolic link\r\n" }
           expect(subject.ftype).to eq :symbolic_link
         end
       end
@@ -458,7 +458,7 @@ RSpec.describe Rosh::FileSystem::ObjectAdapters::RemoteBase do
         subject.should_receive(:changed)
         subject.should_receive(:notify_observers).
           with(subject, attribute: :group, old: 'people', new: 'strangers',
-          as_sudo: false)
+                        as_sudo: false)
 
         subject.group = 'strangers'
       end

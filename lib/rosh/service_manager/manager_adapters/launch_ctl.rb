@@ -1,6 +1,5 @@
 require_relative '../service'
 
-
 class Rosh
   class ServiceManager
     module ManagerAdapters
@@ -14,13 +13,13 @@ class Rosh
 
             line.match /(?<pid>\S+)\s+(?<status>\S+)\s+(?<name>[\S]+)/
 
-            if $~
-              pid = $~[:pid].to_i
+            if $LAST_MATCH_INFO
+              pid = $LAST_MATCH_INFO[:pid].to_i
             else
               puts 'no match data for line:', line
             end
 
-            services << Rosh::ServiceManager::Service.new($~[:name], @host_name)
+            services << Rosh::ServiceManager::Service.new($LAST_MATCH_INFO[:name], @host_name)
           end
 
           services

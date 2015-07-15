@@ -1,7 +1,6 @@
 require_relative '../user'
 require_relative '../group'
 
-
 class Rosh
   class UserManager
     module ManagerAdapters
@@ -15,7 +14,7 @@ class Rosh
         end
 
         def group?(name)
-          current_shell.exec_internal %[getent group | grep #{name}]
+          current_shell.exec_internal %(getent group | grep #{name})
 
           current_shell.last_exit_status.zero?
         end
@@ -29,7 +28,7 @@ class Rosh
         end
 
         def user?(name)
-          current_shell.exec_internal %[id #{name}]
+          current_shell.exec_internal %(id #{name})
 
           current_shell.last_exit_status.zero?
         end

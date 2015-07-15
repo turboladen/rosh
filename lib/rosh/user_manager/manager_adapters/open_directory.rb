@@ -1,7 +1,6 @@
 require_relative '../user'
 require_relative '../group'
 
-
 class Rosh
   class UserManager
     module ManagerAdapters
@@ -14,7 +13,7 @@ class Rosh
             group = group_text.each_line.inject({}) do |result, line|
               line.strip!
               next if line.empty?
-              %r[(?<key>\S+):\s+(?<value>.+)$] =~ line.strip
+              /(?<key>\S+):\s+(?<value>.+)$/ =~ line.strip
 
               value = value.split if key == 'users'
               result[key.to_sym] = value
@@ -43,7 +42,7 @@ class Rosh
             user = user_text.each_line.inject({}) do |result, line|
               line.strip!
               next if line.empty?
-              %r[(?<key>\S+):\s+(?<value>.+)$] =~ line.strip
+              /(?<key>\S+):\s+(?<value>.+)$/ =~ line.strip
 
               result[key.to_sym] = value unless key == 'password'
 
@@ -51,7 +50,7 @@ class Rosh
             end
 
             name = user.delete(:name)
-            #Users::User.new(name, :open_directory, @host_name, user)
+            # Users::User.new(name, :open_directory, @host_name, user)
             UserManager::User.new(name, @host_name)
           end
         end

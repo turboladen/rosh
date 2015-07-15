@@ -85,12 +85,12 @@ wp-cli
             new_formulae:
               %w[bpm-tools caudec homebrew/dupes/ed timidity ydict]
           }, {
-          updated_formulae:
-            %w[ack check elasticsearch android-ndk checkstyle emacs]
-        }, {
-          deleted_formulae:
-            %w[wp-cli]
-        }
+            updated_formulae:
+              %w[ack check elasticsearch android-ndk checkstyle emacs]
+          }, {
+            deleted_formulae:
+              %w[wp-cli]
+          }
         ]
       end
 
@@ -117,7 +117,7 @@ atk 2.8.0, gmp 5.1.1, gtk+ 2.24.17, hub 1.10.6
 
     it 'returns an array of new Brew packages' do
       result = subject.send(:extract_upgraded_packages, output)
-      result.should  eq %w[atk gmp gtk+ hub]
+      result.should eq %w[atk gmp gtk+ hub]
     end
   end
 end

@@ -5,7 +5,7 @@ RSpec.describe 'Serialization' do
   describe Rosh::Shell do
     subject do
       Rosh::Shell.new('example.com', user: 'bobo',
-        keys: %w[some_key])
+                                     keys: %w[some_key])
     end
 
     context 'YAML' do

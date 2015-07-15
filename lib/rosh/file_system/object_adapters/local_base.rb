@@ -1,17 +1,15 @@
 require_relative 'local_stat_methods'
 
-
 class Rosh
   class FileSystem
     module ObjectAdapters
-
       # Base class for local file system objects.  Simply, it provides for
       # delegating to built-in Ruby Dir and File methods.
       module LocalBase
         include LocalStatMethods
 
         # @param [String] dir_string
-        def absolute_path(dir_string=nil)
+        def absolute_path(dir_string = nil)
           handle_errors_and_return_result { ::File.absolute_path(@path, dir_string) }
         end
 
@@ -23,7 +21,7 @@ class Rosh
         #
         # @param [String] suffix Removes the file suffix, if given.
         # @return [String]
-        def basename(suffix=nil)
+        def basename(suffix = nil)
           handle_errors_and_return_result do
             if suffix
               ::File.basename(@path, suffix)
@@ -84,10 +82,10 @@ class Rosh
         end
 
         def exists?
-          handle_errors_and_return_result { ::File.exists? @path }
+          handle_errors_and_return_result { ::File.exist? @path }
         end
 
-        def expand_path(dir_string=nil)
+        def expand_path(dir_string = nil)
           handle_errors_and_return_result { ::File.expand_path(@path, dir_string) }
         end
 
@@ -129,11 +127,9 @@ class Rosh
           handle_errors_and_return_result { ::File.mtime(@path) }
         end
 
-=begin
-        def open(mode, *options, &block)
-          File.open(@path, options, block)
-        end
-=end
+        #         def open(mode, *options, &block)
+        #           File.open(@path, options, block)
+        #         end
 
         def path
           handle_errors_and_return_result { ::File.path(@path) }
@@ -143,11 +139,11 @@ class Rosh
           handle_errors_and_return_result { ::File.readlink(@path) }
         end
 
-        def realdirpath(dir_path=nil)
+        def realdirpath(dir_path = nil)
           handle_errors_and_return_result { ::File.realdirpath(@path, dir_path) }
         end
 
-        def realpath(dir_path=nil)
+        def realpath(dir_path = nil)
           handle_errors_and_return_result { ::File.realpath(@path, dir_path) }
         end
 
@@ -158,7 +154,7 @@ class Rosh
             exit_status = actual_result ? 0 : 1
 
             [actual_result, exit_status]
-        end
+          end
       end
 
         def split

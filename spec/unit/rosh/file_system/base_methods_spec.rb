@@ -103,7 +103,7 @@ RSpec.describe Rosh::FileSystem::BaseMethods do
         subject.should_receive(:changed)
         subject.should_receive(:notify_observers).
           with(subject, attribute: :path, old: '/file', new: nil,
-          as_sudo: false)
+                        as_sudo: false)
 
         subject.delete
       end

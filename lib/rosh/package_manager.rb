@@ -51,7 +51,7 @@ class Rosh
         updated_packages = adapter.update_definitions
         success = current_shell.last_exit_status.zero?
 
-        notify_about(self, :package_definitions, from: '?', to: updated_packages, criteria: success ) do
+        notify_about(self, :package_definitions, from: '?', to: updated_packages, criteria: success) do
           updated_packages
         end
       end
@@ -61,7 +61,7 @@ class Rosh
     def upgrade_packages
       echo_rosh_command
 
-      old_packages = self.installed_packages
+      old_packages = installed_packages
 
       change_if(true) do
         upgraded_packages = adapter.upgrade_packages

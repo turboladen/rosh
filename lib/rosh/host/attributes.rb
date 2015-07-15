@@ -1,7 +1,6 @@
 class Rosh
   class Host
     module Attributes
-
       @kernel_version = nil
       @architecture = nil
 
@@ -14,7 +13,7 @@ class Rosh
 
       DISTRIBUTION_METHODS.each do |meth|
         define_method(meth) do
-          distro, version = case self.operating_system
+          distro, version = case operating_system
           when :linux
             extract_linux_distribution
           when :darwin
@@ -68,7 +67,7 @@ class Rosh
         result = @shell.exec(command)
         stdout = result.stdout
         log "STDOUT: #{stdout}"
-        %r[(?<shell>[a-z]+)$] =~ stdout
+        /(?<shell>[a-z]+)$/ =~ stdout
 
         shell.to_sym
       end
@@ -84,6 +83,7 @@ class Rosh
       #---------------------------------------------------------------------------
       # Privates
       #---------------------------------------------------------------------------
+
       private
 
       # Extracts info about the operating system based on uname info.
@@ -93,16 +93,16 @@ class Rosh
       def extract_os(result)
         log "STDOUT: #{result}"
 
-        %r[^(?<os>[a-zA-Z]+) (?<uname>[^\n]*)] =~ result.strip
+        /^(?<os>[a-zA-Z]+) (?<uname>[^\n]*)/ =~ result.strip
         @operating_system = os.to_safe_down_sym
 
         case @operating_system
         when :darwin
-          %r[Kernel Version (?<version>\d\d\.\d\d?\.\d\d?).*RELEASE_(?<arch>\S+)] =~ uname
+          /Kernel Version (?<version>\d\d\.\d\d?\.\d\d?).*RELEASE_(?<arch>\S+)/ =~ uname
         when :linux
-          %r[\S+\s+(?<version>\S+).*\s(?<arch>(x86_64|i386|i586|i686)).*$] =~ uname
+          /\S+\s+(?<version>\S+).*\s(?<arch>(x86_64|i386|i586|i686)).*$/ =~ uname
         when :freebsd
-          %r[\S+\s+(?<version>\S+).*\s(?<arch>\S+)\s*$] =~ uname
+          /\S+\s+(?<version>\S+).*\s(?<arch>\S+)\s*$/ =~ uname
         end
 
         @kernel_version = version
@@ -113,19 +113,19 @@ class Rosh
       def extract_linux_distribution
         distro, version = catch(:distro_info) do
           stdout = @shell.exec('lsb_release --description')
-          %r[Description:\s+(?<distro>\w+)\s+(?<version>[^\n]+)] =~ stdout
+          /Description:\s+(?<distro>\w+)\s+(?<version>[^\n]+)/ =~ stdout
           throw(:distro_info, [distro, version]) if distro && version
 
           stdout = @shell.exec('cat /etc/redhat-release')
-          %r[(?<distro>\w+)\s+release\s+(?<version>[^\n]+)] =~ stdout
+          /(?<distro>\w+)\s+release\s+(?<version>[^\n]+)/ =~ stdout
           throw(:distro_info, [distro, version]) if distro && version
 
           stdout = @shell.exec('cat /etc/slackware-release')
-          %r[(?<distro>\w+)\s+release\s+(?<version>[^\n]+)] =~ stdout
+          /(?<distro>\w+)\s+release\s+(?<version>[^\n]+)/ =~ stdout
           throw(:distro_info, [distro, version]) if distro && version
 
           stdout = @shell.exec('cat /etc/gentoo-release')
-          %r[(?<distro>\S+).+release\s+(?<version>[^\n]+)] =~ stdout
+          /(?<distro>\S+).+release\s+(?<version>[^\n]+)/ =~ stdout
           throw(:distro_info, [distro, version]) if distro && version
         end
 
@@ -134,7 +134,7 @@ class Rosh
 
       def extract_darwin_distribution
         stdout = @shell.exec 'sw_vers'
-        %r[ProductName:\s+(?<distro>[^\n]+)\s*ProductVersion:\s+(?<version>\S+)]m =~ stdout
+        /ProductName:\s+(?<distro>[^\n]+)\s*ProductVersion:\s+(?<version>\S+)/m =~ stdout
 
         [distro.to_safe_down_sym, version]
       end

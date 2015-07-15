@@ -33,9 +33,9 @@ class Rosh
         return @adapter if @adapter
 
         type = if Rosh.environment.current_host.local?
-          :local_symlink
-        else
-          :remote_symlink
+                 :local_symlink
+               else
+                 :remote_symlink
         end
 
         @adapter = FileSystem::ObjectAdapter.new(@path, type, @host_name)

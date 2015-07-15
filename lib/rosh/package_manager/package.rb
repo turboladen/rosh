@@ -67,7 +67,7 @@ class Rosh
               adapter.install
             end
           else
-            notify_about(self, :version, from: old_version, to: self.latest_version) do
+            notify_about(self, :version, from: old_version, to: latest_version) do
               adapter.install
             end
           end
@@ -107,9 +107,9 @@ class Rosh
       def upgrade
         echo_rosh_command
 
-        current_version = self.version
+        current_version = version
 
-        change_if(current_version < self.latest_version) do
+        change_if(current_version < latest_version) do
           adapter.upgrade
           new_version = adapter.current_version
 

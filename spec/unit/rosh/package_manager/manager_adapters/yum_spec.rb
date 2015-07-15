@@ -30,22 +30,22 @@ ORBit2.x86_64                            2.14.3-5.el5          installed
 
     it 'creates a Rpm package object for each package' do
       subject.should_receive(:create_package).
-        with('MAKEDEV', architecture: 'x86_64',version: '3.23-1.2', status: 'installed')
+        with('MAKEDEV', architecture: 'x86_64', version: '3.23-1.2', status: 'installed')
       subject.should_receive(:create_package).
         with('NetworkManager', architecture: 'i386', version: '1:0.7.0-13.el5',
-        status: 'installed')
+                               status: 'installed')
       subject.should_receive(:create_package).
         with('NetworkManager', architecture: 'x86_64', version: '1:0.7.0-13.el5',
-        status: 'installed')
+                               status: 'installed')
       subject.should_receive(:create_package).
         with('NetworkManager-glib', architecture: 'i386', version: '1:0.7.0-13.el5',
-        status: 'installed')
+                                    status: 'installed')
       subject.should_receive(:create_package).
         with('NetworkManager-glib', architecture: 'x86_64', version: '1:0.7.0-13.el5',
-        status: 'installed')
+                                    status: 'installed')
       subject.should_receive(:create_package).
-        with('ORBit2', architecture: 'x86_64',version: '2.14.3-5.el5',
-        status: 'installed')
+        with('ORBit2', architecture: 'x86_64', version: '2.14.3-5.el5',
+                       status: 'installed')
 
       subject.installed_packages
     end

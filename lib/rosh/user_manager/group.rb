@@ -2,7 +2,6 @@ require_relative '../changeable'
 require_relative '../observable'
 require_relative 'base'
 
-
 class Rosh
   class UserManager
     class GroupNotFound < RuntimeError; end
@@ -33,14 +32,14 @@ class Rosh
         return @adapter if @adapter
 
         type = if current_host.local?
-          :local_group
-        else
-          case current_host.operating_system
-          when :darwin
-            :open_directory_group
-          else
-            :unix_group
-          end
+                 :local_group
+               else
+                 case current_host.operating_system
+                 when :darwin
+                   :open_directory_group
+                 else
+                   :unix_group
+                 end
         end
 
         @adapter = UserManager::ObjectAdapter.new(@name, type, @host_name)

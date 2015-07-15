@@ -40,11 +40,11 @@ RSpec.describe Rosh::FileSystem::ObjectAdapters::LocalDir do
   it { should respond_to :mtime }
 
   describe '#open' do
-    specify {
+    specify do
       expect(Dir).to receive(:open).with('/dir')
       subject.path = '/dir'
       subject.open
-    }
+    end
   end
 
   it { should respond_to :owned? }
@@ -86,16 +86,16 @@ RSpec.describe Rosh::FileSystem::ObjectAdapters::LocalDir do
   end
 
   describe '#mkdir' do
-    specify {
+    specify do
       expect(Dir).to receive(:mkdir).with '/dir'
       subject.mkdir
-    }
+    end
   end
 
   describe '#rmdir' do
-    specify {
+    specify do
       expect(Dir).to receive(:rmdir).with '/dir'
       subject.rmdir
-    }
+    end
   end
 end

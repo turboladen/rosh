@@ -1,6 +1,5 @@
 require_relative '../package'
 
-
 class Rosh
   class PackageManager
     module ManagerAdapters
@@ -22,13 +21,13 @@ class Rosh
         end
 
         def update_definitions
-          output = current_shell.exec_internal %[#{@bin_path}/yum check-update]
+          output = current_shell.exec_internal %(#{@bin_path}/yum check-update)
 
           extract_updated_definitions(output)
         end
 
         def upgrade_packages
-          output = current_shell.exec_internal %[#{@bin_path}/yum update -y]
+          output = current_shell.exec_internal %(#{@bin_path}/yum update -y)
 
           extract_upgraded_packages(output)
         end

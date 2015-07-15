@@ -1,6 +1,5 @@
 require_relative 'remote_base'
 
-
 class Rosh
   class FileSystem
     module ObjectAdapters
@@ -25,11 +24,11 @@ class Rosh
         # @param [String,Integer] uid
         # @param [String,Integer] gid
         # @return [Boolean]
-        def chown(uid, gid=nil)
+        def chown(uid, gid = nil)
           cmd = if current_host.darwin?
-            "chown -h #{uid}"
-          else
-            "chown #{uid}"
+                  "chown -h #{uid}"
+                else
+                  "chown #{uid}"
           end
 
           cmd << ":#{gid}" if gid

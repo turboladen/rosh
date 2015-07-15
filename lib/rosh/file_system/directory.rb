@@ -2,7 +2,6 @@ require_relative 'base_methods'
 require_relative 'stat_methods'
 require_relative 'object_adapter'
 
-
 class Rosh
   class FileSystem
     class Directory
@@ -14,17 +13,15 @@ class Rosh
         @host_name = host_name
       end
 
-=begin
-      def create
-        echo_rosh_command
-
-        change_if(!exists?) do
-          notify_about(self, :exists?, from: false, to: true) do
-            adapter.mkdir
-          end
-        end
-      end
-=end
+      #       def create
+      #         echo_rosh_command
+      #
+      #         change_if(!exists?) do
+      #           notify_about(self, :exists?, from: false, to: true) do
+      #             adapter.mkdir
+      #           end
+      #         end
+      #       end
 
       def delete
         echo_rosh_command
@@ -75,9 +72,9 @@ class Rosh
         return @adapter if @adapter
 
         type = if current_host.local?
-          :local_dir
-        else
-          :remote_dir
+                 :local_dir
+               else
+                 :remote_dir
         end
 
         @adapter = FileSystem::ObjectAdapter.new(@path, type, @host_name)

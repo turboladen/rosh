@@ -151,9 +151,9 @@ class Rosh
 
         def world_readable?
           cmd = if host.darwin?
-            "stat -f '%Sp' #{@path} | grep 'r\\S\\S$'"
-          else
-            "stat -c '%A' #{@path} | grep 'r\\S\\S$'"
+                  "stat -f '%Sp' #{@path} | grep 'r\\S\\S$'"
+                else
+                  "stat -c '%A' #{@path} | grep 'r\\S\\S$'"
           end
 
           host.shell.exec_internal(cmd)
@@ -165,9 +165,9 @@ class Rosh
 
         def world_writable?
           cmd = if host.darwin?
-            "stat -f '%Sp' #{@path} | grep 'w\\S$'"
-          else
-            "stat -c '%A' #{@path} | grep 'w\\S$'"
+                  "stat -f '%Sp' #{@path} | grep 'w\\S$'"
+                else
+                  "stat -c '%A' #{@path} | grep 'w\\S$'"
           end
 
           host.shell.exec_internal(cmd)

@@ -4,7 +4,6 @@ require_relative '../../errors'
 require_relative '../../shell/private_command_result'
 require_relative '../../logger'
 
-
 class Rosh
   class FileSystem
     module ObjectAdapters
@@ -18,11 +17,11 @@ class Rosh
           handle_errors_and_return_result do
             f = ::File.open(@path, ::File::CREAT, &block)
 
-            ::File.exists? f
+            ::File.exist? f
           end
         end
 
-        def read(length=nil, offset=nil)
+        def read(length = nil, offset = nil)
           handle_errors_and_return_result do
             ::File.read(@path, length, offset)
           end
@@ -47,13 +46,13 @@ class Rosh
         def save
           handle_errors_and_return_result do
             ok = if @unwritten_contents
-              ::File.open(@path, 'w') do |f|
-                f.write(@unwritten_contents)
-              end
+                   ::File.open(@path, 'w') do |f|
+                     f.write(@unwritten_contents)
+                   end
 
-              true
-            else
-              false
+                   true
+                 else
+                   false
             end
 
             exit_status = ok ? 0 : 1

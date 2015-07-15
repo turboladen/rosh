@@ -7,7 +7,6 @@ require_relative 'state_machine'
 
 class Rosh
   class FileSystem
-
     # A Rosh::FileSystem::File can represent either a file on a local host or a
     # remote host.  It allows you to interact with a file on your file system
     # in an object-oriented manner.
@@ -82,11 +81,11 @@ class Rosh
         log "State: #{state}"
 
         command = if dirtied? || transient?
-          Rosh::Command.new(method(__method__)) do
-            adapter.unwritten_contents
-          end
-        else
-          Rosh::Command.new(method(__method__), &adapter.method(:read).to_proc)
+                    Rosh::Command.new(method(__method__)) do
+                      adapter.unwritten_contents
+                    end
+                  else
+                    Rosh::Command.new(method(__method__), &adapter.method(:read).to_proc)
         end
 
         command.execute!
@@ -99,7 +98,7 @@ class Rosh
       def contents=(new_contents)
         echo_rosh_command new_contents
 
-        current_contents = self.contents
+        current_contents = contents
 
         command = Rosh::Command.new(method(__method__), new_contents) do
           adapter.unwritten_contents = new_contents
@@ -130,14 +129,14 @@ class Rosh
           &adapter.method(:copy).to_proc)
         command.change_if = proc do
           !the_copy.persisted? &&
-            the_copy.size != self.size &&
-            the_copy.contents != self.contents
+            the_copy.size != size &&
+            the_copy.contents != contents
         end
 
         command.did_change_succeed = proc do
           the_copy.persisted? &&
-            the_copy.size == self.size &&
-            the_copy.contents == self.contents
+            the_copy.size == size &&
+            the_copy.contents == contents
         end
 
         command.after_change = lambda do |result|
@@ -163,7 +162,7 @@ class Rosh
 
         command.did_change_succeed = proc do
           new_link.exists? && new_link.persisted? &&
-            new_link.contents == self.contents
+            new_link.contents == contents
         end
 
         command.after_change = lambda do
@@ -177,20 +176,20 @@ class Rosh
       # @param [Fixnum] length
       # @param [Fixnum] offset
       # @return [Rosh::Shell::PrivateCommandResult]
-      def read(length=nil, offset=nil)
+      def read(length = nil, offset = nil)
         echo_rosh_command length, offset
 
         Rosh._run_command(method(__method__), length, offset, &adapter.method(__method__).to_proc)
       end
 
       # @return [Array<String>]
-      def readlines(separator=$/)
+      def readlines(separator = $INPUT_RECORD_SEPARATOR)
         echo_rosh_command separator
 
         Rosh._run_command(method(__method__), separator, &adapter.method(__method__).to_proc)
       end
 
-      def each_line(separator=$/, &block)
+      def each_line(separator = $INPUT_RECORD_SEPARATOR, &block)
         echo_rosh_command separator
 
         Rosh._run_command(method(__method__), separator) do
@@ -201,7 +200,7 @@ class Rosh
       def save
         echo_rosh_command
 
-        previous_state = self.state
+        previous_state = state
         log "Previous state: #{previous_state}"
 
         command = Rosh::Command.new(method(__method__), &adapter.method(:save).to_proc)

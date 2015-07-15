@@ -6,7 +6,7 @@ RSpec.describe Rosh::FileSystem::ObjectAdapters::RemoteFile do
   end
 
   let(:path) { '/file' }
-  let(:shell) { double 'Rosh::Shell', :su? => false }
+  let(:shell) { double 'Rosh::Shell', su?: false }
   before { allow(subject).to receive(:current_shell) { shell } }
 
   describe '#contents' do
@@ -383,7 +383,7 @@ var: <%= var %>
         subject.should_receive(:changed)
         subject.should_receive(:notify_observers).
           with(subject, attribute: :contents, old: 'old contents',
-          new: 'new contents', as_sudo: false)
+                        new: 'new contents', as_sudo: false)
 
         subject.send(:upload_new_content)
       end

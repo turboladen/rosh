@@ -36,7 +36,7 @@ class Rosh
         require_relative "object_adapters/#{type}"
         klass =
           Rosh::FileSystem::ObjectAdapters.const_get(type.to_s.classify)
-        self.extend klass
+        extend klass
 
         klass
       end

@@ -2,7 +2,6 @@ require_relative 'base_methods'
 require_relative 'stat_methods'
 require_relative 'object_adapter'
 
-
 class Rosh
   class FileSystem
     class CharacterDevice
@@ -20,9 +19,9 @@ class Rosh
         return @adapter if @adapter
 
         type = if current_host.local?
-          :local_chardev
-        else
-          :remote_chardev
+                 :local_chardev
+               else
+                 :remote_chardev
         end
 
         @adapter = FileSystem::ObjectAdapter.new(@path, type, @host_name)

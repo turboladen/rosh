@@ -27,9 +27,9 @@ RSpec.describe Rosh::Host do
     it 'receives messages on "rosh.command_results"' do
       expect(subject).to receive(:log).with /hi/
 
-      expect {
+      expect do
         publisher.publish 'rosh.command_results', command_result
-      }.to change { subject.history.count }.by 1
+      end.to change { subject.history.count }.by 1
     end
   end
 

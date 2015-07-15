@@ -1,10 +1,8 @@
 require_relative 'local_base'
 
-
 class Rosh
   class FileSystem
     module ObjectAdapters
-
       # Represents a directory on the local file system.
       module LocalDir
         include LocalBase
