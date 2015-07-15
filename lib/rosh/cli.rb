@@ -11,7 +11,6 @@ require_relative 'logger'
 require_relative 'kernel_refinements'
 require_relative 'cli/completion'
 
-
 class Rosh
   class CLI
     include Rosh::Logger

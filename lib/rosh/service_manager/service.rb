@@ -2,7 +2,6 @@ require_relative '../changeable'
 require_relative '../observable'
 require_relative 'object_adapter'
 
-
 class Rosh
   class ServiceManager
     class ServiceNotFound < RuntimeError; end

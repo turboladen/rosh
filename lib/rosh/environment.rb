@@ -23,6 +23,8 @@ class Rosh
     # @param [String] host_name Name or IP of the host to add.
     # @param host_label Any object to refer to the Host as.  Allows for
     #   shortcuts to referring to the host_name.
+    # @param [Hash] ssh_options Any options supported by Net::SSH to use for
+    #   when adding a remote host.
     #
     # @example Add by host_name only
     #   Rosh.add_host 'super-duper-server.example.com', user: 'robby',
@@ -34,6 +36,7 @@ class Rosh
     #   Rosh.add_host 'super-duper-server.example.com', host_label: :super,
     #     user: 'robby', password: 'stuff'
     #   Rosh.hosts[:super'].name      # => 'super-duper-server.example.com'
+    # @return [Rosh::Host]
     def add_host(host_name, host_label: nil, **ssh_options)
       new_host = if host_label.nil?
                    @hosts[host_name] = Rosh::Host.new(host_name, ssh_options)
@@ -62,11 +65,11 @@ class Rosh
     #
     # @return [Rosh::Host::Shells::*]
     def current_shell
-      current_host.shell
+      @current_host.shell
     end
 
     def current_user
-      current_host.user
+      @current_host.user
     end
   end
 end

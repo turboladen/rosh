@@ -3,7 +3,6 @@ require_relative '../observable'
 require_relative 'user'
 require_relative 'group'
 
-
 class Rosh
   class UserManager
     class Object

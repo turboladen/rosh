@@ -3,7 +3,6 @@ require_relative '../observable'
 require_relative 'object_adapter'
 require_relative 'base'
 
-
 class Rosh
   class UserManager
     class UserNotFound < RuntimeError; end

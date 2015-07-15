@@ -4,7 +4,6 @@ require_relative 'observable'
 require_relative 'service_manager/service'
 require_relative 'service_manager/manager_adapter'
 
-
 class Rosh
   class ServiceManager
     include Rosh::Changeable

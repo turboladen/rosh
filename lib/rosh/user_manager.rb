@@ -6,7 +6,6 @@ require_relative 'user_manager/group'
 require_relative 'user_manager/user'
 require_relative 'user_manager/manager_adapter'
 
-
 class Rosh
   class UserManager
     include Rosh::Changeable

@@ -12,15 +12,41 @@ require_relative 'process_manager'
 require_relative 'user_manager'
 
 class Rosh
+  # Object that represents a computer that Rosh commands are sent to.
   class Host
     include Rosh::Logger
     include Host::Attributes
     include DramaQueen::Consumer
     include DramaQueen::Producer
 
+    # @param [String] host_name
+    # @return [Boolean]
+    def self.local?(host_name)
+      %W[localhost #{Socket.gethostname}].include? host_name
+    end
+
+    # @!attribute [r] name
+    #   The host name (aka hostname)
+    #   @return [String]
     attr_reader :name
+
+    # @!attribute [r] shell
+    #   The Rosh::Shell object that's used by this object for running
+    #   (some/many/most) commands.
+    #   @return [Rosh::Shell]
     attr_reader :shell
+
+    # @!attribute [r] user
+    #   The name of the user using the host.
+    #   @todo Should this really be on the Host?? or on the Shell? Seems like
+    #     the latter.
+    #   @todo If it stays here, should probably be a Rosh::User.
+    #   @return [String]
     attr_reader :user
+
+    # @!attribute [r] history
+    #   A list of commands executed on this Host.
+    #   @return [Array<Rosh::Command>]
     attr_reader :history
 
     # Set to +true+ to tell the command to check the
@@ -31,6 +57,8 @@ class Rosh
     # @!attribute [w] idempotent_mode
     attr_writer :idempotent_mode
 
+    # @param [String] host_name
+    # @param [Hash] ssh_options
     def initialize(host_name, **ssh_options)
       @name = host_name
       @user = ssh_options[:user] || Etc.getlogin
@@ -52,10 +80,11 @@ class Rosh
     #
     # @param [Rosh::Command] command
     def process_result(command)
-      log "#{self.class}:#{name} received command on queue: #{command}"
-      log "#{self.class}:#{name} Command name: #{command.method.name}"
-      log "#{self.class}:#{name} Command args: #{command.method_arguments}"
-      log "#{self.class}:#{name} Command result: #{command.result.ruby_object}"
+      prefix = "#{self.class}:#{name}"
+      log "#{prefix} received command on queue: #{command}"
+      log "#{prefix} Command name: #{command.method.name}"
+      log "#{prefix} Command args: #{command.method_arguments}"
+      log "#{prefix} Command result: #{command.result.ruby_object}"
       @history << command
     end
 
@@ -65,7 +94,9 @@ class Rosh
 
     def last_exception
       return nil if @history.empty?
-      exception = @history.reverse.find { |event| event[:result].kind_of? Exception }
+      exception = @history.reverse.find do |event|
+        event[:result].is_a? Exception
+      end
 
       exception[:output]
     end
@@ -170,13 +201,13 @@ class Rosh
 
     # @param [String] user
     # @param [Proc] block The code to execute in the sudo context.
-    def su(user=nil, &block)
+    def su(user = nil, &block)
       @shell.su(user, &block)
     end
 
     # @return [Boolean]
     def local?
-      %W[localhost #{Socket.gethostname}].include? @name
+      self.class.local?(@name)
     end
   end
 end
