@@ -2,8 +2,8 @@ class Rosh
   class CLI
     module Completion
 
-      def self.build(&block)
-        @commands, @hosts, @target = block.call
+      def self.build
+        @commands, @hosts, @target = yield
 
         self
       end
