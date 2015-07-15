@@ -4,16 +4,12 @@ require 'drama_queen/producer'
 require 'drama_queen/consumer'
 
 require_relative 'logger'
-require_relative 'shell'
 require_relative 'host/attributes'
 require_relative 'file_system'
 require_relative 'service_manager'
 require_relative 'package_manager'
 require_relative 'process_manager'
 require_relative 'user_manager'
-
-require_relative 'kernel_refinements'
-require_relative 'string_refinements'
 
 class Rosh
   class Host
@@ -184,3 +180,6 @@ class Rosh
     end
   end
 end
+
+require_relative '../ext/kernel_refinements'
+require_relative 'shell'

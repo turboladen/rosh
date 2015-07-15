@@ -1,9 +1,6 @@
 require 'simple_states'
 require_relative '../logger'
 
-require_relative '../string_refinements'
-
-
 class Rosh
   class FileSystem
     module StateMachine

@@ -1,6 +1,3 @@
-require_relative '../string_refinements'
-
-
 class Rosh
   class ServiceManager
     class ObjectAdapter

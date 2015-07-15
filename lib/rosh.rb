@@ -1,5 +1,5 @@
+require_relative 'ext/string_refinements'
 require_relative 'rosh/logger'
-require_relative 'rosh/host'
 require_relative 'rosh/internal_helpers'
 require_relative 'rosh/environment'
 
@@ -44,3 +44,5 @@ class Rosh
 
   include InternalHelpers
 end
+
+require_relative 'ext/kernel_refinements'

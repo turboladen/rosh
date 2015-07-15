@@ -1,13 +1,10 @@
-require_relative 'kernel_refinements'
 require_relative 'observable'
 require_relative 'observer'
 require_relative 'changeable'
 require_relative 'package_manager/package'
 require_relative 'package_manager/manager_adapter'
 
-
 class Rosh
-
   # The PackageManager is the entry point for managing packages and package
   # repositories.  Calling methods on the PackageManager object operates on
   # the package repository (i.e. apt), where treating the PackageManager

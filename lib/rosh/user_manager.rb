@@ -1,4 +1,3 @@
-require_relative 'kernel_refinements'
 require_relative 'changeable'
 require_relative 'observer'
 require_relative 'observable'

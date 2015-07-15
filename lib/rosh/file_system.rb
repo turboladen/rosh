@@ -2,7 +2,6 @@ require 'drama_queen/producer'
 require 'drama_queen/consumer'
 require 'simple_states'
 
-require_relative 'kernel_refinements'
 require_relative 'logger'
 require_relative 'command'
 require_relative 'file_system/block_device'

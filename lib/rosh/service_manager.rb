@@ -1,4 +1,3 @@
-require_relative 'kernel_refinements'
 require_relative 'changeable'
 require_relative 'observer'
 require_relative 'observable'
@@ -35,11 +34,9 @@ class Rosh
       return @adapter if @adapter
 
       type = case current_host.operating_system
-      when :darwin
-        :launch_ctl
-      when :linux
-        :init
-      end
+             when :darwin then :launch_ctl
+             when :linux then :init
+             end
 
       @adapter = ServiceManager::ManagerAdapter.new(type, @host_name)
     end

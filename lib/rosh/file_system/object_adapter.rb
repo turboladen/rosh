@@ -1,4 +1,3 @@
-require_relative '../string_refinements'
 require_relative '../logger'
 
 class Rosh

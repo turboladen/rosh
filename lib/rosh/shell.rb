@@ -1,7 +1,6 @@
 require 'shellwords'
 require 'highline/import'
 require_relative 'logger'
-require_relative 'kernel_refinements'
 require_relative 'shell/adapter'
 require_relative 'shell/commands'
 
