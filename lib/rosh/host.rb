@@ -71,7 +71,7 @@ class Rosh
     # @return [Boolean] Returns if commands are set to check the state of
     #   host objects to determine if the command needs to be run.
     def idempotent_mode?
-      !!@idempotent_mode
+      @idempotent_mode
     end
 
     # Receives Rosh::Shell::PrivateCommandResults on the 'rosh.command_results'

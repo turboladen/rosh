@@ -21,7 +21,6 @@ class Rosh
     attr_writer :did_change_succeed
     attr_writer :after_change
 
-    # @param [Method] command_method
     # def initialize(name, method, *method_arguments)
     def initialize(method, *method_arguments, &method_action)
       # @name = name

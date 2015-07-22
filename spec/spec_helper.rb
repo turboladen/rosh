@@ -107,10 +107,13 @@ RSpec.configure do |config|
     Regexp.compile(parts.join('[\\\/]') + '[\\\/]')
   end
 
-  config.include Rosh::FunctionalExampleGroup, type: :functional, example_group: {
+  config.raise_errors_for_deprecations!
+
+  config.include Rosh::FunctionalExampleGroup,
+    type: :functional,
     file_path: config.escaped_path(%w[spec functional])
-  }
-  config.include Rosh::UnitExampleGroup, type: :unit, example_group: {
+
+  config.include Rosh::UnitExampleGroup,
+    type: :unit,
     file_path: config.escaped_path(%w[spec unit])
-  }
 end

@@ -2,14 +2,8 @@ require 'rosh/host'
 
 RSpec.describe Rosh::Host do
   let(:name) { 'test' }
-
-  let(:publisher) do
-    Object.new.extend(DramaQueen::Producer)
-  end
-
-  subject do
-    Rosh::Host.new(name)
-  end
+  let(:publisher) { Object.new.extend(DramaQueen::Producer) }
+  subject { Rosh::Host.new(name) }
 
   describe '#initialize' do
     before do

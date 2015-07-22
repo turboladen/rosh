@@ -1,7 +1,7 @@
 require 'rosh/package_manager/object_adapters/brew'
 
 RSpec.describe Rosh::PackageManager::ObjectAdapters::Brew do
-  let(:shell) { double 'Rosh::Host::Shell', :su? => false }
+  let(:shell) { double 'Rosh::Host::Shell', su?: false }
   subject { Object.new.extend described_class }
 
   before do
@@ -35,13 +35,11 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
       end
 
       it 'parses each field and value to a Hash' do
-        expect(subject.info).to eq({
-          package: 'thing',
-          spec: 'stable',
-          version: '2.0.21, HEAD',
-          status: :installed,
-          homepage: 'http://www.monkey.org/~provos/libevent/'
-        })
+        expect(subject.info).to eq(package: 'thing',
+                                   spec: 'stable',
+                                   version: '2.0.21, HEAD',
+                                   status: :installed,
+                                   homepage: 'http://www.monkey.org/~provos/libevent/')
       end
     end
 
@@ -61,13 +59,11 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
       end
 
       it 'parses each field and value to a Hash' do
-        expect(subject.info).to eq({
-          package: 'thing',
-          spec: 'stable',
-          version: '2.0.21, HEAD',
-          status: :not_installed,
-          homepage: 'http://www.monkey.org/~provos/libevent/'
-        })
+        expect(subject.info).to eq(package: 'thing',
+                                   spec: 'stable',
+                                   version: '2.0.21, HEAD',
+                                   status: :not_installed,
+                                   homepage: 'http://www.monkey.org/~provos/libevent/')
       end
     end
   end
@@ -88,7 +84,7 @@ https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
       before do
         allow(shell).to receive(:last_exit_status) { 0 }
         expect(shell).to receive(:exec).with('/usr/local/bin/brew info thing') {
-          %[garmintools: stable 0.10
+          %(garmintools: stable 0.10
 http://code.google.com/p/garmintools/
 Not installed
 From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/garmintools.rb
@@ -306,7 +302,7 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
       it 'passes the version to the command' do
         expect(shell).to receive(:exec).with('/usr/local/bin/brew versions thing | grep 1.2.3').
           and_return version_output
-        expect(shell).to receive(:exec ).with('/usr/local/bin/brew --prefix') { '/usr/local' }
+        expect(shell).to receive(:exec).with('/usr/local/bin/brew --prefix') { '/usr/local' }
         expect(shell).to receive(:cd).with('/usr/local')
 
         expect(shell).to receive(:exec).with('git checkout 1234567 Library/Formula/thing.rb')

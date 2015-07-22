@@ -6,13 +6,14 @@ require_relative 'shell/commands'
 
 
 class Rosh
+  # Object that each Rosh::Host uses to execute commands.
   class Shell
     include Rosh::Logger
     include Rosh::Shell::Commands
 
     # @!attribute sudo
-    #   @return [Boolean] Set to enable/disable sudo mode.  Once enabled, all subsequent
-    #     commands will be run as sudo or until it is disabled.
+    #   @return [Boolean] Set to enable/disable sudo mode.  Once enabled, all
+    #     subsequent commands will be run as sudo or until it is disabled.
     attr_accessor :sudo
 
     # @return [Array<Hash>] the list of commands that the shell has executed
@@ -64,7 +65,7 @@ class Rosh
     # Run commands in the +block+ as sudo.
     #
     # @return Returns whatever the +block+ returns.
-    # @yields [Rosh::Host::Shells::*] the current Rosh shell.
+    # @yield [Rosh::Host::Shells::*] the current Rosh shell.
     def su(user = nil, &block)
       @sudo = true
       adapter.sudo = true
@@ -76,7 +77,7 @@ class Rosh
                   adapter.su_user_name = u.name
                   @internal_pwd = adapter.exec('pwd')[2].strip
                   u
-      end
+                end
 
       result = block.call(su_user)
 
@@ -152,7 +153,7 @@ class Rosh
                         Dir.pwd
                       else
                         @adapter.exec('pwd').string.strip
-      end
+                      end
 
       @adapter
     end
