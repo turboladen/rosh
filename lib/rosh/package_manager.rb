@@ -1,6 +1,3 @@
-require_relative 'observable'
-require_relative 'observer'
-require_relative 'changeable'
 require_relative 'package_manager/package'
 require_relative 'package_manager/manager_adapter'
 
@@ -19,10 +16,6 @@ class Rosh
   #   pm['curl'].install
   #
   class PackageManager
-    include Rosh::Changeable
-    include Rosh::Observer
-    include Rosh::Observable
-
     def initialize(host_name)
       @host_name = host_name
     end

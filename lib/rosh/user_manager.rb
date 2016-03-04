@@ -1,6 +1,3 @@
-require_relative 'changeable'
-require_relative 'observer'
-require_relative 'observable'
 require_relative 'user_manager/object'
 require_relative 'user_manager/group'
 require_relative 'user_manager/user'
@@ -8,10 +5,6 @@ require_relative 'user_manager/manager_adapter'
 
 class Rosh
   class UserManager
-    include Rosh::Changeable
-    include Rosh::Observer
-    include Rosh::Observable
-
     #     def self.create(name, host_name)
     #       object = new(host_name)
     #

@@ -1,5 +1,3 @@
-require_relative '../changeable'
-require_relative '../observable'
 require_relative 'base'
 
 class Rosh
@@ -7,8 +5,6 @@ class Rosh
     class GroupNotFound < RuntimeError; end
 
     class Group
-      include Rosh::Changeable
-      include Rosh::Observable
       include Base
 
       attr_reader :name

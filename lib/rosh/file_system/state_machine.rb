@@ -1,12 +1,10 @@
 require 'simple_states'
 require_relative '../logger'
+require_relative '../event'
 
 class Rosh
   class FileSystem
     module StateMachine
-      class Event < Struct.new(:event, :attribute, :cmd_result, :as_sudo, :changed_hash)
-      end
-
       def self.included(base)
         base.send :include, SimpleStates
         base.states :transient, :persisted, :dirtied
@@ -75,8 +73,11 @@ class Rosh
           end
         end
 
-        publish(object_topic, Event.new(*args))
+        publish(object_topic, Rosh::Event.new(*args))
       end
+    rescue ArgumentError
+      puts "arg1: #{event}"
+      raise
     end
   end
 end

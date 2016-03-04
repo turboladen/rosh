@@ -28,9 +28,9 @@ http://www.monkey.org/~provos/libevent/
 https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
 ==> Options
 --enable-manpages
-	Install the libevent manpages (requires doxygen)
+  Install the libevent manpages (requires doxygen)
 --universal
-	Build a universal binary
+  Build a universal binary
         OUTPUT
       end
 
@@ -52,9 +52,9 @@ Not installed
 https://github.com/mxcl/homebrew/commits/master/Library/Formula/libevent.rb
 ==> Options
 --enable-manpages
-	Install the libevent manpages (requires doxygen)
+  Install the libevent manpages (requires doxygen)
 --universal
-	Build a universal binary
+  Build a universal binary
         OUTPUT
       end
 
@@ -89,7 +89,7 @@ http://code.google.com/p/garmintools/
 Not installed
 From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/garmintools.rb
 ==> Dependencies
-Required: libusb-compat]
+Required: libusb-compat)
         }
       end
 
@@ -111,13 +111,13 @@ From: https://github.com/mxcl/homebrew/commits/master/Library/Formula/git.rb
 Optional: pcre, gettext
 ==> Options
 --with-blk-sha1
-	Compile with the block-optimized SHA1 implementation
+  Compile with the block-optimized SHA1 implementation
 --with-gettext
-	Build with gettext support
+  Build with gettext support
 --with-pcre
-	Build with pcre support
+  Build with pcre support
 --without-completions
-	Disable bash/zsh completions from "contrib" directory
+  Disable bash/zsh completions from "contrib" directory
 ==> Caveats
 The OS X keychain credential helper has been installed to:
   /usr/local/bin/git-credential-osxkeychain

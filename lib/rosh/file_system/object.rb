@@ -51,6 +51,12 @@ class Rosh
         require_relative 'symbolic_link'
         Rosh::FileSystem::SymbolicLink.new(@path, @host_name)
       end
+
+      private
+
+      def adapter
+        fail 'Hook me up'
+      end
     end
   end
 end

@@ -3,7 +3,7 @@ require_relative 'stat_methods'
 require_relative 'object_adapter'
 require_relative '../command'
 require_relative 'state_machine'
-
+require_relative '../host_methods'
 
 class Rosh
   class FileSystem
@@ -57,17 +57,13 @@ class Rosh
       include BaseMethods
       include StatMethods
       include StateMachine
+      include Rosh::HostMethods
 
       def initialize(path, host_name)
         @path = path
         @host_name = host_name
 
         self.state = exists? ? :persisted : :transient
-      end
-
-      # @return [Rosh::Host]
-      def host
-        Rosh.find_by_host_name(@host_name)
       end
 
       def updated(*args)

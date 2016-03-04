@@ -1,5 +1,3 @@
-require_relative '../changeable'
-require_relative '../observable'
 require_relative 'object_adapter'
 
 class Rosh
@@ -7,9 +5,6 @@ class Rosh
     class ServiceNotFound < RuntimeError; end
 
     class Service
-      include Rosh::Changeable
-      include Rosh::Observable
-
       def initialize(service_name, host_name)
         @service_name = service_name
         @host_name = host_name

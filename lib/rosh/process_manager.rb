@@ -1,15 +1,8 @@
-require_relative 'observable'
-require_relative 'observer'
-require_relative 'changeable'
 require_relative 'process_manager/process'
 require_relative 'process_manager/manager_adapter'
 
 class Rosh
   class ProcessManager
-    include Rosh::Changeable
-    include Rosh::Observer
-    include Rosh::Observable
-
     def initialize(host_name)
       @host_name = host_name
     end

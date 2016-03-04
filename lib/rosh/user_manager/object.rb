@@ -1,14 +1,9 @@
-require_relative '../changeable'
-require_relative '../observable'
 require_relative 'user'
 require_relative 'group'
 
 class Rosh
   class UserManager
     class Object
-      include Rosh::Changeable
-      include Rosh::Observable
-
       def initialize(object_name, host_name)
         @object_name = object_name
         @host_name = host_name

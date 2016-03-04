@@ -4,6 +4,7 @@ require 'simple_states'
 
 require_relative 'logger'
 require_relative 'command'
+require_relative 'event'
 require_relative 'file_system/block_device'
 require_relative 'file_system/character_device'
 require_relative 'file_system/directory'
@@ -78,7 +79,7 @@ class Rosh
     #
     # @param [Hash,String] path File system path to the object to build.
     # @return [Rosh::FileSystem::*]
-    # @raises [Rosh::FileSystem::UnknownObjectType] If given a key that does
+    # @raise [Rosh::FileSystem::UnknownObjectType] If given a key that does
     #   not map to an object type.
     def [](path)
       fs_object = if path.is_a? Hash
@@ -258,17 +259,30 @@ class Rosh
 
     # Returns the umask for the current user.
     #
-    # @param [String]
+    # @return [String]
     def umask
       adapter.umask
     end
 
     def umask=(new_umask)
-      old_umask = self.umask
+      old_umask = umask
 
-      change_if(old_umask != new_umask) do
-        notify_about(self, :umask, from: old_umask, to: new_umask) do
-          adapter.umask(new_umask)
+      #       change_if(old_umask != new_umask) do
+      #         notify_about(self, :umask, from: old_umask, to: new_umask) do
+      #           adapter.umask(new_umask)
+      #         end
+      #       end
+      run_idempotent_command(old_umask != new_umask) do
+        result = adapter.umask(new_umask)
+
+        if result.exit_status.zero?
+          Rosh::Event.new(:ummm,
+            :umask,
+            current_host.last_result,
+            current_shell.su?,
+            old: old_umask, new: umask
+                         )
+          publish 'rosh.file_system', result
         end
       end
     end

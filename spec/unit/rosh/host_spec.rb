@@ -15,15 +15,22 @@ RSpec.describe Rosh::Host do
 
   describe '#process_result' do
     let(:command_result) do
-      double 'Rosh::Shell::PrivateCommandResult', string: 'hi'
+      result = double 'Result', ruby_object: 'meow'
+
+      instance_double 'Rosh::Shell::PrivateCommandResult',
+        string: 'hi'
+        # string: 'hi',
+        # method_arguments: [],
+        # result: result
     end
 
     it 'receives messages on "rosh.command_results"' do
-      expect(subject).to receive(:log).with /hi/
+      Rosh::Logger.logging_enabled = true
+      allow(subject).to receive(:log)
 
       expect do
-        publisher.publish 'rosh.command_results', command_result
-      end.to change { subject.history.count }.by 1
+        publisher.publish 'rosh.commands.test', command_result
+      end.to change { subject.history.size }.by 1
     end
   end
 
@@ -46,7 +53,8 @@ RSpec.describe Rosh::Host do
   describe '#packages' do
     it 'subscribes to "rosh.package_manager"' do
       allow(Rosh::PackageManager).to receive(:new)
-      expect(subject).to receive(:subscribe).with('rosh.package_manager', :update)
+      expect(subject).to receive(:subscribe).
+        with('rosh.package_manager', :update)
       subject.packages
     end
   end
@@ -54,7 +62,8 @@ RSpec.describe Rosh::Host do
   describe '#processes' do
     it 'subscribes to "rosh.process_manager"' do
       allow(Rosh::ProcessManager).to receive(:new)
-      expect(subject).to receive(:subscribe).with('rosh.process_manager', :update)
+      expect(subject).to receive(:subscribe).
+        with('rosh.process_manager', :update)
       subject.processes
     end
   end
@@ -62,7 +71,8 @@ RSpec.describe Rosh::Host do
   describe '#services' do
     it 'subscribes to "rosh.service_manager"' do
       allow(Rosh::ServiceManager).to receive(:new)
-      expect(subject).to receive(:subscribe).with('rosh.service_manager', :update)
+      expect(subject).to receive(:subscribe).
+        with('rosh.service_manager', :update)
       subject.services
     end
   end

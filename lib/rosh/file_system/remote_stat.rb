@@ -1,6 +1,10 @@
+require_relative '../host_methods'
+
 class Rosh
   class FileSystem
     class RemoteStat
+      extend Rosh::HostMethods
+      include Rosh::HostMethods
 
       LINUX_CMD = 'stat -L -c ' +
                   %('dev: %D ino: %i mode: %f nlink: %h uid: %u gid: %g rdev: %t ) +
@@ -207,12 +211,11 @@ class Rosh
       #------------------------------------------------------------------------
       # Class Privates
       #------------------------------------------------------------------------
+
       private
 
-      def self.run(host_name, &block)
-        host = Rosh.find_by_host_name(host_name)
-
-        yield host
+      def self.run(host_name, &_block)
+        yield host(host_name)
       end
 
       #------------------------------------------------------------------------
@@ -227,10 +230,6 @@ class Rosh
       def initialize(result, host_name)
         @host_name = host_name
         parse_result(result)
-      end
-
-      def host
-        Rosh.find_by_host_name(@host_name)
       end
 
       #------------------------------------------------------------------------

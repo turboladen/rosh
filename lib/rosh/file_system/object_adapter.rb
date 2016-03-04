@@ -1,20 +1,17 @@
 require_relative '../logger'
+require_relative '../host_methods'
 
 class Rosh
   class FileSystem
     class ObjectAdapter
       include Rosh::Logger
+      include Rosh::HostMethods
 
       def initialize(path, type, host_name)
         @path = path
         @host_name = host_name
 
         @adapter_class = load_adapter(type)
-      end
-
-      # @return [Rosh::Host]
-      def host
-        Rosh.find_by_host_name(@host_name)
       end
 
       def path=(new_path)

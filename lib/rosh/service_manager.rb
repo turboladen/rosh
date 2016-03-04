@@ -1,15 +1,8 @@
-require_relative 'changeable'
-require_relative 'observer'
-require_relative 'observable'
 require_relative 'service_manager/service'
 require_relative 'service_manager/manager_adapter'
 
 class Rosh
   class ServiceManager
-    include Rosh::Changeable
-    include Rosh::Observer
-    include Rosh::Observable
-
     def initialize(host_name)
       @host_name = host_name
     end

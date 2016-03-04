@@ -1,5 +1,3 @@
-require_relative '../changeable'
-require_relative '../observable'
 require_relative 'object_adapter'
 
 class Rosh
@@ -7,10 +5,6 @@ class Rosh
     class ProcessNotFound < RuntimeError; end
 
     class Process
-      include Rosh::Changeable
-      include Rosh::Observable
-
-
       attr_reader :pid
       attr_accessor :struct
 

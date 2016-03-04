@@ -19,6 +19,24 @@ class Rosh
     include DramaQueen::Consumer
     include DramaQueen::Producer
 
+    DISTRIBUTION_METHODS = %i[distribution distribution_version]
+
+    DISTRIBUTION_METHODS.each do |meth|
+      define_method(meth) do
+        distro, version = case operating_system
+                          when :linux
+                            extract_linux_distribution
+                          when :darwin
+                            extract_darwin_distribution
+                          end
+
+        @distribution = distro
+        @distribution_version = version.strip
+
+        instance_variable_get("@#{meth}".to_sym)
+      end
+    end
+
     # @param [String] host_name
     # @return [Boolean]
     def self.local?(host_name)
@@ -63,9 +81,22 @@ class Rosh
       @name = host_name
       @user = ssh_options[:user] || Etc.getlogin
       @shell = Rosh::Shell.new(@name, ssh_options)
+
       @idempotent_mode = false
       @history = []
-      subscribe "rosh.commands.#{host_name}", :process_result
+      @kernel_version = nil
+      @architecture = nil
+
+      @distribution = nil
+      @distribution_version = nil
+
+      @remote_shell_type = nil
+      log "Subscribing to #{commands_queue}..."
+      subscribe commands_queue, :process_result
+    end
+
+    def commands_queue
+      "rosh.commands.#{@name}"
     end
 
     # @return [Boolean] Returns if commands are set to check the state of
@@ -81,11 +112,12 @@ class Rosh
     # @param [Rosh::Command] command
     def process_result(command)
       prefix = "#{self.class}:#{name}"
-      log "#{prefix} received command on queue: #{command}"
-      log "#{prefix} Command name: #{command.method.name}"
-      log "#{prefix} Command args: #{command.method_arguments}"
-      log "#{prefix} Command result: #{command.result.ruby_object}"
-      @history << command
+      puts "command class: #{command.class}"
+      # log "#{prefix} received command on queue: #{command}"
+      # log "#{prefix} Command name: #{command.method.name}"
+      # log "#{prefix} Command args: #{command.method_arguments}"
+      # log "#{prefix} Command result: #{command.result.ruby_object}"
+      history << command
     end
 
     def update
@@ -208,6 +240,118 @@ class Rosh
     # @return [Boolean]
     def local?
       self.class.local?(@name)
+    end
+
+    # @return [Symbol]
+    def operating_system
+      return @operating_system if @operating_system
+
+      command = 'uname -a'
+      result = @shell.exec(command)
+      extract_os(result)
+
+      @operating_system
+    end
+
+    # @return [String]
+    def kernel_version
+      command = 'uname -a'
+      result = @shell.exec(command)
+      extract_os(result)
+
+      @kernel_version
+    end
+
+    # @return [Symbol]
+    def architecture
+      return @architecture if @architecture
+
+      command = 'uname -a'
+      result = @shell.exec(command)
+      extract_os(result)
+
+      @architecture
+    end
+
+    # The name of the remote shell for the user on host_name that initiated the
+    # Rosh::SSH connection for the host.
+    #
+    # @return [String] The shell type.
+    def remote_shell_type
+      command = 'echo $SHELL'
+      result = @shell.exec(command)
+      stdout = result.stdout
+      log "STDOUT: #{stdout}"
+      /(?<shell>[a-z]+)$/ =~ stdout
+
+      shell.to_sym
+    end
+
+    def darwin?
+      operating_system == :darwin
+    end
+
+    def linux?
+      operating_system == :linux
+    end
+
+    #---------------------------------------------------------------------------
+    # Privates
+    #---------------------------------------------------------------------------
+
+    private
+
+    # Extracts info about the operating system based on uname info.
+    #
+    # @param [Rosh::CommandResult] result The result of the `uname -a`
+    #   command.
+    def extract_os(result)
+      log "STDOUT: #{result}"
+
+      /^(?<os>[a-zA-Z]+) (?<uname>[^\n]*)/ =~ result.strip
+      @operating_system = os.to_safe_down_sym
+
+      case @operating_system
+      when :darwin
+        /Kernel Version (?<version>\d\d\.\d\d?\.\d\d?).*RELEASE_(?<arch>\S+)/ =~ uname
+      when :linux
+        /\S+\s+(?<version>\S+).*\s(?<arch>(x86_64|i386|i586|i686)).*$/ =~ uname
+      when :freebsd
+        /\S+\s+(?<version>\S+).*\s(?<arch>\S+)\s*$/ =~ uname
+      end
+
+      @kernel_version = version
+      @architecture = arch.downcase.to_sym
+    end
+
+    # Extracts info about the distribution.
+    def extract_linux_distribution
+      distro, version = catch(:distro_info) do
+        stdout = @shell.exec('lsb_release --description')
+        /Description:\s+(?<distro>\w+)\s+(?<version>[^\n]+)/ =~ stdout
+        throw(:distro_info, [distro, version]) if distro && version
+
+        stdout = @shell.exec('cat /etc/redhat-release')
+        /(?<distro>\w+)\s+release\s+(?<version>[^\n]+)/ =~ stdout
+        throw(:distro_info, [distro, version]) if distro && version
+
+        stdout = @shell.exec('cat /etc/slackware-release')
+        /(?<distro>\w+)\s+release\s+(?<version>[^\n]+)/ =~ stdout
+        throw(:distro_info, [distro, version]) if distro && version
+
+        stdout = @shell.exec('cat /etc/gentoo-release')
+        /(?<distro>\S+).+release\s+(?<version>[^\n]+)/ =~ stdout
+        throw(:distro_info, [distro, version]) if distro && version
+      end
+
+      [distro.to_safe_down_sym, version]
+    end
+
+    def extract_darwin_distribution
+      stdout = @shell.exec 'sw_vers'
+      /ProductName:\s+(?<distro>[^\n]+)\s*ProductVersion:\s+(?<version>\S+)/m =~ stdout
+
+      [distro.to_safe_down_sym, version]
     end
   end
 end

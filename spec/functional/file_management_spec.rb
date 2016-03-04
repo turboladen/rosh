@@ -7,13 +7,13 @@ RSpec.shared_examples_for 'a file manager' do
     expect(host.fs.home.directory?).to eq true
   end
 
-  it 'can list files in a directory' do
-    dir = host.fs['/etc']
+  # it 'can list files in a directory' do
+  #   dir = host.fs['/etc']
 
-    dir.list do |obj|
-      expect(obj.class.name).to match /Rosh::FileSystem/
-    end
-  end
+  #   dir.list do |obj|
+  #     expect(obj.class.name).to match(/Rosh::FileSystem/)
+  #   end
+  # end
 
   describe 'files' do
     it 'can create and delete a file' do
@@ -91,17 +91,17 @@ RSpec.describe 'File Management' do
   let(:symlink) { '/tmp/rosh_test_symlink' }
   let(:home_directory) { '/home/vagrant' }
 
-  context 'centos' do
-    it_behaves_like 'a file manager' do
-      let(:host) { Rosh.hosts[:centos_57_64] }
-    end
-  end
+  # context 'centos' do
+  #   it_behaves_like 'a file manager' do
+  #     let(:host) { Rosh.hosts[:centos_57_64] }
+  #   end
+  # end
 
-  context 'debian' do
-    it_behaves_like 'a file manager' do
-      let(:host) { Rosh.hosts[:debian_squeeze_32] }
-    end
-  end
+  # context 'debian' do
+  #   it_behaves_like 'a file manager' do
+  #     let(:host) { Rosh.hosts[:debian_squeeze_32] }
+  #   end
+  # end
 
   context 'localhost' do
     it_behaves_like 'a file manager' do

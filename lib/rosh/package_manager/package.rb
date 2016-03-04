@@ -1,5 +1,3 @@
-require_relative '../changeable'
-require_relative '../observable'
 require_relative 'object_adapter'
 
 class Rosh
@@ -7,9 +5,6 @@ class Rosh
     class PackageNotFound < RuntimeError; end
 
     class Package
-      include Rosh::Changeable
-      include Rosh::Observable
-
       attr_reader :name
       # @!attribute [r] name
       #   Name of the OS package this represents.

@@ -3,13 +3,14 @@ require 'highline/import'
 require_relative 'logger'
 require_relative 'shell/adapter'
 require_relative 'shell/commands'
-
+require_relative 'host_methods'
 
 class Rosh
   # Object that each Rosh::Host uses to execute commands.
   class Shell
     include Rosh::Logger
     include Rosh::Shell::Commands
+    include Rosh::HostMethods
 
     # @!attribute sudo
     #   @return [Boolean] Set to enable/disable sudo mode.  Once enabled, all
@@ -29,11 +30,6 @@ class Rosh
       @workspace = nil
     end
 
-    # @return [Rosh::Host]
-    def host
-      Rosh.find_by_host_name(@host_name)
-    end
-
     # @param [Integer] status Exit status code.
     def exit(status = 0)
       echo_rosh_command status
@@ -43,8 +39,11 @@ class Rosh
 
     # @return [Exception] the last exception that was raised.
     def last_exception
-      return nil if @history.empty?
-      exception = @history.reverse.find { |result| result[:output].is_a? Exception }
+      return if @history.empty?
+
+      exception = @history.reverse.find do |result|
+        result[:output].is_a? Exception
+      end
 
       exception[:output]
     end

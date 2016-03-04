@@ -4,7 +4,7 @@ RSpec.describe Rosh::FileSystem do
   subject(:file_system) { Rosh::FileSystem.new('test_host') }
 
   let(:current_host) do
-    double 'Host', local?: true
+    instance_double 'Rosh::Host', local?: true
   end
 
   let(:fs_object) { double 'FileSystem::FakeObject' }
@@ -19,7 +19,7 @@ RSpec.describe Rosh::FileSystem do
     it 'adds itself as an observer of the new object' do
       filename = 'the file'
       allow(file_system).to receive(:file).with(filename) { fs_object }
-      expect(fs_object).to receive(:add_observer)
+      expect(subject).to receive(:subscribe).with(fs_object, :update)
 
       file_system[file: filename]
     end
@@ -54,11 +54,11 @@ RSpec.describe Rosh::FileSystem do
       end
 
       context 'some other hash key' do
-        it 'raises a UnknownResourceType exception' do
+        it 'raises a UnknownObjectType exception' do
           expect { file_system[meow: 'stuff'] }.
-            to raise_error(Rosh::FileSystem::UnknownResourceType,
-            "Resource type 'meow' does not exist."
-          )
+            to raise_error(Rosh::FileSystem::UnknownObjectType,
+              "Resource type 'meow' does not exist."
+                          )
         end
       end
     end
@@ -83,9 +83,8 @@ RSpec.describe Rosh::FileSystem do
       before { allow(file_system).to receive(:file?) { true } }
 
       it 'calls #file with the path' do
-        expect(file_system).to receive(:file).with(filename).and_call_original
-        file = file_system.build filename
-        expect(file).to be_a Rosh::FileSystem::File
+        expect(file_system).to receive(:file).with(filename)
+        file_system.build filename
       end
     end
 
@@ -96,9 +95,8 @@ RSpec.describe Rosh::FileSystem do
       end
 
       it 'calls #directory with the path' do
-        expect(file_system).to receive(:directory).with(filename).and_call_original
-        dir = file_system.build filename
-        expect(dir).to be_a Rosh::FileSystem::Directory
+        expect(file_system).to receive(:directory).with(filename)
+        file_system.build filename
       end
     end
 
@@ -110,9 +108,8 @@ RSpec.describe Rosh::FileSystem do
       end
 
       it 'calls #symbolic_link with the path' do
-        expect(file_system).to receive(:symbolic_link).with(filename).and_call_original
-        symlink = file_system.build filename
-        expect(symlink).to be_a Rosh::FileSystem::SymbolicLink
+        expect(file_system).to receive(:symbolic_link).with(filename)
+        file_system.build filename
       end
     end
 
@@ -125,9 +122,8 @@ RSpec.describe Rosh::FileSystem do
       end
 
       it 'calls #character_device with the path' do
-        expect(file_system).to receive(:character_device).with(filename).and_call_original
-        chardev = file_system.build filename
-        expect(chardev).to be_a Rosh::FileSystem::CharacterDevice
+        expect(file_system).to receive(:character_device).with(filename)
+        file_system.build filename
       end
     end
 
@@ -141,9 +137,8 @@ RSpec.describe Rosh::FileSystem do
       end
 
       it 'calls #block_device with the path' do
-        expect(file_system).to receive(:block_device).with(filename).and_call_original
-        blockdev = file_system.build filename
-        expect(blockdev).to be_a Rosh::FileSystem::BlockDevice
+        expect(file_system).to receive(:block_device).with(filename)
+        file_system.build filename
       end
     end
 
@@ -157,9 +152,8 @@ RSpec.describe Rosh::FileSystem do
       end
 
       it 'creates a FileSystem::Object' do
-        expect(file_system).to receive(:object).with(filename).and_call_original
-        obj = file_system.build filename
-        expect(obj).to be_a Rosh::FileSystem::Object
+        expect(file_system).to receive(:object).with(filename)
+        file_system.build filename
       end
     end
   end
@@ -175,7 +169,7 @@ RSpec.describe Rosh::FileSystem do
         expect(watched_object).to_not receive(:changed)
         expect(watched_object).to_not receive(:notify_observers)
 
-        subject.chroot(new_root, watched_object)
+        subject.chroot(new_root)
       end
     end
 
@@ -191,42 +185,22 @@ RSpec.describe Rosh::FileSystem do
           old: 'the root', new: new_root, as_sudo: false
         )
 
-        subject.chroot(new_root, watched_object)
+        subject.chroot(new_root)
       end
     end
   end
 
-  describe '#umask' do
+  describe '#umask=' do
     before do
-      expect(fake_adapter).to receive(:umask) { 12 }
+      allow(subject).to receive(:adapter) { fake_adapter }
     end
 
-    context 'new umask param is same as existing umask' do
-      it 'delegates to the adapter and does not notify observers' do
-        new_umask = 12
+    it 'runs idempotently and delegates to the adapter' do
+      expect(subject).to receive(:umask) { 12 }
+      expect(subject).to receive(:run_idempotent_command).and_yield
+      expect(fake_adapter).to receive(:umask).with 12
 
-        expect(fake_adapter).to receive(:umask).with new_umask
-        expect(watched_object).to_not receive(:changed)
-        expect(watched_object).to_not receive(:notify_observers)
-
-        subject.umask(new_umask, watched_object)
-      end
-    end
-
-    context 'new umask param is different from existing umask' do
-      it 'delegates to the adapter and notifies observers' do
-        new_umask = 123
-
-        expect(fake_adapter).to receive(:umask).with new_umask
-        expect(watched_object).to receive(:changed)
-        expect(watched_object).to receive(:notify_observers).with(
-          watched_object,
-          attribute: :umask,
-          old: 12, new: new_umask, as_sudo: false
-        )
-
-        subject.umask(new_umask, watched_object)
-      end
+      subject.umask = 12
     end
   end
 end

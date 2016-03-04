@@ -6,6 +6,10 @@ RSpec.describe Rosh::Shell::Adapters::Local do
     Object.new.extend(described_class)
   end
 
+  before do
+    allow(shell).to receive(:bad_info)
+  end
+
   describe '#cd' do
     before do
       MemFs.activate!

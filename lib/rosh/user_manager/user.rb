@@ -1,5 +1,3 @@
-require_relative '../changeable'
-require_relative '../observable'
 require_relative 'object_adapter'
 require_relative 'base'
 
@@ -8,8 +6,6 @@ class Rosh
     class UserNotFound < RuntimeError; end
 
     class User
-      include Rosh::Changeable
-      include Rosh::Observable
       include Base
 
       attr_reader :name
